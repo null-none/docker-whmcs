@@ -15,50 +15,6 @@ class ApiCallMonitoringMiddleware extends AbstractMonitoringMiddleware
 {
 
     /**
-     * Api Call Attempt event keys for each Api Call event key
-     *
-     * @var array
-     */
-    private static $eventKeys = [
-        'FinalAwsException' => 'AwsException',
-        'FinalAwsExceptionMessage' => 'AwsExceptionMessage',
-        'FinalSdkException' => 'SdkException',
-        'FinalSdkExceptionMessage' => 'SdkExceptionMessage',
-        'FinalHttpStatusCode' => 'HttpStatusCode',
-    ];
-
-    /**
-     * Standard middleware wrapper function with CSM options passed in.
-     *
-     * @param callable $credentialProvider
-     * @param mixed  $options
-     * @param string $region
-     * @param string $service
-     * @return callable
-     */
-    public static function wrap(
-        callable $credentialProvider,
-        $options,
-        $region,
-        $service
-    ) {
-        return function (callable $handler) use (
-            $credentialProvider,
-            $options,
-            $region,
-            $service
-        ) {
-            return new static(
-                $handler,
-                $credentialProvider,
-                $options,
-                $region,
-                $service
-            );
-        };
-    }
-
-    /**
      * {@inheritdoc}
      */
     public static function getRequestData(RequestInterface $request)
@@ -72,20 +28,18 @@ class ApiCallMonitoringMiddleware extends AbstractMonitoringMiddleware
     public static function getResponseData($klass)
     {
         if ($klass instanceof ResultInterface) {
-            $data = [
+            return [
                 'AttemptCount' => self::getResultAttemptCount($klass),
-                'MaxRetriesExceeded' => 0,
             ];
-        } elseif ($klass instanceof \Exception) {
-            $data = [
-                'AttemptCount' => self::getExceptionAttemptCount($klass),
-                'MaxRetriesExceeded' => self::getMaxRetriesExceeded($klass),
-            ];
-        } else {
-            throw new \InvalidArgumentException('Parameter must be an instance of ResultInterface or Exception.');
         }
 
-        return $data + self::getFinalAttemptData($klass);
+        if ($klass instanceof \Exception) {
+            return [
+                'AttemptCount' => self::getExceptionAttemptCount($klass),
+            ];
+        }
+
+        throw new \InvalidArgumentException('Parameter must be an instance of ResultInterface or Exception.');
     }
 
     private static function getResultAttemptCount(ResultInterface $result) {
@@ -107,46 +61,6 @@ class ApiCallMonitoringMiddleware extends AbstractMonitoringMiddleware
 
         }
         return $attemptCount;
-    }
-
-    private static function getFinalAttemptData($klass)
-    {
-        $data = [];
-        if ($klass instanceof MonitoringEventsInterface) {
-            $finalAttempt = self::getFinalAttempt($klass->getMonitoringEvents());
-
-            if (!empty($finalAttempt)) {
-                foreach (self::$eventKeys as $callKey => $attemptKey) {
-                    if (isset($finalAttempt[$attemptKey])) {
-                        $data[$callKey] = $finalAttempt[$attemptKey];
-                    }
-                }
-            }
-        }
-
-        return $data;
-    }
-
-    private static function getFinalAttempt(array $events)
-    {
-        for (end($events); key($events) !== null; prev($events)) {
-            $current = current($events);
-            if (isset($current['Type'])
-                && $current['Type'] === 'ApiCallAttempt'
-            ) {
-                return $current;
-            }
-        }
-
-        return null;
-    }
-
-    private static function getMaxRetriesExceeded($klass)
-    {
-        if ($klass instanceof AwsException && $klass->isMaxRetriesExceeded()) {
-            return 1;
-        }
-        return 0;
     }
 
     /**
@@ -171,6 +85,7 @@ class ApiCallMonitoringMiddleware extends AbstractMonitoringMiddleware
     ) {
         $event = parent::populateResultEventData($result, $event);
         $event['Latency'] = (int) (floor(microtime(true) * 1000) - $event['Timestamp']);
+        unset($event['Region']);
         return $event;
     }
 }

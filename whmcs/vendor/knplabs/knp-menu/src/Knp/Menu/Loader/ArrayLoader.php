@@ -19,18 +19,18 @@ class ArrayLoader implements LoaderInterface
         $this->factory = $factory;
     }
 
-    public function load($data): ItemInterface
+    public function load($data)
     {
         if (!$this->supports($data)) {
-            throw new \InvalidArgumentException(\sprintf('Unsupported data. Expected an array but got %s', \is_object($data) ? \get_class($data) : \gettype($data)));
+            throw new \InvalidArgumentException(sprintf('Unsupported data. Expected an array but got ', is_object($data) ? get_class($data) : gettype($data)));
         }
 
         return $this->fromArray($data);
     }
 
-    public function supports($data): bool
+    public function supports($data)
     {
-        return \is_array($data);
+        return is_array($data);
     }
 
     /**
@@ -39,7 +39,7 @@ class ArrayLoader implements LoaderInterface
      *
      * @return ItemInterface
      */
-    private function fromArray(array $data, ?string $name = null): ItemInterface
+    private function fromArray(array $data, $name = null)
     {
         $name = isset($data['name']) ? $data['name'] : $name;
 
@@ -47,7 +47,7 @@ class ArrayLoader implements LoaderInterface
             $children = $data['children'];
             unset($data['children']);
         } else {
-            $children = [];
+            $children = array();
         }
 
         $item = $this->factory->createItem($name, $data);

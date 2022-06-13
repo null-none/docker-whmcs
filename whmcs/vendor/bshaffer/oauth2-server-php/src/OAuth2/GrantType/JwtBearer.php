@@ -30,12 +30,10 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Creates an instance of the JWT bearer grant type.
      *
-     * @param JwtBearerInterface      $storage  - A valid storage interface that implements storage hooks for the JWT
-     *                                            bearer grant type.
-     * @param string                  $audience - The audience to validate the token against. This is usually the full
-     *                                            URI of the OAuth token requests endpoint.
-     * @param EncryptionInterface|JWT $jwtUtil  - OPTONAL The class used to decode, encode and verify JWTs.
-     * @param array                   $config
+     * @param OAuth2\Storage\JWTBearerInterface|JwtBearerInterface $storage A valid storage interface that implements storage hooks for the JWT bearer grant type.
+     * @param string $audience The audience to validate the token against. This is usually the full URI of the OAuth token requests endpoint.
+     * @param EncryptionInterface|OAuth2\Encryption\JWT $jwtUtil OPTONAL The class used to decode, encode and verify JWTs.
+     * @param array $config
      */
     public function __construct(JwtBearerInterface $storage, $audience, EncryptionInterface $jwtUtil = null, array $config = array())
     {
@@ -58,11 +56,12 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Returns the grant_type get parameter to identify the grant type request as JWT bearer authorization grant.
      *
-     * @return string - The string identifier for grant_type.
+     * @return
+     * The string identifier for grant_type.
      *
-     * @see GrantTypeInterface::getQueryStringIdentifier()
+     * @see OAuth2\GrantType\GrantTypeInterface::getQuerystringIdentifier()
      */
-    public function getQueryStringIdentifier()
+    public function getQuerystringIdentifier()
     {
         return 'urn:ietf:params:oauth:grant-type:jwt-bearer';
     }
@@ -70,9 +69,10 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
     /**
      * Validates the data from the decoded JWT.
      *
-     * @param RequestInterface  $request
-     * @param ResponseInterface $response
-     * @return bool|mixed|null TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.@see GrantTypeInterface::getTokenData()
+     * @return
+     * TRUE if the JWT request is valid and can be decoded. Otherwise, FALSE is returned.
+     *
+     * @see OAuth2\GrantType\GrantTypeInterface::getTokenData()
      */
     public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
@@ -196,31 +196,16 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
         return true;
     }
 
-    /**
-     * Get client id
-     *
-     * @return mixed
-     */
     public function getClientId()
     {
         return $this->jwt['iss'];
     }
 
-    /**
-     * Get user id
-     *
-     * @return mixed
-     */
     public function getUserId()
     {
         return $this->jwt['sub'];
     }
 
-    /**
-     * Get scope
-     *
-     * @return null
-     */
     public function getScope()
     {
         return null;
@@ -230,13 +215,7 @@ class JwtBearer implements GrantTypeInterface, ClientAssertionTypeInterface
      * Creates an access token that is NOT associated with a refresh token.
      * If a subject (sub) the name of the user/account we are accessing data on behalf of.
      *
-     * @see GrantTypeInterface::createAccessToken()
-     *
-     * @param AccessTokenInterface $accessToken
-     * @param mixed                $client_id   - client identifier related to the access token.
-     * @param mixed                $user_id     - user id associated with the access token
-     * @param string               $scope       - scopes to be stored in space-separated string.
-     * @return array
+     * @see OAuth2\GrantType\GrantTypeInterface::createAccessToken()
      */
     public function createAccessToken(AccessTokenInterface $accessToken, $client_id, $user_id, $scope)
     {

@@ -14,22 +14,22 @@ interface MatcherInterface
      *
      * @param ItemInterface $item
      *
-     * @return bool
+     * @return boolean
      */
-    public function isCurrent(ItemInterface $item): bool;
+    public function isCurrent(ItemInterface $item);
 
     /**
      * Checks whether an item is the ancestor of a current item.
      *
      * @param ItemInterface $item
-     * @param int|null      $depth The max depth to look for the item
+     * @param integer       $depth The max depth to look for the item
      *
-     * @return bool
+     * @return boolean
      */
-    public function isAncestor(ItemInterface $item, ?int $depth = null): bool;
+    public function isAncestor(ItemInterface $item, $depth = null);
 
     /**
      * Clears the state of the matcher.
      */
-    public function clear(): void;
+    public function clear();
 }

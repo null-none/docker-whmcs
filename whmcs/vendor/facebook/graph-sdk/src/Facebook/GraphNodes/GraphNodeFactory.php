@@ -304,9 +304,7 @@ class GraphNodeFactory
                 return $this->safelyMakeGraphEdge($data, $subclassName, $parentKey, $parentNodeId);
             }
             // Sometimes Graph is a weirdo and returns a GraphNode under the "data" key
-            $outerData = $data;
-            unset($outerData['data']);
-            $data = $data['data'] + $outerData;
+            $data = $data['data'];
         }
 
         // Create GraphNode

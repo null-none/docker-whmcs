@@ -121,19 +121,15 @@ class Summary
     public function argument(Argument $argument)
     {
         $summary     = $this->prefixedArguments($argument);
-        $printedName = mb_strstr($summary, ' ' . $argument->name());
+        $printedName = strstr($summary, ' ' . $argument->name());
 
         // Print the argument name if it's not printed yet.
         if (!$printedName && !$argument->noValue()) {
             $summary .= $argument->name();
         }
 
-        if ($defaults = $argument->defaultValue()) {
-            if (count($defaults) == 1) {
-                $summary .= " (default: {$defaults[0]})";
-            } else {
-                $summary .= ' (defaults: ' . implode(', ', $defaults) . ')';
-            }
+        if ($argument->defaultValue()) {
+            $summary .= " (default: {$argument->defaultValue()})";
         }
 
         return $summary;
@@ -173,7 +169,7 @@ class Summary
             return;
         }
 
-        $this->climate->br()->out(mb_convert_case($type, MB_CASE_TITLE) . ' Arguments:');
+        $this->climate->br()->out(ucwords($type) . ' Arguments:');
 
         foreach ($arguments as $argument) {
             $this->climate->tab()->out($this->argument($argument));

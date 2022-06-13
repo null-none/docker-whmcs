@@ -23,7 +23,12 @@ final class ConsoleEvents
      * executed by the console. It also allows you to modify the command, input and output
      * before they are handled to the command.
      *
-     * @Event("Symfony\Component\Console\Event\ConsoleCommandEvent")
+     * The event listener method receives a Symfony\Component\Console\Event\ConsoleCommandEvent
+     * instance.
+     *
+     * @Event
+     *
+     * @var string
      */
     const COMMAND = 'console.command';
 
@@ -31,17 +36,26 @@ final class ConsoleEvents
      * The TERMINATE event allows you to attach listeners after a command is
      * executed by the console.
      *
-     * @Event("Symfony\Component\Console\Event\ConsoleTerminateEvent")
+     * The event listener method receives a Symfony\Component\Console\Event\ConsoleTerminateEvent
+     * instance.
+     *
+     * @Event
+     *
+     * @var string
      */
     const TERMINATE = 'console.terminate';
 
     /**
-     * The ERROR event occurs when an uncaught exception or error appears.
+     * The EXCEPTION event occurs when an uncaught exception appears.
      *
-     * This event allows you to deal with the exception/error or
-     * to modify the thrown exception.
+     * This event allows you to deal with the exception or
+     * to modify the thrown exception. The event listener method receives
+     * a Symfony\Component\Console\Event\ConsoleExceptionEvent
+     * instance.
      *
-     * @Event("Symfony\Component\Console\Event\ConsoleErrorEvent")
+     * @Event
+     *
+     * @var string
      */
-    const ERROR = 'console.error';
+    const EXCEPTION = 'console.exception';
 }

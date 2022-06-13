@@ -11,18 +11,17 @@ use OAuth2\ResponseInterface;
  *  authorization directly, this controller ensures the request is valid, but
  *  requires the application to determine the value of $is_authorized
  *
- *  @code
- *      $user_id = $this->somehowDetermineUserId();
- *      $is_authorized = $this->somehowDetermineUserAuthorization();
- *      $response = new OAuth2\Response();
- *      $authorizeController->handleAuthorizeRequest(
- *          OAuth2\Request::createFromGlobals(),
- *          $response,
- *          $is_authorized,
- *          $user_id
- *      );
- *      $response->send();
- * @endcode
+ *  ex:
+ *  > $user_id = $this->somehowDetermineUserId();
+ *  > $is_authorized = $this->somehowDetermineUserAuthorization();
+ *  > $response = new OAuth2\Response();
+ *  > $authorizeController->handleAuthorizeRequest(
+ *  >     OAuth2\Request::createFromGlobals(),
+ *  >     $response,
+ *  >     $is_authorized,
+ *  >     $user_id);
+ *  > $response->send();
+ *
  */
 interface AuthorizeControllerInterface
 {
@@ -38,21 +37,7 @@ interface AuthorizeControllerInterface
     const RESPONSE_TYPE_AUTHORIZATION_CODE = 'code';
     const RESPONSE_TYPE_ACCESS_TOKEN = 'token';
 
-    /**
-     * Handle the OAuth request
-     *
-     * @param RequestInterface $request
-     * @param ResponseInterface $response
-     * @param $is_authorized
-     * @param null $user_id
-     * @return mixed
-     */
     public function handleAuthorizeRequest(RequestInterface $request, ResponseInterface $response, $is_authorized, $user_id = null);
 
-    /**
-     * @param RequestInterface $request
-     * @param ResponseInterface $response
-     * @return bool
-     */
     public function validateAuthorizeRequest(RequestInterface $request, ResponseInterface $response);
 }

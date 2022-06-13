@@ -29,7 +29,7 @@ class CsvFileLoader extends FileLoader
      */
     protected function loadResource($resource)
     {
-        $messages = [];
+        $messages = array();
 
         try {
             $file = new \SplFileObject($resource, 'rb');
@@ -41,11 +41,7 @@ class CsvFileLoader extends FileLoader
         $file->setCsvControl($this->delimiter, $this->enclosure, $this->escape);
 
         foreach ($file as $data) {
-            if (false === $data) {
-                continue;
-            }
-
-            if ('#' !== substr($data[0], 0, 1) && isset($data[1]) && 2 === \count($data)) {
+            if ('#' !== substr($data[0], 0, 1) && isset($data[1]) && 2 === count($data)) {
                 $messages[$data[0]] = $data[1];
             }
         }
@@ -55,8 +51,12 @@ class CsvFileLoader extends FileLoader
 
     /**
      * Sets the delimiter, enclosure, and escape character for CSV.
+     *
+     * @param string $delimiter delimiter character
+     * @param string $enclosure enclosure character
+     * @param string $escape    escape character
      */
-    public function setCsvControl(string $delimiter = ';', string $enclosure = '"', string $escape = '\\')
+    public function setCsvControl($delimiter = ';', $enclosure = '"', $escape = '\\')
     {
         $this->delimiter = $delimiter;
         $this->enclosure = $enclosure;

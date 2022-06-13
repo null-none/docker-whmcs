@@ -15,21 +15,21 @@ namespace Symfony\Component\Config\Resource;
  * DirectoryResource represents a resources stored in a subdirectory tree.
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @final
  */
-class DirectoryResource implements SelfCheckingResourceInterface
+class DirectoryResource implements SelfCheckingResourceInterface, \Serializable
 {
     private $resource;
     private $pattern;
 
     /**
+     * Constructor.
+     *
      * @param string      $resource The file path to the resource
      * @param string|null $pattern  A pattern to restrict monitored files
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct(string $resource, string $pattern = null)
+    public function __construct($resource, $pattern = null)
     {
         $this->resource = realpath($resource) ?: (file_exists($resource) ? $resource : false);
         $this->pattern = $pattern;
@@ -39,17 +39,28 @@ class DirectoryResource implements SelfCheckingResourceInterface
         }
     }
 
-    public function __toString(): string
+    /**
+     * {@inheritdoc}
+     */
+    public function __toString()
     {
-        return md5(serialize([$this->resource, $this->pattern]));
+        return md5(serialize(array($this->resource, $this->pattern)));
     }
 
-    public function getResource(): string
+    /**
+     * @return string The file path to the resource
+     */
+    public function getResource()
     {
         return $this->resource;
     }
 
-    public function getPattern(): ?string
+    /**
+     * Returns the pattern to restrict monitored files.
+     *
+     * @return string|null
+     */
+    public function getPattern()
     {
         return $this->pattern;
     }
@@ -57,7 +68,7 @@ class DirectoryResource implements SelfCheckingResourceInterface
     /**
      * {@inheritdoc}
      */
-    public function isFresh(int $timestamp): bool
+    public function isFresh($timestamp)
     {
         if (!is_dir($this->resource)) {
             return false;
@@ -75,7 +86,7 @@ class DirectoryResource implements SelfCheckingResourceInterface
 
             // always monitor directories for changes, except the .. entries
             // (otherwise deleted files wouldn't get detected)
-            if ($file->isDir() && str_ends_with($file, '/..')) {
+            if ($file->isDir() && '/..' === substr($file, -3)) {
                 continue;
             }
 
@@ -93,5 +104,15 @@ class DirectoryResource implements SelfCheckingResourceInterface
         }
 
         return true;
+    }
+
+    public function serialize()
+    {
+        return serialize(array($this->resource, $this->pattern));
+    }
+
+    public function unserialize($serialized)
+    {
+        list($this->resource, $this->pattern) = unserialize($serialized);
     }
 }

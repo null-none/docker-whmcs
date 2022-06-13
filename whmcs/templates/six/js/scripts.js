@@ -13589,7 +13589,473 @@ if (typeof jQuery === 'undefined') {
 }(jQuery);
 
 /*!
- * iCheck v1.0.3, http://git.io/arlzeA
+ * Bootstrap Confirmation
+ * Copyright 2013 Nimit Suwannagate <ethaizone@hotmail.com>
+ * Copyright 2014-2019 Damien "Mistic" Sorel <contact@git.strangeplanet.fr>
+ * Licensed under the Apache License, Version 2.0
+ */
+
+(function($) {
+  'use strict';
+
+  var activeConfirmation;
+
+  // Confirmation extends popover.js
+  if (!$.fn.popover) {
+    throw new Error('Confirmation requires popover.js');
+  }
+
+  // CONFIRMATION PUBLIC CLASS DEFINITION
+  // ===============================
+  var Confirmation = function(element, options) {
+    this.init(element, options);
+  };
+
+  Confirmation.VERSION = '2.4.3';
+
+  /**
+   * Map between keyboard events "keyCode|which" and "key"
+   */
+  Confirmation.KEYMAP = {
+    13: 'Enter',
+    27: 'Escape',
+    39: 'ArrowRight',
+    40: 'ArrowDown'
+  };
+
+  Confirmation.DEFAULTS = $.extend({}, $.fn.popover.Constructor.DEFAULTS, {
+    placement: 'top',
+    title: 'Are you sure?',
+    trigger: 'click',
+    confirmationEvent: undefined,
+    popout: false,
+    singleton: false,
+    copyAttributes: 'href target',
+    buttons: null,
+    onConfirm: $.noop,
+    onCancel: $.noop,
+    btnOkClass: 'btn-xs btn-primary',
+    btnOkIcon: 'glyphicon glyphicon-ok',
+    btnOkLabel: 'Yes',
+    btnCancelClass: 'btn-xs btn-default',
+    btnCancelIcon: 'glyphicon glyphicon-remove',
+    btnCancelLabel: 'No',
+    // @formatter:off
+    // href="#" allows the buttons to be focused
+    template: '<div class="popover confirmation">' +
+      '<div class="arrow"></div>' +
+      '<h3 class="popover-title"></h3>' +
+      '<div class="popover-content">' +
+        '<p class="confirmation-content"></p>' +
+        '<div class="confirmation-buttons text-center">' +
+          '<div class="btn-group">' +
+            '<a href="#" class="btn" data-apply="confirmation"></a>' +
+            '<a href="#" class="btn" data-dismiss="confirmation"></a>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>'
+    // @formatter:on
+  });
+
+  if (Confirmation.DEFAULTS.whiteList) {
+    Confirmation.DEFAULTS.whiteList['*'].push('data-apply', 'data-dismiss');
+  }
+
+  Confirmation.prototype = $.extend({}, $.fn.popover.Constructor.prototype);
+  Confirmation.prototype.constructor = Confirmation;
+
+  /**
+   * Expose defaults
+   * @returns {object}
+   */
+  Confirmation.prototype.getDefaults = function() {
+    return Confirmation.DEFAULTS;
+  };
+
+  /**
+   * Init the component
+   * @param element {jQuery}
+   * @param options {object}
+   */
+  Confirmation.prototype.init = function(element, options) {
+    $.fn.popover.Constructor.prototype.init.call(this, 'confirmation', element, options);
+
+    if ((this.options.popout || this.options.singleton) && !options.rootSelector) {
+      throw new Error('The rootSelector option is required to use popout and singleton features since jQuery 3.');
+    }
+
+    // keep trace of selectors
+    this.options._isDelegate = false;
+    if (options.selector) { // container of buttons
+      this.options._selector = this._options._selector = options.rootSelector + ' ' + options.selector;
+    }
+    else if (options._selector) { // children of container
+      this.options._selector = options._selector;
+      this.options._isDelegate = true;
+    }
+    else { // standalone
+      this.options._selector = options.rootSelector;
+    }
+
+    if (this.options.confirmationEvent === undefined) {
+      this.options.confirmationEvent = this.options.trigger;
+    }
+
+    var self = this;
+
+    if (!this.options.selector) {
+      // store copied attributes
+      this.options._attributes = {};
+      if (this.options.copyAttributes) {
+        if (typeof this.options.copyAttributes === 'string') {
+          this.options.copyAttributes = this.options.copyAttributes.split(' ');
+        }
+      }
+      else {
+        this.options.copyAttributes = [];
+      }
+
+      this.options.copyAttributes.forEach(function(attr) {
+        this.options._attributes[attr] = this.$element.attr(attr);
+      }, this);
+
+      // cancel original event
+      this.$element.on(this.options.trigger, function(e, ack) {
+        if (!ack) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }
+      });
+
+      // manage singleton
+      this.$element.on('show.bs.confirmation', function(e) {
+        if (self.options.singleton) {
+          // close all other popover already initialized
+          $(self.options._selector).not($(this)).filter(function() {
+            return $(this).data('bs.confirmation') !== undefined;
+          }).confirmation('hide');
+        }
+      });
+    }
+    else {
+      // cancel original event
+      this.$element.on(this.options.trigger, this.options.selector, function(e, ack) {
+        if (!ack) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }
+      });
+    }
+
+    if (!this.options._isDelegate) {
+      // manage popout
+      this.eventBody = false;
+      this.uid = this.$element[0].id || this.getUID('group_');
+
+      this.$element.on('shown.bs.confirmation', function(e) {
+        if (self.options.popout && !self.eventBody) {
+          self.eventBody = $('body').on('click.bs.confirmation.' + self.uid, function(e) {
+            if ($(self.options._selector).is(e.target)) {
+              return;
+            }
+
+            // close all popover already initialized
+            $(self.options._selector).filter(function() {
+              return $(this).data('bs.confirmation') !== undefined;
+            }).confirmation('hide');
+
+            $('body').off('click.bs.' + self.uid);
+            self.eventBody = false;
+          });
+        }
+      });
+    }
+  };
+
+  /**
+   * Overrides, always show
+   * @returns {boolean}
+   */
+  Confirmation.prototype.hasContent = function() {
+    return true;
+  };
+
+  /**
+   * Sets the popover content
+   */
+  Confirmation.prototype.setContent = function() {
+    var self = this;
+    var $tip = this.tip();
+    var title = this.getTitle();
+    var content = this.getContent();
+
+    $tip.find('.popover-title')[this.options.html ? 'html' : 'text'](title);
+
+    $tip.find('.confirmation-content').toggle(!!content).children().detach().end()[
+      // we use append for html objects to maintain js events
+      this.options.html ? (typeof content == 'string' ? 'html' : 'append') : 'text'
+      ](content);
+
+    $tip.on('click', function(e) {
+      e.stopPropagation();
+    });
+
+    if (this.options.buttons) {
+      // configure custom buttons
+      var $group = $tip.find('.confirmation-buttons .btn-group').empty();
+
+      this.options.buttons.forEach(function(button) {
+        $group.append(
+          $('<a href="#"></a>')
+            .addClass(button.class || 'btn btn-xs btn-default')
+            .html(button.label || '')
+            .attr(button.attr || {})
+            .prepend($('<i></i>').addClass(button.icon), ' ')
+            .one('click', function(e) {
+              if ($(this).attr('href') === '#') {
+                e.preventDefault();
+              }
+
+              if (button.onClick) {
+                button.onClick.call(self.$element);
+              }
+
+              if (button.cancel) {
+                self.getOnCancel().call(self.$element, button.value);
+                self.$element.trigger('canceled.bs.confirmation', [button.value]);
+              }
+              else {
+                self.getOnConfirm().call(self.$element, button.value);
+                self.$element.trigger('confirmed.bs.confirmation', [button.value]);
+              }
+
+              if (self.inState) { // Bootstrap 3.3.5
+                self.inState.click = false;
+              }
+
+              self.hide();
+            })
+        );
+      }, this);
+    }
+    else {
+      // configure 'ok' button
+      $tip.find('[data-apply="confirmation"]')
+        .addClass(this.options.btnOkClass)
+        .html(this.options.btnOkLabel)
+        .attr(this.options._attributes)
+        .prepend($('<i></i>').addClass(this.options.btnOkIcon), ' ')
+        .off('click')
+        .one('click', function(e) {
+          if ($(this).attr('href') === '#') {
+            e.preventDefault();
+          }
+
+          self.getOnConfirm().call(self.$element);
+          self.$element.trigger('confirmed.bs.confirmation');
+
+          self.$element.trigger(self.options.confirmationEvent, [true]);
+
+          self.hide();
+        });
+
+      // configure 'cancel' button
+      $tip.find('[data-dismiss="confirmation"]')
+        .addClass(this.options.btnCancelClass)
+        .html(this.options.btnCancelLabel)
+        .prepend($('<i></i>').addClass(this.options.btnCancelIcon), ' ')
+        .off('click')
+        .one('click', function(e) {
+          e.preventDefault();
+
+          self.getOnCancel().call(self.$element);
+          self.$element.trigger('canceled.bs.confirmation');
+
+          if (self.inState) { // Bootstrap 3.3.5
+            self.inState.click = false;
+          }
+
+          self.hide();
+        });
+    }
+
+    $tip.removeClass('fade top bottom left right in');
+
+    // IE8 doesn't accept hiding via the `:empty` pseudo selector, we have to do
+    // this manually by checking the contents.
+    if (!$tip.find('.popover-title').html()) {
+      $tip.find('.popover-title').hide();
+    }
+
+    // bind key navigation
+    activeConfirmation = this;
+    $(window)
+      .off('keyup.bs.confirmation')
+      .on('keyup.bs.confirmation', this._onKeyup.bind(this));
+  };
+
+  /**
+   * Remove key binding on destroy
+   */
+  Confirmation.prototype.destroy = function() {
+    if (activeConfirmation === this) {
+      activeConfirmation = undefined;
+      $(window).off('keyup.bs.confirmation');
+    }
+    $.fn.popover.Constructor.prototype.destroy.call(this);
+  };
+
+  /**
+   * Remove key binding on hide
+   */
+  Confirmation.prototype.hide = function() {
+    if (activeConfirmation === this) {
+      activeConfirmation = undefined;
+      $(window).off('keyup.bs.confirmation');
+    }
+    $.fn.popover.Constructor.prototype.hide.call(this);
+  };
+
+  /**
+   * Navigate through buttons with keyboard
+   * @param event
+   * @private
+   */
+  Confirmation.prototype._onKeyup = function(event) {
+    if (!this.$tip) {
+      activeConfirmation = undefined;
+      $(window).off('keyup.bs.confirmation');
+      return;
+    }
+
+    var key = event.key || Confirmation.KEYMAP[event.keyCode || event.which];
+
+    var $group = this.$tip.find('.confirmation-buttons .btn-group');
+    var $active = $group.find('.active');
+    var $next;
+
+    switch (key) {
+      case 'Escape':
+        this.hide();
+        break;
+
+      case 'ArrowRight':
+        if ($active.length && $active.next().length) {
+          $next = $active.next();
+        }
+        else {
+          $next = $group.children().first();
+        }
+        $active.removeClass('active');
+        $next.addClass('active').focus();
+        break;
+
+      case 'ArrowLeft':
+        if ($active.length && $active.prev().length) {
+          $next = $active.prev();
+        }
+        else {
+          $next = $group.children().last();
+        }
+        $active.removeClass('active');
+        $next.addClass('active').focus();
+        break;
+    }
+  };
+
+  /**
+   * Gets the on-confirm callback
+   * @returns {function}
+   */
+  Confirmation.prototype.getOnConfirm = function() {
+    if (this.$element.attr('data-on-confirm')) {
+      return getFunctionFromString(this.$element.attr('data-on-confirm'));
+    }
+    else {
+      return this.options.onConfirm;
+    }
+  };
+
+  /**
+   * Gets the on-cancel callback
+   * @returns {function}
+   */
+  Confirmation.prototype.getOnCancel = function() {
+    if (this.$element.attr('data-on-cancel')) {
+      return getFunctionFromString(this.$element.attr('data-on-cancel'));
+    }
+    else {
+      return this.options.onCancel;
+    }
+  };
+
+  /**
+   * Generates an anonymous function from a function name
+   * function name may contain dots (.) to navigate through objects
+   * root context is window
+   */
+  function getFunctionFromString(functionName) {
+    var context = window;
+    var namespaces = functionName.split('.');
+    var func = namespaces.pop();
+
+    for (var i = 0, l = namespaces.length; i < l; i++) {
+      context = context[namespaces[i]];
+    }
+
+    return function() {
+      context[func].call(this);
+    };
+  }
+
+
+  // CONFIRMATION PLUGIN DEFINITION
+  // =========================
+
+  var old = $.fn.confirmation;
+
+  $.fn.confirmation = function(option) {
+    var options = (typeof option == 'object' && option) || {};
+    options.rootSelector = this.selector || options.rootSelector; // this.selector removed in jQuery > 3
+
+    return this.each(function() {
+      var $this = $(this);
+      var data = $this.data('bs.confirmation');
+
+      if (!data && option == 'destroy') {
+        return;
+      }
+      if (!data) {
+        $this.data('bs.confirmation', (data = new Confirmation(this, options)));
+      }
+      if (typeof option == 'string') {
+        data[option]();
+
+        if (option == 'hide' && data.inState) { //data.inState doesn't exist in Bootstrap < 3.3.5
+          data.inState.click = false;
+        }
+      }
+    });
+  };
+
+  $.fn.confirmation.Constructor = Confirmation;
+
+
+  // CONFIRMATION NO CONFLICT
+  // ===================
+
+  $.fn.confirmation.noConflict = function() {
+    $.fn.confirmation = old;
+    return this;
+  };
+
+}(jQuery));
+
+/*!
+ * iCheck v1.0.2, http://git.io/arlzeA
  * ===================================
  * Powerful jQuery and Zepto plugin for checkboxes and radio buttons customization
  *
@@ -13606,7 +14072,7 @@ if (typeof jQuery === 'undefined') {
     _radio = 'radio',
     _checked = 'checked',
     _unchecked = 'un' + _checked,
-    _disabled = 'disabled',
+    _disabled = 'disabled',a
     _determinate = 'determinate',
     _indeterminate = 'in' + _determinate,
     _update = 'update',
@@ -13618,7 +14084,7 @@ if (typeof jQuery === 'undefined') {
     _callback = 'trigger',
     _label = 'label',
     _cursor = 'cursor',
-    _mobile = /ip(hone|od|ad)|android|blackberry|windows phone|opera mini|silk/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    _mobile = /ipad|iphone|ipod|android|blackberry|windows phone|opera mini|silk/i.test(navigator.userAgent);
 
   // Plugin init
   $.fn[_iCheck] = function(options, fire) {
@@ -14093,7 +14559,7 @@ if (typeof jQuery === 'undefined') {
         input[_callback]('ifToggled');
       }
 
-      input[_callback]('change')[_callback]('ifChanged')[_callback]('if' + capitalize(callback));
+      input[_callback]('ifChanged')[_callback]('if' + capitalize(callback));
     }
   }
 })(window.jQuery || window.Zepto);
@@ -14147,9 +14613,6 @@ jQuery(document).ready(function() {
                 .removeAttr('class')
                 .addClass('fas fa-spinner fa-spin');
         }
-    })
-    .on('click', '#openTicketSubmit.disabled', function () {
-        return false;
     });
 });
 
@@ -14165,33 +14628,17 @@ function scrollToGatewayInputError() {
         .find('i.fas,i.far,i.fal,i.fab')
         .removeAttr('class')
         .addClass('fas fa-arrow-circle-right')
-        .find('span').toggle();
+        .find('span').toggleClass('hidden');
 
     if (displayError.length) {
-        if (elementOutOfViewPort(displayError[0])) {
-            jQuery('html, body').animate(
-                {
-                    scrollTop: displayError.offset().top - 50
-                },
-                500
-            );
-        }
+        jQuery('html, body').animate(
+            {
+                scrollTop: displayError.offset().top - 50
+            },
+            500
+        );
     }
 }
-
-function elementOutOfViewPort(element) {
-    // Get element's bounding
-    var bounding = element.getBoundingClientRect();
-    // Check if it's out of the viewport on each side
-    var out = {};
-    out.top = bounding.top < 0;
-    out.left = bounding.left < 0;
-    out.bottom = bounding.bottom > (window.innerHeight || document.documentElement.clientHeight);
-    out.right = bounding.right > (window.innerWidth || document.documentElement.clientWidth);
-    out.any = out.top || out.left || out.bottom || out.right;
-
-    return out.any;
-};
 
 /**
  * WHMCS authentication module
@@ -14614,10 +15061,10 @@ jqClient: function () {
                     options.success(response);
                 }
             }
-        }, 'json').fail(function(xhr, errorMsg){
-            console.log('[WHMCS] Fail: ' + errorMsg);
+        }, 'json').error(function(xhr, errorMsg){
+            console.log('[WHMCS] Error: ' + errorMsg);
             if (typeof options.fail === 'function') {
-                options.fail(errorMsg, xhr);
+                options.fail(errorMsg);
             }
         }).always(function() {
             if (typeof options.always === 'function') {
@@ -14769,53 +15216,58 @@ dataTable: function () {
                     ordering: true,
                     info: false,
                     autoWidth: true,
-                    columns: [],
-                    lengthMenu: [10, 25, 50, 100, 500, 1000],
                     language: {
-                        emptyTable: (el.data('langEmptyTable')) ? el.data('langEmptyTable') : "No records found"
+                        emptyTable: (el.data('lang-empty-table')) ? el.data('lang-empty-table') : "No records found"
                     }
                 };
             }
-            jQuery.each(el.data(), function (key, value) {
-                if (typeof value === 'undefined') {
-                    return;
-                }
-                if (key === 'ajaxUrl') {
-                    options.ajax = {
-                        url: value
-                    };
-                    return;
-                }
-                if (key === 'lengthChange') {
-                    options.lengthChange = value;
-                    return;
-                }
-                if (key === 'pageLength') {
-                    options.pageLength = value;
-                    return;
-                }
-                if (key === 'langEmptyTable') {
-                    if (typeof options.language === "undefined") {
-                        options.language = {};
-                    }
-                    options.language.emptyTable = value;
-                    return
-                }
-                if (key === 'langZeroRecords') {
-                    if (typeof options.language === "undefined") {
-                        options.language = {};
-                    }
-                    options.language.zeroRecords = value;
-                    return
-                }
-                options.key = value;
-            });
-            jQuery.each(el.find('th'), function() {
-                if (typeof options.columns === "undefined") {
-                    options.columns = [];
-                }
-                options.columns.push({data:jQuery(this).data('name')});
-            });
+            var ajaxUrl = el.data('ajax-url');
+            if (typeof ajaxUrl !== 'undefined') {
+                options.ajax = {
+                    url: ajaxUrl
+                };
+            }
+            var dom = el.data('dom');
+            if (typeof dom !== 'undefined') {
+                options.dom = dom;
+            }
+            var searching = el.data('searching');
+            if (typeof searching !== 'undefined') {
+                options.searching = searching;
+            }
+            var responsive = el.data('responsive');
+            if (typeof responsive !== 'undefined') {
+                options.responsive = responsive;
+            }
+            var ordering = el.data('ordering');
+            if (typeof ordering !== 'undefined') {
+                options["ordering"] = ordering;
+            }
+            var order = el.data('order');
+            if (typeof order !== 'undefined' && order) {
+                options["order"] = order;
+            }
+            var colCss = el.data('columns');
+            if (typeof colCss !== 'undefined' && colCss) {
+                options["columns"] = colCss;
+            }
+            var autoWidth = el.data('auto-width');
+            if (typeof autoWidth !== 'undefined') {
+                options["autoWidth"] = autoWidth;
+            }
+            var paging = el.data('paging');
+            if (typeof paging !== 'undefined') {
+                options["paging"] = paging;
+            }
+            var lengthChange = el.data('length-change');
+            if (typeof lengthChange !== 'undefined') {
+                options["lengthChange"] = lengthChange;
+            }
+            var pageLength = el.data('page-length');
+            if (typeof pageLength !== 'undefined') {
+                options["pageLength"] = pageLength;
+            }
+
             self.tables[id] = self.initTable(el, options);
         } else if (typeof options !== 'undefined') {
             var oldTable = self.tables[id];
@@ -15032,15 +15484,7 @@ jsonForm: function() {
     };
 
     this.clearFieldError = function (field) {
-        /**
-         * Try dispose first for BS 4, which will raise error
-         * on BS 3 or older, then we use destroy instead
-         */
-        try {
-            $(field).tooltip('dispose');
-        } catch (err) {
-            $(field).tooltip('destroy');
-        }
+        $(field).tooltip('destroy');
         $(field).parents('.form-group').removeClass('has-error');
     };
 
@@ -15153,7 +15597,7 @@ function () {
     this.bindCheckAll = function ()
     {
         var huntSelector = '.btn-check-all';
-        jQuery('body').on('click', huntSelector, function (e) {
+        jQuery(huntSelector).click(function (e) {
             var btn = jQuery(e.target);
             var targetInputs = jQuery(
                 '#' + btn.data('checkbox-container') + ' input[type="checkbox"]'
@@ -15191,21 +15635,12 @@ function () {
 
     this.reloadCaptcha = function (element)
     {
-        if (typeof grecaptcha !== 'undefined') {
-            grecaptcha.reset();
-        } else {
-            if (!element) {
-                element = jQuery('#inputCaptchaImage');
-            }
-
-            var src = jQuery(element).data('src');
-            jQuery(element).attr('src', src + '?nocache=' + (new Date()).getTime());
-
-            var userInput = jQuery('#inputCaptcha');
-            if (userInput.length) {
-                userInput.val('');
-            }
+        if (!element) {
+            element = jQuery('#inputCaptchaImage');
         }
+
+        var src = jQuery(element).data('src');
+        jQuery(element).attr('src', src + '?nocache=' + (new Date()).getTime());
     };
 
     return this;
@@ -15214,13 +15649,10 @@ function () {
 /**
  * reCaptcha module
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2020
+ * @copyright Copyright (c) WHMCS Limited 2005-2018
  * @license http://www.whmcs.com/license/ WHMCS Eula
  */
-var recaptchaLoadComplete = false,
-    recaptchaCount = 0,
-    recaptchaType = 'recaptcha',
-    recaptchaValidationComplete = false;
+var recaptchaLoadComplete = false;
 
 (function(module) {
     if (!WHMCS.hasModule('recaptcha')) {
@@ -15233,43 +15665,41 @@ var recaptchaLoadComplete = false,
             if (recaptchaLoadComplete) {
                 return;
             }
-            var postLoad = [],
-                recaptchaForms = jQuery(".btn-recaptcha").parents('form'),
-                isInvisible = false;
+            var postLoad = [];
+            var recaptchaForms = jQuery(".btn-recaptcha").parents('form');
             recaptchaForms.each(function (i, el){
                 if (typeof recaptchaSiteKey === 'undefined') {
                     console.log('Recaptcha site key not defined');
                     return;
                 }
-                recaptchaCount += 1;
-                var frm = jQuery(el),
-                    btnRecaptcha = frm.find(".btn-recaptcha"),
-                    required = (typeof requiredText !== 'undefined') ? requiredText : 'Required',
-                    recaptchaId = 'divDynamicRecaptcha' + recaptchaCount;
-
-                isInvisible = btnRecaptcha.hasClass('btn-recaptcha-invisible')
+                var frm = jQuery(el);
+                var btnRecaptcha = frm.find(".btn-recaptcha");
+                var isInvisible = btnRecaptcha.hasClass('btn-recaptcha-invisible'),
+                    required = (typeof requiredText !== 'undefined') ? requiredText : 'Required';
 
                 // if no recaptcha element, make one
-                var recaptchaContent = frm.find('#' + recaptchaId + ' .g-recaptcha'),
+                var recaptchaContent = frm.find("#divDynamicRecaptcha .g-recaptcha"),
                     recaptchaElement = frm.find('.recaptcha-container'),
                     appendElement = frm;
 
                 if (recaptchaElement.length) {
-                    recaptchaElement.attr('id', recaptchaElement.attr('id') + recaptchaCount);
                     appendElement = recaptchaElement;
                 }
                 if (!recaptchaContent.length) {
-                    appendElement.append('<div id="#' + recaptchaId + '" class="g-recaptcha"></div>');
-                    recaptchaContent = appendElement.find('#' + recaptchaId);
+                    appendElement.append('<div id="divDynamicRecaptcha" class="g-recaptcha" data-toggle="tooltip" data-placement="bottom" data-trigger="manual" title="' + required + '"></div>');
+                    recaptchaContent = appendElement.find("#divDynamicRecaptcha");
                 }
                 // propagate invisible recaptcha if necessary
-                if (!isInvisible) {
-                    recaptchaContent.data('toggle', 'tooltip')
-                        .data('placement', 'bottom')
-                        .data('trigger', 'manual')
-                        .attr('title', required)
-                        .hide();
+                if (isInvisible) {
+                    if (recaptchaContent.data('size') !== 'invisible') {
+                        recaptchaContent.attr('data-size', 'invisible');
+                    }
+                } else {
+                    recaptchaContent.hide()
                 }
+
+                // ensure site key is available to grecaptcha
+                recaptchaContent.attr('data-sitekey', recaptchaSiteKey);
 
 
                 // alter form to work around JS behavior on .submit() when there
@@ -15283,26 +15713,22 @@ var recaptchaLoadComplete = false,
 
                 // make callback for grecaptcha to invoke after
                 // injecting token & make it known via data-callback
-                var funcName = recaptchaId + 'Callback';
+                var funcName = 'recaptchaCallback' + i;
                 window[funcName] = function () {
                     if (isInvisible) {
                         frm.submit();
                     }
                 };
+                recaptchaContent.attr('data-callback', funcName);
 
-                // setup an on form submit event to ensure that we
-                // are allowing required field validation to occur before
-                // we do the invisible recaptcha checking
+                // alter submit button to integrate invisible recaptcha
+                // otherwise setup a callback to twiddle UI after grecaptcha
+                // has inject DOM
                 if (isInvisible) {
-                    recaptchaType = 'invisible';
-                    frm.on('submit.recaptcha', function (event) {
-                        var recaptchaId = frm.find('.g-recaptcha').data('recaptcha-id');
-                        if (!grecaptcha.getResponse(recaptchaId).trim()) {
+                    btnRecaptcha.on('click', function (event) {
+                        if (!grecaptcha.getResponse().trim()) {
                             event.preventDefault();
-                            grecaptcha.execute(recaptchaId);
-                            recaptchaValidationComplete = false;
-                        } else {
-                            recaptchaValidationComplete = true;
+                            grecaptcha.execute();
                         }
                     });
                 } else {
@@ -15318,29 +15744,11 @@ var recaptchaLoadComplete = false,
                 }
             });
 
-            window.recaptchaLoadCallback = function() {
-                jQuery('.g-recaptcha').each(function(i, el) {
-                    var element = jQuery(el),
-                        frm = element.closest('form'),
-                        btn = frm.find('.btn-recaptcha'),
-                        idToUse = element.attr('id').substring(1);
-                    var recaptchaId = grecaptcha.render(
-                        el,
-                        {
-                            sitekey: recaptchaSiteKey,
-                            size: (btn.hasClass('btn-recaptcha-invisible')) ? 'invisible' : 'normal',
-                            callback: idToUse + 'Callback'
-                        }
-                    );
-                    element.data('recaptcha-id', recaptchaId);
-                });
-            }
-
             // fetch/invoke the grecaptcha lib
             if (recaptchaForms.length) {
-                var gUrl = "https://www.google.com/recaptcha/api.js?onload=recaptchaLoadCallback&render=explicit";
+                var gUrl = "https://www.google.com/recaptcha/api.js";
                 jQuery.getScript(gUrl, function () {
-                    for(var i = postLoad.length - 1; i >= 0 ; i--){
+                    for(var i = postLoad.length -1; i >= 0 ; i--){
                         postLoad[i]();
                     }
                 });
@@ -16165,9 +16573,6 @@ WHMCS.utils.validateBaseUrl();
 
 jQuery(document).ready(function() {
 
-    // Init Lightbox2
-    lightbox.init();
-
     // Language chooser popover
     jQuery('#languageChooser').popover({
         container: 'body',
@@ -16436,9 +16841,6 @@ jQuery(document).ready(function() {
     // Prevent malicious window.opener activity from auto-linked URLs
     jQuery('a.autoLinked').click(function (e) {
         e.preventDefault();
-        if (jQuery(this).hasClass('disabled')) {
-            return false;
-        }
 
         var child = window.open();
         child.opener = null;
@@ -16464,37 +16866,30 @@ jQuery(document).ready(function() {
 
         var form = button.parents('form');
 
-        if (form.length === 0) {
+        if (form.length == 0) {
             form = button.find('form');
         }
-        if (form.hasClass('disabled') || button.hasClass('disabled')) {
+        if (form.hasClass('disabled')) {
             return;
         }
-        var url = form.data('href');
-        if (!url) {
-            url = window.location.href;
-        }
 
-        button.attr('disabled', 'disabled').addClass('disabled');
-        button.find('.loading').removeClass('hidden').show().end();
+        button.find('.loading').removeClass('hidden').show().end()
+            .attr('disabled', 'disabled');
         WHMCS.http.jqClient.post(
-            url,
+            window.location.href,
             form.serialize(),
             function (data) {
                 button.find('.loading').hide().end().removeAttr('disabled');
                 form.find('.login-feedback').html('');
                 if (data.error) {
-                    form.find('.login-feedback').html(data.error).hide().removeClass('hidden').slideDown();
+                    form.find('.login-feedback').html(data.error);
                 }
                 if (data.redirect !== undefined && data.redirect.substr(0, 7) === 'window|') {
                     window.open(data.redirect.substr(7), '_blank');
                 }
             },
             'json'
-        ).always(function() {
-            button.removeAttr('disabled').removeClass('disabled');
-            button.find('.loading').hide().end();
-        });
+        );
     });
     jQuery('.btn-sidebar-form-submit').on('click', function(e) {
         e.preventDefault();
@@ -16512,6 +16907,13 @@ jQuery(document).ready(function() {
         } else {
             jQuery(this).find('.loading').hide().end().removeAttr('disabled');
         }
+    });
+
+    // Email verification close
+    jQuery('.email-verification .btn.close').click(function(e) {
+        e.preventDefault();
+        WHMCS.http.jqClient.post('clientarea.php', 'action=dismiss-email-banner&token=' + csrfToken);
+        jQuery('.email-verification').hide();
     });
 
     // Back to top animated scroll
@@ -16557,8 +16959,6 @@ jQuery(document).ready(function() {
                 jQuery('#' + targetFields[i]).val(jQuery('#inputGeneratePasswordOutput').val())
                     .trigger('keyup');
             }
-            // Remove the generated password.
-            jQuery('#inputGeneratePasswordOutput').val('');
         });
 
     /**
@@ -16612,9 +17012,9 @@ jQuery(document).ready(function() {
                     parsedContent;
 
                 jQuery.ajax({
-                    url: WHMCS.utils.getRouteUrl('/clientarea/message/preview'),
+                    url: 'clientarea.php',
                     async: false,
-                    data: {token: csrfToken, content: originalContent},
+                    data: {token: csrfToken, action: 'parseMarkdown', content: originalContent},
                     dataType: 'json',
                     success: function (data) {
                         parsedContent = data;
@@ -16661,40 +17061,15 @@ jQuery(document).ready(function() {
     });
 
     // Email verification
-    var btnResendEmail = jQuery('.btn-resend-verify-email');
-    jQuery(btnResendEmail).click(function() {
-        $(this).prop('disabled', true).find('.loader').removeClass('hidden').show();
-        WHMCS.http.jqClient.post(
-            jQuery(this).data('uri'),
+    jQuery('#btnResendVerificationEmail').click(function() {
+        WHMCS.http.jqClient.post('clientarea.php',
             {
                 'token': csrfToken,
+                'action': 'resendVerificationEmail'
             }).done(function(data) {
-                btnResendEmail.find('.loader').hide();
-                if (data.success) {
-                    btnResendEmail.text(btnResendEmail.data('email-sent'));
-                } else {
-                    btnResendEmail.text(btnResendEmail.data('error-msg'));
-                }
+                jQuery('#btnResendVerificationEmail').html('Email Sent').prop('disabled', true);
             });
     });
-    jQuery('#btnEmailVerificationClose').click(function(e) {
-        e.preventDefault();
-        WHMCS.http.jqClient.post(jQuery(this).data('uri'),
-            {
-                'token': csrfToken
-            });
-        jQuery('.verification-banner.email-verification').hide();
-    });
-
-    jQuery('#btnUserValidationClose').click(function(e) {
-        e.preventDefault();
-        WHMCS.http.jqClient.post(jQuery(this).data('uri'),
-            {
-                'token': csrfToken
-            });
-        jQuery('.verification-banner.user-validation').hide();
-    });
-
 
     /**
      * Parse the content to populate the markdown editor footer.
@@ -16763,7 +17138,7 @@ jQuery(document).ready(function() {
 
     jQuery('#frmPayment').on('submit', function() {
         var btn = jQuery('#btnSubmit');
-            btn.find('span').toggle();
+            btn.find('span').toggleClass('hidden');
             btn.prop('disabled', true).addClass('disabled');
     });
 
@@ -16791,17 +17166,17 @@ jQuery(document).ready(function() {
 
         var noTlds = jQuery('.tld-row.no-tlds');
 
-        if (jQuery(this).hasClass('badge-success')) {
-            jQuery(this).removeClass('badge-success');
+        if (jQuery(this).hasClass('label-success')) {
+            jQuery(this).removeClass('label-success');
         } else {
-            jQuery(this).addClass('badge-success');
+            jQuery(this).addClass('label-success');
         }
         if (noTlds.is(':visible')) {
             noTlds.hide();
         }
 
         jQuery('.tld-row').removeClass('filtered-row');
-        jQuery('.tld-filters a.badge-success').each(function(index) {
+        jQuery('.tld-filters a.label-success').each(function(index) {
             var filterValue = jQuery(this).data('category');
             jQuery('.tld-row[data-category*="' + filterValue + '"]').addClass('filtered-row');
         });
@@ -16823,6 +17198,9 @@ jQuery(document).ready(function() {
 
     // DataTable data-driven auto object registration
     WHMCS.ui.dataTable.register();
+
+    // Bootstrap Confirmation popup auto object registration
+    WHMCS.ui.confirmation.register();
 
     WHMCS.ui.jsonForm.initAll();
 
@@ -16849,47 +17227,25 @@ jQuery(document).ready(function() {
     });
 
     jQuery('.ssl-state.ssl-sync').each(function () {
-        var self = jQuery(this),
-            type = getSslAttribute(self, 'type'),
-            domain = getSslAttribute(self, 'domain');
+        var self = jQuery(this);
         WHMCS.http.jqClient.post(
             WHMCS.utils.getRouteUrl('/domain/ssl-check'),
             {
-                'type': type,
-                'domain': domain,
+                'type': self.parent('td').data('type'),
+                'domain': self.parent('td').data('domain'),
                 'token': csrfToken
             },
             function (data) {
                 if (data.invalid) {
                     self.hide();
                 } else {
-                    var width = '',
-                        statusDisplayLabel = '';
-                    if (self.attr('width')) {
-                        width = ' width="' + self.attr('width') + '"';
-                    }
-                    if (self.data('showlabel')) {
-                        statusDisplayLabel = ' ' + data.statusDisplayLabel;
-                    }
                     self.replaceWith(
-                        '<img src="' + data.image + '" data-toggle="tooltip" title="' + data.tooltip + '" class="' + data.class + '"' + width + '>'
+                        '<img src="' + data.image + '" data-toggle="tooltip" title="' + data.tooltip + '" class="' + data.class + '">'
                     );
-                    if (data.ssl.status === 'active') {
-                        jQuery('#ssl-startdate').text(data.ssl.startDate);
-                        jQuery('#ssl-expirydate').text(data.ssl.expiryDate);
-                        jQuery('#ssl-issuer').text(data.ssl.issuer);
-                    } else {
-                        jQuery('#ssl-startdate').parent('div').hide();
-                        jQuery('#ssl-expirydate').parent('div').hide();
-                        jQuery('#ssl-issuer').parent('div').hide();
-                    }
-
-                    jQuery('#statusDisplayLabel').text(statusDisplayLabel);
                 }
             }
         );
     });
-
     jQuery(document).on('click', '.ssl-state.ssl-inactive', function(e) {
         e.preventDefault();
         window.location.href = WHMCS.utils.getRouteUrl('/ssl-purchase');
@@ -16952,67 +17308,7 @@ jQuery(document).ready(function() {
             descContainer.removeClass('disabled').prop('disabled', false);
         }
     });
-
-    jQuery(document).on('click', '#btnConfirmModalConfirmBtn', function () {
-        var confirmButton = jQuery(this),
-            confirmationModal = confirmButton.closest('div.modal'),
-            targetUrl = confirmButton.data('target-url'),
-            dataTable = confirmButton.closest('table.dataTable[data-on-draw-rebind-confirmation-modal="true"]');
-        WHMCS.http.jqClient.jsonPost(
-            {
-                url: targetUrl,
-                data: {
-                    token: csrfToken
-                },
-                success: function(data) {
-                    if (data.status === 'success' || data.status === 'okay') {
-                        if (dataTable.length > 0) {
-                            dataTable.DataTable().ajax.reload();
-                        }
-                    }
-                }
-            }
-        );
-        confirmationModal.modal('toggle');
-    });
-    jQuery('input[name="approval_method"]').on('ifChecked', function(event) {
-        var fileMethod = $('#containerApprovalMethodFile'),
-            emailMethod = $('#containerApprovalMethodEmail'),
-            dnsMethod = $('#containerApprovalMethodDns');
-        if (jQuery(this).attr('value') == 'file') {
-            fileMethod.show();
-            dnsMethod.hide();
-            emailMethod.hide();
-        } else if (jQuery(this).attr('value') == 'dns-txt-token') {
-            dnsMethod.show();
-            fileMethod.hide();
-            emailMethod.hide();
-        } else {
-            fileMethod.hide();
-            dnsMethod.hide();
-            emailMethod.show();
-        }
-    });
 });
-
-/**
- * Control disabled/enabled state of elements by class name.
- *
- * @param {string} className     Common element class name.
- * @param {bool} disabledState   Whether the elements should be disabled or not.
- */
-function disableFields(className, disabledState) {
-    if (className[0] != '.') {
-        className = '.' + className;
-    }
-    var elements = jQuery(className);
-    elements.prop('disabled', disabledState);
-    if (disabledState) {
-        elements.addClass('disabled');
-    } else {
-        elements.removeClass('disabled');
-    }
-}
 
 /**
  * Check all checkboxes with a given class.
@@ -17231,17 +17527,13 @@ function hideNewBillingAddressFields() {
  * Show new credit card input fields.
  */
 function showNewCardInputFields() {
-    var ccDetails = jQuery('.cc-details'),
-        ccNumber = jQuery('#inputCardNumber'),
-        billAddress = jQuery('#billingAddressChoice');
-
-    if (ccDetails.hasClass("hidden")) {
-        ccDetails.hide().removeClass("hidden");
+    if (jQuery(".cc-details").hasClass("hidden")) {
+        jQuery(".cc-details").hide().removeClass("hidden");
     }
-    ccDetails.slideDown();
-    ccNumber.focus();
+    jQuery(".cc-details").slideDown();
 
-    billAddress.slideDown()
+    jQuery("#billingAddressChoice")
+        .slideDown()
         .find('input[name="billingcontact"]')
         .first()
         .iCheck('check');
@@ -17268,14 +17560,20 @@ function showNewAccountInputFields() {
  */
 function hideNewCardInputFields() {
     hideNewBillingAddressFields();
+
     jQuery(".cc-details").slideUp();
     jQuery("#billingAddressChoice").slideUp();
-    var contactId = jQuery('input[name="ccinfo"]:checked').data('billing-contact-id');
-    if (contactId != undefined) {
-        jQuery('#billingAddressChoice label.billing-contact-' + contactId)
-            .iCheck('check');
+
+    var selectedCcInfo = jQuery('input[name="ccinfo"]:checked');
+
+    var selectedCcBillingContactId = jQuery(selectedCcInfo).data('billing-contact-id');
+
+    var selectedBillingContactData = jQuery('.billing-contact-info[data-billing-contact-id="' + selectedCcBillingContactId + '"]');
+
+    if (selectedBillingContactData.length) {
+        jQuery('.billing-contact-info').hide();
+        jQuery(selectedBillingContactData).show();
     }
-    jQuery('#inputCardCvv').focus();
 }
 
 /**
@@ -17352,53 +17650,13 @@ function hideOverlay() {
     jQuery('#fullpage-overlay').hide();
 }
 
-function getSslAttribute(element, attribute) {
-    if (element.data(attribute)) {
-        return element.data(attribute);
-    }
-    return element.parent('td').data(attribute);
-}
-
-function openValidationSubmitModal(caller)
-{
-    var validationSubmitModal = jQuery('#validationSubmitModal');
-    validationSubmitModal.find('.modal-body iframe').attr('src', caller.dataset.url);
-    validationSubmitModal.modal('show');
-}
-
-function completeValidationComClientWorkflow()
-{
-    var submitDocsRequestBanner = jQuery('.user-validation'),
-        secondarySidebarStatus = jQuery('.validation-status-label'),
-        submitDiv = jQuery('.validation-submit-div'),
-        redirectUser = true;
-
-    $('#validationSubmitModal').modal('hide');
-    if (submitDocsRequestBanner.length !== 0) {
-        submitDocsRequestBanner.slideUp();
-        redirectUser = false;
-    }
-    if (secondarySidebarStatus.length !== 0) {
-        var submitString = submitDiv.find('a').data('submitted-string');
-        secondarySidebarStatus.text(submitString).removeClass('label-default').addClass('label-warning');
-        submitDiv.hide();
-        redirectUser = false;
-    }
-
-    if (redirectUser) {
-        window.location.href = WHMCS.utils.autoDetermineBaseUrl();
-    }
-    return false;
-}
-
 /*!
  * WHMCS Ajax Driven Modal Framework
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2021
- * @license https://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2019
+ * @license http://www.whmcs.com/license/ WHMCS Eula
  */
-var ajaxModalSubmitEvents = [],
-    ajaxModalPostSubmitEvents = [];
+var ajaxModalSubmitEvents = [];
 jQuery(document).ready(function(){
     jQuery(document).on('click', '.open-modal', function(e) {
         e.preventDefault();
@@ -17408,17 +17666,12 @@ jQuery(document).ready(function(){
             modalTitle = jQuery(this).data('modal-title'),
             submitId = jQuery(this).data('btn-submit-id'),
             submitLabel = jQuery(this).data('btn-submit-label'),
-            submitColor = jQuery(this).data('btn-submit-color'),
             hideClose = jQuery(this).data('btn-close-hide'),
             disabled = jQuery(this).attr('disabled'),
             successDataTable = jQuery(this).data('datatable-reload-success');
 
-        var postData = '';
-        if (csrfToken) {
-            postData = {token: csrfToken};
-        }
         if (!disabled) {
-            openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel, submitId, submitColor, hideClose, successDataTable);
+            openModal(url, '', modalTitle, modalSize, modalClass, submitLabel, submitId, hideClose, successDataTable);
         }
     });
 
@@ -17449,7 +17702,7 @@ jQuery(document).ready(function(){
     });
 });
 
-function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel, submitId, submitColor, hideClose, successDataTable) {
+function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel, submitId, hideClose, successDataTable) {
     //set the text of the modal title
     jQuery('#modalAjax .modal-title').html(modalTitle);
 
@@ -17457,6 +17710,11 @@ function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel
     if (modalSize) {
         jQuery('#modalAjax').children('div[class="modal-dialog"]').addClass(modalSize);
     }
+    // set the modal class
+    if (modalClass) {
+        jQuery('#modalAjax').addClass(modalClass);
+    }
+
     // set the modal class
     if (modalClass) {
         jQuery('#modalAjax').addClass(modalClass);
@@ -17477,22 +17735,13 @@ function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel
         jQuery('#modalAjaxClose').hide();
     }
 
-    if (submitColor) {
-        jQuery('#modalAjax .modal-submit').removeClass('btn-primary')
-            .addClass('btn-' + submitColor);
-    }
-
     jQuery('#modalAjax .modal-body').html('');
 
     jQuery('#modalSkip').hide();
-    disableSubmit();
+    jQuery('#modalAjax .modal-submit').prop('disabled', true);
 
     // show modal
-    jQuery('#modalAjax').modal({
-        show: true,
-        keyboard: true,
-        backdrop: jQuery('#modalAjax').hasClass('static') ? 'static' : true
-    });
+    jQuery('#modalAjax').modal('show');
 
     // fetch modal content
     WHMCS.http.jqClient.post(url, postData, function(data) {
@@ -17501,23 +17750,9 @@ function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel
         jQuery('#modalAjax .modal-body').html('An error occurred while communicating with the server. Please try again.');
         jQuery('#modalAjax .loader').fadeOut();
     }).always(function () {
-        var modalForm = jQuery('#modalAjax').find('form');
-        // If a submitId is present, then we're working with a form and need to override the default event
-        if (submitId) {
-            modalForm.submit(function (event) {
-                submitIdAjaxModalClickEvent();
-                return false;
-            });
-        }
         if (successDataTable) {
+            var modalForm = jQuery('#modalAjax').find('form');
             modalForm.data('successDataTable', successDataTable);
-        }
-
-        // Since the content is dynamically fetched, we have to check for the elements we want here too
-        var inputs = jQuery(modalForm).find('input:not(input[type=checkbox],input[type=radio],input[type=hidden])');
-
-        if (inputs.length > 0) {
-            jQuery(inputs).first().focus();
         }
     });
 
@@ -17540,10 +17775,13 @@ function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel
 
 function submitIdAjaxModalClickEvent ()
 {
+    if (jQuery(this).hasClass('disabled')) {
+        return;
+    }
     var canContinue = true,
-        loader = jQuery('#modalAjax .loader');
-    disableSubmit();
-    loader.show();
+        btn = jQuery(this);
+    btn.addClass('disabled');
+    jQuery('#modalAjax .loader').show();
     if (ajaxModalSubmitEvents.length) {
         jQuery.each(ajaxModalSubmitEvents, function (index, value) {
             var fn = window[value];
@@ -17553,8 +17791,8 @@ function submitIdAjaxModalClickEvent ()
         });
     }
     if (!canContinue) {
-        enableSubmit();
-        loader.hide();
+        btn.removeClass('disabled');
+        jQuery('#modalAjax .loader').hide();
         return;
     }
     var modalForm = jQuery('#modalAjax').find('form');
@@ -17569,22 +17807,6 @@ function submitIdAjaxModalClickEvent ()
         function(data) {
             if (modalForm.data('successDataTable')) {
                 data.successDataTable = modalForm.data('successDataTable');
-            }
-            /**
-             * When actions should occur before the ajax modal is updated
-             * that do not fall into the standard actions.
-             * Calling code (ie the function defined in fn) should validate
-             * that the ajax modal being updated is the one that the code should
-             * run for, as there is potential for multiple ajax modals on the
-             * same page.
-             */
-            if (ajaxModalPostSubmitEvents.length) {
-                jQuery.each(ajaxModalPostSubmitEvents, function (index, value) {
-                    var fn = window[value];
-                    if (typeof fn === 'function') {
-                        fn(data, modalForm);
-                    }
-                });
             }
             updateAjaxModal(data);
         },
@@ -17611,7 +17833,8 @@ function submitIdAjaxModalClickEvent ()
             jQuery(modalBody).html(genericErrorMsg);
         }
         jQuery('#modalAjax .loader').fadeOut();
-        enableSubmit();
+    }).always(function () {
+        btn.removeClass('disabled');
     });
 }
 
@@ -17629,6 +17852,7 @@ function updateAjaxModal(data) {
     }
     if (data.redirect) {
         window.location = data.redirect;
+        dialogClose();
     }
     if (data.successWindow && typeof window[data.successWindow] === "function") {
         window[data.successWindow]();
@@ -17687,28 +17911,14 @@ function updateAjaxModal(data) {
         submitButton.on('click', submitIdAjaxModalClickEvent);
     }
 
-    if (data.disableSubmit) {
-        disableSubmit();
-    } else {
-        enableSubmit();
-    }
-
-    var dismissLoader = true;
-    if (typeof data.dismissLoader !== 'undefined') {
-        dismissLoader = data.dismissLoader;
-    }
-
-    dismissLoaderAfterRender(dismissLoader);
-
-    if (data.hideSubmit) {
-        ajaxModalHideSubmit();
-    }
+    jQuery('#modalAjax .loader').fadeOut();
+    jQuery('#modalAjax .modal-submit').removeProp('disabled');
 }
 
 // backwards compat for older dialog implementations
 
 function dialogSubmit() {
-    disableSubmit();
+    jQuery('#modalAjax .modal-submit').prop("disabled", true);
     jQuery('#modalAjax .loader').show();
     var postUrl = jQuery('#modalAjax').find('form').attr('action');
     WHMCS.http.jqClient.post(postUrl, jQuery('#modalAjax').find('form').serialize(),
@@ -17739,227 +17949,147 @@ function removeAjaxModalSubmitEvents(functionName) {
     }
 }
 
-function addAjaxModalPostSubmitEvents(functionName) {
-    if (functionName) {
-        ajaxModalPostSubmitEvents.push(functionName);
-    }
-}
+/* ========================================================================
+ * bootstrap-switch - v3.3.2
+ * http://www.bootstrap-switch.org
+ * ========================================================================
+ * Copyright 2012-2013 Mattia Larentis
+ *
+ * ========================================================================
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ========================================================================
+ */
 
-function removeAjaxModalPostSubmitEvents(functionName) {
-    if (functionName) {
-        var index = ajaxModalPostSubmitEvents.indexOf(functionName);
-        if (index >= 0) {
-            ajaxModalPostSubmitEvents.splice(index, 1);
+(function() {
+  var __slice = [].slice;
+
+  (function($, window) {
+    "use strict";
+    var BootstrapSwitch;
+    BootstrapSwitch = (function() {
+      function BootstrapSwitch(element, options) {
+        if (options == null) {
+          options = {};
         }
-    }
-}
-
-function disableSubmit()
-{
-    jQuery('#modalAjax .modal-submit').prop('disabled', true).addClass('disabled');
-}
-
-function enableSubmit()
-{
-    jQuery('#modalAjax .modal-submit').prop('disabled', false).removeClass('disabled');
-}
-
-function ajaxModalHideSubmit()
-{
-    jQuery('#modalAjax .modal-submit').hide();
-}
-
-function dismissLoaderAfterRender(showLoader)
-{
-    if (showLoader === false) {
-        jQuery('#modalAjax .loader').show();
-    } else {
-        jQuery('#modalAjax .loader').fadeOut();
-    }
-}
-
-/**
-  * bootstrap-switch - Turn checkboxes and radio buttons into toggle switches.
-  *
-  * @version v3.3.4
-  * @homepage https://bttstrp.github.io/bootstrap-switch
-  * @author Mattia Larentis <mattia@larentis.eu> (http://larentis.eu)
-  * @license Apache-2.0
-  */
-
-(function (global, factory) {
-  if (typeof define === "function" && define.amd) {
-    define(['jquery'], factory);
-  } else if (typeof exports !== "undefined") {
-    factory(require('jquery'));
-  } else {
-    var mod = {
-      exports: {}
-    };
-    factory(global.jquery);
-    global.bootstrapSwitch = mod.exports;
-  }
-})(this, function (_jquery) {
-  'use strict';
-
-  var _jquery2 = _interopRequireDefault(_jquery);
-
-  function _interopRequireDefault(obj) {
-    return obj && obj.__esModule ? obj : {
-      default: obj
-    };
-  }
-
-  var _extends = Object.assign || function (target) {
-    for (var i = 1; i < arguments.length; i++) {
-      var source = arguments[i];
-
-      for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-          target[key] = source[key];
+        this.$element = $(element);
+        this.options = $.extend({}, $.fn.bootstrapSwitch.defaults, {
+          state: this.$element.is(":checked"),
+          size: this.$element.data("size"),
+          animate: this.$element.data("animate"),
+          disabled: this.$element.is(":disabled"),
+          readonly: this.$element.is("[readonly]"),
+          indeterminate: this.$element.data("indeterminate"),
+          inverse: this.$element.data("inverse"),
+          radioAllOff: this.$element.data("radio-all-off"),
+          onColor: this.$element.data("on-color"),
+          offColor: this.$element.data("off-color"),
+          onText: this.$element.data("on-text"),
+          offText: this.$element.data("off-text"),
+          labelText: this.$element.data("label-text"),
+          handleWidth: this.$element.data("handle-width"),
+          labelWidth: this.$element.data("label-width"),
+          baseClass: this.$element.data("base-class"),
+          wrapperClass: this.$element.data("wrapper-class")
+        }, options);
+        this.$wrapper = $("<div>", {
+          "class": (function(_this) {
+            return function() {
+              var classes;
+              classes = ["" + _this.options.baseClass].concat(_this._getClasses(_this.options.wrapperClass));
+              classes.push(_this.options.state ? "" + _this.options.baseClass + "-on" : "" + _this.options.baseClass + "-off");
+              if (_this.options.size != null) {
+                classes.push("" + _this.options.baseClass + "-" + _this.options.size);
+              }
+              if (_this.options.disabled) {
+                classes.push("" + _this.options.baseClass + "-disabled");
+              }
+              if (_this.options.readonly) {
+                classes.push("" + _this.options.baseClass + "-readonly");
+              }
+              if (_this.options.indeterminate) {
+                classes.push("" + _this.options.baseClass + "-indeterminate");
+              }
+              if (_this.options.inverse) {
+                classes.push("" + _this.options.baseClass + "-inverse");
+              }
+              if (_this.$element.attr("id")) {
+                classes.push("" + _this.options.baseClass + "-id-" + (_this.$element.attr("id")));
+              }
+              return classes.join(" ");
+            };
+          })(this)()
+        });
+        this.$container = $("<div>", {
+          "class": "" + this.options.baseClass + "-container"
+        });
+        this.$on = $("<span>", {
+          html: this.options.onText,
+          "class": "" + this.options.baseClass + "-handle-on " + this.options.baseClass + "-" + this.options.onColor
+        });
+        this.$off = $("<span>", {
+          html: this.options.offText,
+          "class": "" + this.options.baseClass + "-handle-off " + this.options.baseClass + "-" + this.options.offColor
+        });
+        this.$label = $("<span>", {
+          html: this.options.labelText,
+          "class": "" + this.options.baseClass + "-label"
+        });
+        this.$element.on("init.bootstrapSwitch", (function(_this) {
+          return function() {
+            return _this.options.onInit.apply(element, arguments);
+          };
+        })(this));
+        this.$element.on("switchChange.bootstrapSwitch", (function(_this) {
+          return function() {
+            return _this.options.onSwitchChange.apply(element, arguments);
+          };
+        })(this));
+        this.$container = this.$element.wrap(this.$container).parent();
+        this.$wrapper = this.$container.wrap(this.$wrapper).parent();
+        this.$element.before(this.options.inverse ? this.$off : this.$on).before(this.$label).before(this.options.inverse ? this.$on : this.$off);
+        if (this.options.indeterminate) {
+          this.$element.prop("indeterminate", true);
         }
-      }
-    }
-
-    return target;
-  };
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  var _createClass = function () {
-    function defineProperties(target, props) {
-      for (var i = 0; i < props.length; i++) {
-        var descriptor = props[i];
-        descriptor.enumerable = descriptor.enumerable || false;
-        descriptor.configurable = true;
-        if ("value" in descriptor) descriptor.writable = true;
-        Object.defineProperty(target, descriptor.key, descriptor);
-      }
-    }
-
-    return function (Constructor, protoProps, staticProps) {
-      if (protoProps) defineProperties(Constructor.prototype, protoProps);
-      if (staticProps) defineProperties(Constructor, staticProps);
-      return Constructor;
-    };
-  }();
-
-  var $ = _jquery2.default || window.jQuery || window.$;
-
-  var BootstrapSwitch = function () {
-    function BootstrapSwitch(element) {
-      var _this = this;
-
-      var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-      _classCallCheck(this, BootstrapSwitch);
-
-      this.$element = $(element);
-      this.options = $.extend({}, $.fn.bootstrapSwitch.defaults, this._getElementOptions(), options);
-      this.prevOptions = {};
-      this.$wrapper = $('<div>', {
-        class: function _class() {
-          var classes = [];
-          classes.push(_this.options.state ? 'on' : 'off');
-          if (_this.options.size) {
-            classes.push(_this.options.size);
-          }
-          if (_this.options.disabled) {
-            classes.push('disabled');
-          }
-          if (_this.options.readonly) {
-            classes.push('readonly');
-          }
-          if (_this.options.indeterminate) {
-            classes.push('indeterminate');
-          }
-          if (_this.options.inverse) {
-            classes.push('inverse');
-          }
-          if (_this.$element.attr('id')) {
-            classes.push('id-' + _this.$element.attr('id'));
-          }
-          return classes.map(_this._getClass.bind(_this)).concat([_this.options.baseClass], _this._getClasses(_this.options.wrapperClass)).join(' ');
-        }
-      });
-      this.$container = $('<div>', { class: this._getClass('container') });
-      this.$on = $('<span>', {
-        html: this.options.onText,
-        class: this._getClass('handle-on') + ' ' + this._getClass(this.options.onColor)
-      });
-      this.$off = $('<span>', {
-        html: this.options.offText,
-        class: this._getClass('handle-off') + ' ' + this._getClass(this.options.offColor)
-      });
-      this.$label = $('<span>', {
-        html: this.options.labelText,
-        class: this._getClass('label')
-      });
-
-      this.$element.on('init.bootstrapSwitch', this.options.onInit.bind(this, element));
-      this.$element.on('switchChange.bootstrapSwitch', function () {
-        for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-          args[_key] = arguments[_key];
-        }
-
-        if (_this.options.onSwitchChange.apply(element, args) === false) {
-          if (_this.$element.is(':radio')) {
-            $('[name="' + _this.$element.attr('name') + '"]').trigger('previousState.bootstrapSwitch', true);
-          } else {
-            _this.$element.trigger('previousState.bootstrapSwitch', true);
-          }
-        }
-      });
-
-      this.$container = this.$element.wrap(this.$container).parent();
-      this.$wrapper = this.$container.wrap(this.$wrapper).parent();
-      this.$element.before(this.options.inverse ? this.$off : this.$on).before(this.$label).before(this.options.inverse ? this.$on : this.$off);
-
-      if (this.options.indeterminate) {
-        this.$element.prop('indeterminate', true);
+        this._init();
+        this._elementHandlers();
+        this._handleHandlers();
+        this._labelHandlers();
+        this._formHandler();
+        this._externalLabelHandler();
+        this.$element.trigger("init.bootstrapSwitch");
       }
 
-      this._init();
-      this._elementHandlers();
-      this._handleHandlers();
-      this._labelHandlers();
-      this._formHandler();
-      this._externalLabelHandler();
-      this.$element.trigger('init.bootstrapSwitch', this.options.state);
-    }
+      BootstrapSwitch.prototype._constructor = BootstrapSwitch;
 
-    _createClass(BootstrapSwitch, [{
-      key: 'setPrevOptions',
-      value: function setPrevOptions() {
-        this.prevOptions = _extends({}, this.options);
-      }
-    }, {
-      key: 'state',
-      value: function state(value, skip) {
-        if (typeof value === 'undefined') {
+      BootstrapSwitch.prototype.state = function(value, skip) {
+        if (typeof value === "undefined") {
           return this.options.state;
         }
-        if (this.options.disabled || this.options.readonly || this.options.state && !this.options.radioAllOff && this.$element.is(':radio')) {
+        if (this.options.disabled || this.options.readonly) {
           return this.$element;
         }
-        if (this.$element.is(':radio')) {
-          $('[name="' + this.$element.attr('name') + '"]').trigger('setPreviousOptions.bootstrapSwitch');
-        } else {
-          this.$element.trigger('setPreviousOptions.bootstrapSwitch');
+        if (this.options.state && !this.options.radioAllOff && this.$element.is(":radio")) {
+          return this.$element;
         }
         if (this.options.indeterminate) {
           this.indeterminate(false);
         }
-        this.$element.prop('checked', Boolean(value)).trigger('change.bootstrapSwitch', skip);
+        value = !!value;
+        this.$element.prop("checked", value).trigger("change.bootstrapSwitch", skip);
         return this.$element;
-      }
-    }, {
-      key: 'toggleState',
-      value: function toggleState(skip) {
+      };
+
+      BootstrapSwitch.prototype.toggleState = function(skip) {
         if (this.options.disabled || this.options.readonly) {
           return this.$element;
         }
@@ -17967,156 +18097,152 @@ function dismissLoaderAfterRender(showLoader)
           this.indeterminate(false);
           return this.state(true);
         } else {
-          return this.$element.prop('checked', !this.options.state).trigger('change.bootstrapSwitch', skip);
+          return this.$element.prop("checked", !this.options.state).trigger("change.bootstrapSwitch", skip);
         }
-      }
-    }, {
-      key: 'size',
-      value: function size(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.size = function(value) {
+        if (typeof value === "undefined") {
           return this.options.size;
         }
         if (this.options.size != null) {
-          this.$wrapper.removeClass(this._getClass(this.options.size));
+          this.$wrapper.removeClass("" + this.options.baseClass + "-" + this.options.size);
         }
         if (value) {
-          this.$wrapper.addClass(this._getClass(value));
+          this.$wrapper.addClass("" + this.options.baseClass + "-" + value);
         }
         this._width();
         this._containerPosition();
         this.options.size = value;
         return this.$element;
-      }
-    }, {
-      key: 'animate',
-      value: function animate(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.animate = function(value) {
+        if (typeof value === "undefined") {
           return this.options.animate;
         }
-        if (this.options.animate === Boolean(value)) {
+        value = !!value;
+        if (value === this.options.animate) {
           return this.$element;
         }
         return this.toggleAnimate();
-      }
-    }, {
-      key: 'toggleAnimate',
-      value: function toggleAnimate() {
+      };
+
+      BootstrapSwitch.prototype.toggleAnimate = function() {
         this.options.animate = !this.options.animate;
-        this.$wrapper.toggleClass(this._getClass('animate'));
+        this.$wrapper.toggleClass("" + this.options.baseClass + "-animate");
         return this.$element;
-      }
-    }, {
-      key: 'disabled',
-      value: function disabled(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.disabled = function(value) {
+        if (typeof value === "undefined") {
           return this.options.disabled;
         }
-        if (this.options.disabled === Boolean(value)) {
+        value = !!value;
+        if (value === this.options.disabled) {
           return this.$element;
         }
         return this.toggleDisabled();
-      }
-    }, {
-      key: 'toggleDisabled',
-      value: function toggleDisabled() {
+      };
+
+      BootstrapSwitch.prototype.toggleDisabled = function() {
         this.options.disabled = !this.options.disabled;
-        this.$element.prop('disabled', this.options.disabled);
-        this.$wrapper.toggleClass(this._getClass('disabled'));
+        this.$element.prop("disabled", this.options.disabled);
+        this.$wrapper.toggleClass("" + this.options.baseClass + "-disabled");
         return this.$element;
-      }
-    }, {
-      key: 'readonly',
-      value: function readonly(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.readonly = function(value) {
+        if (typeof value === "undefined") {
           return this.options.readonly;
         }
-        if (this.options.readonly === Boolean(value)) {
+        value = !!value;
+        if (value === this.options.readonly) {
           return this.$element;
         }
         return this.toggleReadonly();
-      }
-    }, {
-      key: 'toggleReadonly',
-      value: function toggleReadonly() {
+      };
+
+      BootstrapSwitch.prototype.toggleReadonly = function() {
         this.options.readonly = !this.options.readonly;
-        this.$element.prop('readonly', this.options.readonly);
-        this.$wrapper.toggleClass(this._getClass('readonly'));
+        this.$element.prop("readonly", this.options.readonly);
+        this.$wrapper.toggleClass("" + this.options.baseClass + "-readonly");
         return this.$element;
-      }
-    }, {
-      key: 'indeterminate',
-      value: function indeterminate(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.indeterminate = function(value) {
+        if (typeof value === "undefined") {
           return this.options.indeterminate;
         }
-        if (this.options.indeterminate === Boolean(value)) {
+        value = !!value;
+        if (value === this.options.indeterminate) {
           return this.$element;
         }
         return this.toggleIndeterminate();
-      }
-    }, {
-      key: 'toggleIndeterminate',
-      value: function toggleIndeterminate() {
+      };
+
+      BootstrapSwitch.prototype.toggleIndeterminate = function() {
         this.options.indeterminate = !this.options.indeterminate;
-        this.$element.prop('indeterminate', this.options.indeterminate);
-        this.$wrapper.toggleClass(this._getClass('indeterminate'));
+        this.$element.prop("indeterminate", this.options.indeterminate);
+        this.$wrapper.toggleClass("" + this.options.baseClass + "-indeterminate");
         this._containerPosition();
         return this.$element;
-      }
-    }, {
-      key: 'inverse',
-      value: function inverse(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.inverse = function(value) {
+        if (typeof value === "undefined") {
           return this.options.inverse;
         }
-        if (this.options.inverse === Boolean(value)) {
+        value = !!value;
+        if (value === this.options.inverse) {
           return this.$element;
         }
         return this.toggleInverse();
-      }
-    }, {
-      key: 'toggleInverse',
-      value: function toggleInverse() {
-        this.$wrapper.toggleClass(this._getClass('inverse'));
-        var $on = this.$on.clone(true);
-        var $off = this.$off.clone(true);
+      };
+
+      BootstrapSwitch.prototype.toggleInverse = function() {
+        var $off, $on;
+        this.$wrapper.toggleClass("" + this.options.baseClass + "-inverse");
+        $on = this.$on.clone(true);
+        $off = this.$off.clone(true);
         this.$on.replaceWith($off);
         this.$off.replaceWith($on);
         this.$on = $off;
         this.$off = $on;
         this.options.inverse = !this.options.inverse;
         return this.$element;
-      }
-    }, {
-      key: 'onColor',
-      value: function onColor(value) {
-        if (typeof value === 'undefined') {
-          return this.options.onColor;
+      };
+
+      BootstrapSwitch.prototype.onColor = function(value) {
+        var color;
+        color = this.options.onColor;
+        if (typeof value === "undefined") {
+          return color;
         }
-        if (this.options.onColor) {
-          this.$on.removeClass(this._getClass(this.options.onColor));
+        if (color != null) {
+          this.$on.removeClass("" + this.options.baseClass + "-" + color);
         }
-        this.$on.addClass(this._getClass(value));
+        this.$on.addClass("" + this.options.baseClass + "-" + value);
         this.options.onColor = value;
         return this.$element;
-      }
-    }, {
-      key: 'offColor',
-      value: function offColor(value) {
-        if (typeof value === 'undefined') {
-          return this.options.offColor;
+      };
+
+      BootstrapSwitch.prototype.offColor = function(value) {
+        var color;
+        color = this.options.offColor;
+        if (typeof value === "undefined") {
+          return color;
         }
-        if (this.options.offColor) {
-          this.$off.removeClass(this._getClass(this.options.offColor));
+        if (color != null) {
+          this.$off.removeClass("" + this.options.baseClass + "-" + color);
         }
-        this.$off.addClass(this._getClass(value));
+        this.$off.addClass("" + this.options.baseClass + "-" + value);
         this.options.offColor = value;
         return this.$element;
-      }
-    }, {
-      key: 'onText',
-      value: function onText(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.onText = function(value) {
+        if (typeof value === "undefined") {
           return this.options.onText;
         }
         this.$on.html(value);
@@ -18124,11 +18250,10 @@ function dismissLoaderAfterRender(showLoader)
         this._containerPosition();
         this.options.onText = value;
         return this.$element;
-      }
-    }, {
-      key: 'offText',
-      value: function offText(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.offText = function(value) {
+        if (typeof value === "undefined") {
           return this.options.offText;
         }
         this.$off.html(value);
@@ -18136,76 +18261,69 @@ function dismissLoaderAfterRender(showLoader)
         this._containerPosition();
         this.options.offText = value;
         return this.$element;
-      }
-    }, {
-      key: 'labelText',
-      value: function labelText(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.labelText = function(value) {
+        if (typeof value === "undefined") {
           return this.options.labelText;
         }
         this.$label.html(value);
         this._width();
         this.options.labelText = value;
         return this.$element;
-      }
-    }, {
-      key: 'handleWidth',
-      value: function handleWidth(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.handleWidth = function(value) {
+        if (typeof value === "undefined") {
           return this.options.handleWidth;
         }
         this.options.handleWidth = value;
         this._width();
         this._containerPosition();
         return this.$element;
-      }
-    }, {
-      key: 'labelWidth',
-      value: function labelWidth(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.labelWidth = function(value) {
+        if (typeof value === "undefined") {
           return this.options.labelWidth;
         }
         this.options.labelWidth = value;
         this._width();
         this._containerPosition();
         return this.$element;
-      }
-    }, {
-      key: 'baseClass',
-      value: function baseClass(value) {
+      };
+
+      BootstrapSwitch.prototype.baseClass = function(value) {
         return this.options.baseClass;
-      }
-    }, {
-      key: 'wrapperClass',
-      value: function wrapperClass(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.wrapperClass = function(value) {
+        if (typeof value === "undefined") {
           return this.options.wrapperClass;
         }
         if (!value) {
           value = $.fn.bootstrapSwitch.defaults.wrapperClass;
         }
-        this.$wrapper.removeClass(this._getClasses(this.options.wrapperClass).join(' '));
-        this.$wrapper.addClass(this._getClasses(value).join(' '));
+        this.$wrapper.removeClass(this._getClasses(this.options.wrapperClass).join(" "));
+        this.$wrapper.addClass(this._getClasses(value).join(" "));
         this.options.wrapperClass = value;
         return this.$element;
-      }
-    }, {
-      key: 'radioAllOff',
-      value: function radioAllOff(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.radioAllOff = function(value) {
+        if (typeof value === "undefined") {
           return this.options.radioAllOff;
         }
-        var val = Boolean(value);
-        if (this.options.radioAllOff === val) {
+        value = !!value;
+        if (value === this.options.radioAllOff) {
           return this.$element;
         }
-        this.options.radioAllOff = val;
+        this.options.radioAllOff = value;
         return this.$element;
-      }
-    }, {
-      key: 'onInit',
-      value: function onInit(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.onInit = function(value) {
+        if (typeof value === "undefined") {
           return this.options.onInit;
         }
         if (!value) {
@@ -18213,11 +18331,10 @@ function dismissLoaderAfterRender(showLoader)
         }
         this.options.onInit = value;
         return this.$element;
-      }
-    }, {
-      key: 'onSwitchChange',
-      value: function onSwitchChange(value) {
-        if (typeof value === 'undefined') {
+      };
+
+      BootstrapSwitch.prototype.onSwitchChange = function(value) {
+        if (typeof value === "undefined") {
           return this.options.onSwitchChange;
         }
         if (!value) {
@@ -18225,343 +18342,323 @@ function dismissLoaderAfterRender(showLoader)
         }
         this.options.onSwitchChange = value;
         return this.$element;
-      }
-    }, {
-      key: 'destroy',
-      value: function destroy() {
-        var $form = this.$element.closest('form');
+      };
+
+      BootstrapSwitch.prototype.destroy = function() {
+        var $form;
+        $form = this.$element.closest("form");
         if ($form.length) {
-          $form.off('reset.bootstrapSwitch').removeData('bootstrap-switch');
+          $form.off("reset.bootstrapSwitch").removeData("bootstrap-switch");
         }
         this.$container.children().not(this.$element).remove();
-        this.$element.unwrap().unwrap().off('.bootstrapSwitch').removeData('bootstrap-switch');
+        this.$element.unwrap().unwrap().off(".bootstrapSwitch").removeData("bootstrap-switch");
         return this.$element;
-      }
-    }, {
-      key: '_getElementOptions',
-      value: function _getElementOptions() {
-        return {
-          state: this.$element.is(':checked'),
-          size: this.$element.data('size'),
-          animate: this.$element.data('animate'),
-          disabled: this.$element.is(':disabled'),
-          readonly: this.$element.is('[readonly]'),
-          indeterminate: this.$element.data('indeterminate'),
-          inverse: this.$element.data('inverse'),
-          radioAllOff: this.$element.data('radio-all-off'),
-          onColor: this.$element.data('on-color'),
-          offColor: this.$element.data('off-color'),
-          onText: this.$element.data('on-text'),
-          offText: this.$element.data('off-text'),
-          labelText: this.$element.data('label-text'),
-          handleWidth: this.$element.data('handle-width'),
-          labelWidth: this.$element.data('label-width'),
-          baseClass: this.$element.data('base-class'),
-          wrapperClass: this.$element.data('wrapper-class')
-        };
-      }
-    }, {
-      key: '_width',
-      value: function _width() {
-        var _this2 = this;
+      };
 
-        var $handles = this.$on.add(this.$off).add(this.$label).css('width', '');
-        var handleWidth = this.options.handleWidth === 'auto' ? Math.round(Math.max(this.$on.width(), this.$off.width())) : this.options.handleWidth;
+      BootstrapSwitch.prototype._width = function() {
+        var $handles, handleWidth;
+        $handles = this.$on.add(this.$off);
+        $handles.add(this.$label).css("width", "");
+        handleWidth = this.options.handleWidth === "auto" ? Math.max(this.$on.width(), this.$off.width()) : this.options.handleWidth;
         $handles.width(handleWidth);
-        this.$label.width(function (index, width) {
-          if (_this2.options.labelWidth !== 'auto') {
-            return _this2.options.labelWidth;
-          }
-          if (width < handleWidth) {
-            return handleWidth;
-          }
-          return width;
-        });
+        this.$label.width((function(_this) {
+          return function(index, width) {
+            if (_this.options.labelWidth !== "auto") {
+              return _this.options.labelWidth;
+            }
+            if (width < handleWidth) {
+              return handleWidth;
+            } else {
+              return width;
+            }
+          };
+        })(this));
         this._handleWidth = this.$on.outerWidth();
         this._labelWidth = this.$label.outerWidth();
-        this.$container.width(this._handleWidth * 2 + this._labelWidth);
+        this.$container.width((this._handleWidth * 2) + this._labelWidth);
         return this.$wrapper.width(this._handleWidth + this._labelWidth);
-      }
-    }, {
-      key: '_containerPosition',
-      value: function _containerPosition() {
-        var _this3 = this;
+      };
 
-        var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.options.state;
-        var callback = arguments[1];
-
-        this.$container.css('margin-left', function () {
-          var values = [0, '-' + _this3._handleWidth + 'px'];
-          if (_this3.options.indeterminate) {
-            return '-' + _this3._handleWidth / 2 + 'px';
-          }
-          if (state) {
-            if (_this3.options.inverse) {
-              return values[1];
+      BootstrapSwitch.prototype._containerPosition = function(state, callback) {
+        if (state == null) {
+          state = this.options.state;
+        }
+        this.$container.css("margin-left", (function(_this) {
+          return function() {
+            var values;
+            values = [0, "-" + _this._handleWidth + "px"];
+            if (_this.options.indeterminate) {
+              return "-" + (_this._handleWidth / 2) + "px";
+            }
+            if (state) {
+              if (_this.options.inverse) {
+                return values[1];
+              } else {
+                return values[0];
+              }
             } else {
-              return values[0];
+              if (_this.options.inverse) {
+                return values[0];
+              } else {
+                return values[1];
+              }
             }
-          } else {
-            if (_this3.options.inverse) {
-              return values[0];
-            } else {
-              return values[1];
-            }
-          }
-        });
-      }
-    }, {
-      key: '_init',
-      value: function _init() {
-        var _this4 = this;
-
-        var init = function init() {
-          _this4.setPrevOptions();
-          _this4._width();
-          _this4._containerPosition();
-          setTimeout(function () {
-            if (_this4.options.animate) {
-              return _this4.$wrapper.addClass(_this4._getClass('animate'));
-            }
-          }, 50);
-        };
-        if (this.$wrapper.is(':visible')) {
-          init();
+          };
+        })(this));
+        if (!callback) {
           return;
         }
-        var initInterval = window.setInterval(function () {
-          if (_this4.$wrapper.is(':visible')) {
-            init();
-            return window.clearInterval(initInterval);
-          }
+        return setTimeout(function() {
+          return callback();
         }, 50);
-      }
-    }, {
-      key: '_elementHandlers',
-      value: function _elementHandlers() {
-        var _this5 = this;
+      };
 
-        return this.$element.on({
-          'setPreviousOptions.bootstrapSwitch': this.setPrevOptions.bind(this),
-
-          'previousState.bootstrapSwitch': function previousStateBootstrapSwitch() {
-            _this5.options = _this5.prevOptions;
-            if (_this5.options.indeterminate) {
-              _this5.$wrapper.addClass(_this5._getClass('indeterminate'));
+      BootstrapSwitch.prototype._init = function() {
+        var init, initInterval;
+        init = (function(_this) {
+          return function() {
+            _this._width();
+            return _this._containerPosition(null, function() {
+              if (_this.options.animate) {
+                return _this.$wrapper.addClass("" + _this.options.baseClass + "-animate");
+              }
+            });
+          };
+        })(this);
+        if (this.$wrapper.is(":visible")) {
+          return init();
+        }
+        return initInterval = window.setInterval((function(_this) {
+          return function() {
+            if (_this.$wrapper.is(":visible")) {
+              init();
+              return window.clearInterval(initInterval);
             }
-            _this5.$element.prop('checked', _this5.options.state).trigger('change.bootstrapSwitch', true);
-          },
+          };
+        })(this), 50);
+      };
 
-          'change.bootstrapSwitch': function changeBootstrapSwitch(event, skip) {
+      BootstrapSwitch.prototype._elementHandlers = function() {
+        return this.$element.on({
+          "change.bootstrapSwitch": (function(_this) {
+            return function(e, skip) {
+              var state;
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              state = _this.$element.is(":checked");
+              _this._containerPosition(state);
+              if (state === _this.options.state) {
+                return;
+              }
+              _this.options.state = state;
+              _this.$wrapper.toggleClass("" + _this.options.baseClass + "-off").toggleClass("" + _this.options.baseClass + "-on");
+              if (!skip) {
+                if (_this.$element.is(":radio")) {
+                  $("[name='" + (_this.$element.attr('name')) + "']").not(_this.$element).prop("checked", false).trigger("change.bootstrapSwitch", true);
+                }
+                return _this.$element.trigger("switchChange.bootstrapSwitch", [state]);
+              }
+            };
+          })(this),
+          "focus.bootstrapSwitch": (function(_this) {
+            return function(e) {
+              e.preventDefault();
+              return _this.$wrapper.addClass("" + _this.options.baseClass + "-focused");
+            };
+          })(this),
+          "blur.bootstrapSwitch": (function(_this) {
+            return function(e) {
+              e.preventDefault();
+              return _this.$wrapper.removeClass("" + _this.options.baseClass + "-focused");
+            };
+          })(this),
+          "keydown.bootstrapSwitch": (function(_this) {
+            return function(e) {
+              if (!e.which || _this.options.disabled || _this.options.readonly) {
+                return;
+              }
+              switch (e.which) {
+                case 37:
+                  e.preventDefault();
+                  e.stopImmediatePropagation();
+                  return _this.state(false);
+                case 39:
+                  e.preventDefault();
+                  e.stopImmediatePropagation();
+                  return _this.state(true);
+              }
+            };
+          })(this)
+        });
+      };
+
+      BootstrapSwitch.prototype._handleHandlers = function() {
+        this.$on.on("click.bootstrapSwitch", (function(_this) {
+          return function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            _this.state(false);
+            return _this.$element.trigger("focus.bootstrapSwitch");
+          };
+        })(this));
+        return this.$off.on("click.bootstrapSwitch", (function(_this) {
+          return function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            _this.state(true);
+            return _this.$element.trigger("focus.bootstrapSwitch");
+          };
+        })(this));
+      };
+
+      BootstrapSwitch.prototype._labelHandlers = function() {
+        return this.$label.on({
+          "mousedown.bootstrapSwitch touchstart.bootstrapSwitch": (function(_this) {
+            return function(e) {
+              if (_this._dragStart || _this.options.disabled || _this.options.readonly) {
+                return;
+              }
+              e.preventDefault();
+              e.stopPropagation();
+              _this._dragStart = (e.pageX || e.originalEvent.touches[0].pageX) - parseInt(_this.$container.css("margin-left"), 10);
+              if (_this.options.animate) {
+                _this.$wrapper.removeClass("" + _this.options.baseClass + "-animate");
+              }
+              return _this.$element.trigger("focus.bootstrapSwitch");
+            };
+          })(this),
+          "mousemove.bootstrapSwitch touchmove.bootstrapSwitch": (function(_this) {
+            return function(e) {
+              var difference;
+              if (_this._dragStart == null) {
+                return;
+              }
+              e.preventDefault();
+              difference = (e.pageX || e.originalEvent.touches[0].pageX) - _this._dragStart;
+              if (difference < -_this._handleWidth || difference > 0) {
+                return;
+              }
+              _this._dragEnd = difference;
+              return _this.$container.css("margin-left", "" + _this._dragEnd + "px");
+            };
+          })(this),
+          "mouseup.bootstrapSwitch touchend.bootstrapSwitch": (function(_this) {
+            return function(e) {
+              var state;
+              if (!_this._dragStart) {
+                return;
+              }
+              e.preventDefault();
+              if (_this.options.animate) {
+                _this.$wrapper.addClass("" + _this.options.baseClass + "-animate");
+              }
+              if (_this._dragEnd) {
+                state = _this._dragEnd > -(_this._handleWidth / 2);
+                _this._dragEnd = false;
+                _this.state(_this.options.inverse ? !state : state);
+              } else {
+                _this.state(!_this.options.state);
+              }
+              return _this._dragStart = false;
+            };
+          })(this),
+          "mouseleave.bootstrapSwitch": (function(_this) {
+            return function(e) {
+              return _this.$label.trigger("mouseup.bootstrapSwitch");
+            };
+          })(this)
+        });
+      };
+
+      BootstrapSwitch.prototype._externalLabelHandler = function() {
+        var $externalLabel;
+        $externalLabel = this.$element.closest("label");
+        return $externalLabel.on("click", (function(_this) {
+          return function(event) {
             event.preventDefault();
             event.stopImmediatePropagation();
-            var state = _this5.$element.is(':checked');
-            _this5._containerPosition(state);
-            if (state === _this5.options.state) {
-              return;
+            if (event.target === $externalLabel[0]) {
+              return _this.toggleState();
             }
-            _this5.options.state = state;
-            _this5.$wrapper.toggleClass(_this5._getClass('off')).toggleClass(_this5._getClass('on'));
-            if (!skip) {
-              if (_this5.$element.is(':radio')) {
-                $('[name="' + _this5.$element.attr('name') + '"]').not(_this5.$element).prop('checked', false).trigger('change.bootstrapSwitch', true);
-              }
-              _this5.$element.trigger('switchChange.bootstrapSwitch', [state]);
-            }
-          },
+          };
+        })(this));
+      };
 
-          'focus.bootstrapSwitch': function focusBootstrapSwitch(event) {
-            event.preventDefault();
-            _this5.$wrapper.addClass(_this5._getClass('focused'));
-          },
-
-          'blur.bootstrapSwitch': function blurBootstrapSwitch(event) {
-            event.preventDefault();
-            _this5.$wrapper.removeClass(_this5._getClass('focused'));
-          },
-
-          'keydown.bootstrapSwitch': function keydownBootstrapSwitch(event) {
-            if (!event.which || _this5.options.disabled || _this5.options.readonly) {
-              return;
-            }
-            if (event.which === 37 || event.which === 39) {
-              event.preventDefault();
-              event.stopImmediatePropagation();
-              _this5.state(event.which === 39);
-            }
-          }
-        });
-      }
-    }, {
-      key: '_handleHandlers',
-      value: function _handleHandlers() {
-        var _this6 = this;
-
-        this.$on.on('click.bootstrapSwitch', function (event) {
-          event.preventDefault();
-          event.stopPropagation();
-          _this6.state(false);
-          return _this6.$element.trigger('focus.bootstrapSwitch');
-        });
-        return this.$off.on('click.bootstrapSwitch', function (event) {
-          event.preventDefault();
-          event.stopPropagation();
-          _this6.state(true);
-          return _this6.$element.trigger('focus.bootstrapSwitch');
-        });
-      }
-    }, {
-      key: '_labelHandlers',
-      value: function _labelHandlers() {
-        var _this7 = this;
-
-        var handlers = {
-          click: function click(event) {
-            event.stopPropagation();
-          },
-
-
-          'mousedown.bootstrapSwitch touchstart.bootstrapSwitch': function mousedownBootstrapSwitchTouchstartBootstrapSwitch(event) {
-            if (_this7._dragStart || _this7.options.disabled || _this7.options.readonly) {
-              return;
-            }
-            event.preventDefault();
-            event.stopPropagation();
-            _this7._dragStart = (event.pageX || event.originalEvent.touches[0].pageX) - parseInt(_this7.$container.css('margin-left'), 10);
-            if (_this7.options.animate) {
-              _this7.$wrapper.removeClass(_this7._getClass('animate'));
-            }
-            _this7.$element.trigger('focus.bootstrapSwitch');
-          },
-
-          'mousemove.bootstrapSwitch touchmove.bootstrapSwitch': function mousemoveBootstrapSwitchTouchmoveBootstrapSwitch(event) {
-            if (_this7._dragStart == null) {
-              return;
-            }
-            var difference = (event.pageX || event.originalEvent.touches[0].pageX) - _this7._dragStart;
-            event.preventDefault();
-            if (difference < -_this7._handleWidth || difference > 0) {
-              return;
-            }
-            _this7._dragEnd = difference;
-            _this7.$container.css('margin-left', _this7._dragEnd + 'px');
-          },
-
-          'mouseup.bootstrapSwitch touchend.bootstrapSwitch': function mouseupBootstrapSwitchTouchendBootstrapSwitch(event) {
-            if (!_this7._dragStart) {
-              return;
-            }
-            event.preventDefault();
-            if (_this7.options.animate) {
-              _this7.$wrapper.addClass(_this7._getClass('animate'));
-            }
-            if (_this7._dragEnd) {
-              var state = _this7._dragEnd > -(_this7._handleWidth / 2);
-              _this7._dragEnd = false;
-              _this7.state(_this7.options.inverse ? !state : state);
-            } else {
-              _this7.state(!_this7.options.state);
-            }
-            _this7._dragStart = false;
-          },
-
-          'mouseleave.bootstrapSwitch': function mouseleaveBootstrapSwitch() {
-            _this7.$label.trigger('mouseup.bootstrapSwitch');
-          }
-        };
-        this.$label.on(handlers);
-      }
-    }, {
-      key: '_externalLabelHandler',
-      value: function _externalLabelHandler() {
-        var _this8 = this;
-
-        var $externalLabel = this.$element.closest('label');
-        $externalLabel.on('click', function (event) {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          if (event.target === $externalLabel[0]) {
-            _this8.toggleState();
-          }
-        });
-      }
-    }, {
-      key: '_formHandler',
-      value: function _formHandler() {
-        var $form = this.$element.closest('form');
-        if ($form.data('bootstrap-switch')) {
+      BootstrapSwitch.prototype._formHandler = function() {
+        var $form;
+        $form = this.$element.closest("form");
+        if ($form.data("bootstrap-switch")) {
           return;
         }
-        $form.on('reset.bootstrapSwitch', function () {
-          window.setTimeout(function () {
-            $form.find('input').filter(function () {
-              return $(this).data('bootstrap-switch');
-            }).each(function () {
-              return $(this).bootstrapSwitch('state', this.checked);
+        return $form.on("reset.bootstrapSwitch", function() {
+          return window.setTimeout(function() {
+            return $form.find("input").filter(function() {
+              return $(this).data("bootstrap-switch");
+            }).each(function() {
+              return $(this).bootstrapSwitch("state", this.checked);
             });
           }, 1);
-        }).data('bootstrap-switch', true);
-      }
-    }, {
-      key: '_getClass',
-      value: function _getClass(name) {
-        return this.options.baseClass + '-' + name;
-      }
-    }, {
-      key: '_getClasses',
-      value: function _getClasses(classes) {
+        }).data("bootstrap-switch", true);
+      };
+
+      BootstrapSwitch.prototype._getClasses = function(classes) {
+        var c, cls, _i, _len;
         if (!$.isArray(classes)) {
-          return [this._getClass(classes)];
+          return ["" + this.options.baseClass + "-" + classes];
         }
-        return classes.map(this._getClass.bind(this));
-      }
-    }]);
+        cls = [];
+        for (_i = 0, _len = classes.length; _i < _len; _i++) {
+          c = classes[_i];
+          cls.push("" + this.options.baseClass + "-" + c);
+        }
+        return cls;
+      };
 
-    return BootstrapSwitch;
-  }();
+      return BootstrapSwitch;
 
-  $.fn.bootstrapSwitch = function (option) {
-    for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-      args[_key2 - 1] = arguments[_key2];
-    }
-
-    function reducer(ret, next) {
-      var $this = $(next);
-      var existingData = $this.data('bootstrap-switch');
-      var data = existingData || new BootstrapSwitch(next, option);
-      if (!existingData) {
-        $this.data('bootstrap-switch', data);
-      }
-      if (typeof option === 'string') {
-        return data[option].apply(data, args);
-      }
+    })();
+    $.fn.bootstrapSwitch = function() {
+      var args, option, ret;
+      option = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
+      ret = this;
+      this.each(function() {
+        var $this, data;
+        $this = $(this);
+        data = $this.data("bootstrap-switch");
+        if (!data) {
+          $this.data("bootstrap-switch", data = new BootstrapSwitch(this, option));
+        }
+        if (typeof option === "string") {
+          return ret = data[option].apply(data, args);
+        }
+      });
       return ret;
-    }
-    return Array.prototype.reduce.call(this, reducer, this);
-  };
-  $.fn.bootstrapSwitch.Constructor = BootstrapSwitch;
-  $.fn.bootstrapSwitch.defaults = {
-    state: true,
-    size: null,
-    animate: true,
-    disabled: false,
-    readonly: false,
-    indeterminate: false,
-    inverse: false,
-    radioAllOff: false,
-    onColor: 'primary',
-    offColor: 'default',
-    onText: 'ON',
-    offText: 'OFF',
-    labelText: '&nbsp',
-    handleWidth: 'auto',
-    labelWidth: 'auto',
-    baseClass: 'bootstrap-switch',
-    wrapperClass: 'wrapper',
-    onInit: function onInit() {},
-    onSwitchChange: function onSwitchChange() {}
-  };
-});
+    };
+    $.fn.bootstrapSwitch.Constructor = BootstrapSwitch;
+    return $.fn.bootstrapSwitch.defaults = {
+      state: true,
+      size: null,
+      animate: true,
+      disabled: false,
+      readonly: false,
+      indeterminate: false,
+      inverse: false,
+      radioAllOff: false,
+      onColor: "primary",
+      offColor: "default",
+      onText: "ON",
+      offText: "OFF",
+      labelText: "&nbsp;",
+      handleWidth: "auto",
+      labelWidth: "auto",
+      baseClass: "bootstrap-switch",
+      wrapperClass: "wrapper",
+      onInit: function() {},
+      onSwitchChange: function() {}
+    };
+  })(window.jQuery, window);
+
+}).call(this);
 
 /* ===================================================
  * bootstrap-markdown.js v2.10.0
@@ -18581,70 +18678,63 @@ function dismissLoaderAfterRender(showLoader)
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * ========================================================== */
-(function(factory) {
-  if (typeof define === "function" && define.amd) {
-    // RequireJS
-    define(["jquery"], factory);
-  } else if (typeof exports === 'object') {
-    // Backbone.js
-    factory(require('jquery'));
-  } else {
-    // jQuery plugin
-    factory(jQuery);
-  }
-}(function($) {
-  "use strict";
+
+(function(factory){
+    if (typeof define === "function" && define.amd) {
+        //RequireJS
+        define(["jquery"], factory);
+    } else if (typeof exports === 'object') {
+        //Backbone.js
+        factory(require('jquery'));
+    } else {
+        //Jquery plugin
+        factory(jQuery);
+    }
+}(function($){
+  "use strict"; // jshint ;_;
 
   /* MARKDOWN CLASS DEFINITION
    * ========================== */
 
-  var Markdown = function(element, options) {
+  var Markdown = function (element, options) {
     // @TODO : remove this BC on next major release
     // @see : https://github.com/toopay/bootstrap-markdown/issues/109
-    var opts = ['autofocus', 'savable', 'hideable', 'width',
-      'height', 'resize', 'iconlibrary', 'language',
-      'footer', 'fullscreen', 'hiddenButtons', 'disabledButtons'
-    ];
-    $.each(opts, function(_, opt) {
+    var opts = ['autofocus', 'savable', 'hideable', 'width', 
+      'height', 'resize', 'iconlibrary', 'language', 
+      'footer', 'fullscreen', 'hiddenButtons', 'disabledButtons'];
+    $.each(opts,function(_, opt){
       if (typeof $(element).data(opt) !== 'undefined') {
-        options = typeof options == 'object' ? options : {};
-        options[opt] = $(element).data(opt);
+        options = typeof options == 'object' ? options : {}
+        options[opt] = $(element).data(opt)
       }
     });
     // End BC
 
     // Class Properties
-    this.$ns = 'bootstrap-markdown';
-    this.$element = $(element);
-    this.$editable = {
-      el: null,
-      type: null,
-      attrKeys: [],
-      attrValues: [],
-      content: null
-    };
-    this.$options = $.extend(true, {}, $.fn.markdown.defaults, options, this.$element.data('options'));
-    this.$oldContent = null;
-    this.$isPreview = false;
+    this.$ns           = 'bootstrap-markdown';
+    this.$element      = $(element);
+    this.$editable     = {el:null, type:null,attrKeys:[], attrValues:[], content:null};
+    this.$options      = $.extend(true, {}, $.fn.markdown.defaults, options, this.$element.data('options'));
+    this.$oldContent   = null;
+    this.$isPreview    = false;
     this.$isFullscreen = false;
-    this.$editor = null;
-    this.$textarea = null;
-    this.$handler = [];
-    this.$callback = [];
-    this.$nextTab = [];
+    this.$editor       = null;
+    this.$textarea     = null;
+    this.$handler      = [];
+    this.$callback     = [];
+    this.$nextTab      = [];
 
     this.showEditor();
   };
 
   Markdown.prototype = {
 
-    constructor: Markdown,
-    __alterButtons: function(name, alter) {
-      var handler = this.$handler,
-        isAll = (name == 'all'),
-        that = this;
+    constructor: Markdown
 
-      $.each(handler, function(k, v) {
+  , __alterButtons: function(name,alter) {
+      var handler = this.$handler, isAll = (name == 'all'),that = this;
+
+      $.each(handler,function(k,v) {
         var halt = true;
         if (isAll) {
           halt = false;
@@ -18653,53 +18743,54 @@ function dismissLoaderAfterRender(showLoader)
         }
 
         if (halt === false) {
-          alter(that.$editor.find('button[data-handler="' + v + '"]'));
+          alter(that.$editor.find('button[data-handler="'+v+'"]'));
         }
       });
-    },
-    __buildButtons: function(buttonsArray, container) {
-      var i,
-        ns = this.$ns,
-        handler = this.$handler,
-        callback = this.$callback;
+    }
 
-      for (i = 0; i < buttonsArray.length; i++) {
+  , __buildButtons: function(buttonsArray, container) {
+      var i,
+          ns = this.$ns,
+          handler = this.$handler,
+          callback = this.$callback;
+
+      for (i=0;i<buttonsArray.length;i++) {
         // Build each group container
         var y, btnGroups = buttonsArray[i];
-        for (y = 0; y < btnGroups.length; y++) {
+        for (y=0;y<btnGroups.length;y++) {
           // Build each button group
           var z,
-            buttons = btnGroups[y].data,
-            btnGroupContainer = $('<div/>', {
-              'class': 'btn-group'
-            });
+              buttons = btnGroups[y].data,
+              btnGroupContainer = $('<div/>', {
+                                    'class': 'btn-group'
+                                  });
 
-          for (z = 0; z < buttons.length; z++) {
+          for (z=0;z<buttons.length;z++) {
             var button = buttons[z],
-              buttonContainer, buttonIconContainer,
-              buttonHandler = ns + '-' + button.name,
-              buttonIcon = this.__getIcon(button),
-              btnText = button.btnText ? button.btnText : '',
-              btnClass = button.btnClass ? button.btnClass : 'btn',
-              tabIndex = button.tabIndex ? button.tabIndex : '-1',
-              hotkey = typeof button.hotkey !== 'undefined' ? button.hotkey : '',
-              hotkeyCaption = typeof jQuery.hotkeys !== 'undefined' && hotkey !== '' ? ' (' + hotkey + ')' : '';
+                buttonContainer, buttonIconContainer,
+                buttonHandler = ns+'-'+button.name,
+                buttonIcon = this.__getIcon(button.icon),
+                btnText = button.btnText ? button.btnText : '',
+                btnClass = button.btnClass ? button.btnClass : 'btn',
+                tabIndex = button.tabIndex ? button.tabIndex : '-1',
+                hotkey = typeof button.hotkey !== 'undefined' ? button.hotkey : '',
+                hotkeyCaption = typeof jQuery.hotkeys !== 'undefined' && hotkey !== '' ? ' ('+hotkey+')' : '';
 
             // Construct the button object
             buttonContainer = $('<button></button>');
             buttonContainer.text(' ' + this.__localize(btnText)).addClass('btn-default btn-sm').addClass(btnClass);
-            if (btnClass.match(/btn\-(primary|success|info|warning|danger|link)/)) {
-              buttonContainer.removeClass('btn-default');
+            if(btnClass.match(/btn\-(primary|success|info|warning|danger|link)/)){
+                buttonContainer.removeClass('btn-default');
             }
             buttonContainer.attr({
-              'type': 'button',
-              'title': this.__localize(button.title) + hotkeyCaption,
-              'tabindex': tabIndex,
-              'data-provider': ns,
-              'data-handler': buttonHandler,
-              'data-hotkey': hotkey
+                'type': 'button',
+                'title': this.__localize(button.title) + hotkeyCaption,
+                'tabindex': tabIndex,
+                'data-provider': ns,
+                'data-handler': buttonHandler,
+                'data-hotkey': hotkey
             });
-            if (button.toggle === true) {
+            if (button.toggle === true){
               buttonContainer.attr('data-toggle', 'button');
             }
             buttonIconContainer = $('<span/>');
@@ -18714,33 +18805,29 @@ function dismissLoaderAfterRender(showLoader)
             callback.push(button.callback);
           }
 
-          // Attach the button group into container DOM
+          // Attach the button group into container dom
           container.append(btnGroupContainer);
         }
       }
 
       return container;
-    },
-    __setListener: function() {
+    }
+  , __setListener: function() {
       // Set size and resizable Properties
       var hasRows = typeof this.$textarea.attr('rows') !== 'undefined',
-        maxRows = this.$textarea.val().split("\n").length > 5 ? this.$textarea.val().split("\n").length : '5',
-        rowsVal = hasRows ? this.$textarea.attr('rows') : maxRows;
+          maxRows = this.$textarea.val().split("\n").length > 5 ? this.$textarea.val().split("\n").length : '5',
+          rowsVal = hasRows ? this.$textarea.attr('rows') : maxRows;
 
-      this.$textarea.attr('rows', rowsVal);
+      this.$textarea.attr('rows',rowsVal);
       if (this.$options.resize) {
-        this.$textarea.css('resize', this.$options.resize);
+        this.$textarea.css('resize',this.$options.resize);
       }
 
-      // Re-attach markdown data
-      this.$textarea.data('markdown', this);
-    },
-    __setEventListeners: function() {
       this.$textarea.on({
-        'focus': $.proxy(this.focus, this),
-        'keyup': $.proxy(this.keyup, this),
-        'change': $.proxy(this.change, this),
-        'select': $.proxy(this.select, this)
+          'focus' : $.proxy(this.focus, this),
+          'keyup' : $.proxy(this.keyup, this),
+          'change' : $.proxy(this.change, this),
+          'select' : $.proxy(this.select, this)
       });
 
       if (this.eventSupported('keydown')) {
@@ -18748,16 +18835,20 @@ function dismissLoaderAfterRender(showLoader)
       }
 
       if (this.eventSupported('keypress')) {
-        this.$textarea.on('keypress', $.proxy(this.keypress, this));
+        this.$textarea.on('keypress', $.proxy(this.keypress, this))
       }
-    },
-    __handle: function(e) {
+
+      // Re-attach markdown data
+      this.$textarea.data('markdown',this);
+    }
+
+  , __handle: function(e) {
       var target = $(e.currentTarget),
-        handler = this.$handler,
-        callback = this.$callback,
-        handlerName = target.attr('data-handler'),
-        callbackIndex = handler.indexOf(handlerName),
-        callbackHandler = callback[callbackIndex];
+          handler = this.$handler,
+          callback = this.$callback,
+          handlerName = target.attr('data-handler'),
+          callbackIndex = handler.indexOf(handlerName),
+          callbackHandler = callback[callbackIndex];
 
       // Trigger the focusin
       $(e.currentTarget).focus();
@@ -18774,10 +18865,11 @@ function dismissLoaderAfterRender(showLoader)
       }
 
       e.preventDefault();
-    },
-    __localize: function(string) {
+    }
+
+  , __localize: function(string) {
       var messages = $.fn.markdown.messages,
-        language = this.$options.language;
+          language = this.$options.language;
       if (
         typeof messages !== 'undefined' &&
         typeof messages[language] !== 'undefined' &&
@@ -18786,93 +18878,89 @@ function dismissLoaderAfterRender(showLoader)
         return messages[language][string];
       }
       return string;
-    },
-    __getIcon: function(src) {
-      if(typeof src == 'object'){
-        var customIcon = this.$options.customIcons[src.name];
-        return typeof customIcon == 'undefined' ? src.icon[this.$options.iconlibrary] : customIcon;
-      } else {
-        return src;
-      }
-    },
-    setFullscreen: function(mode) {
-      var $editor = this.$editor,
+    }
+
+  , __getIcon: function(src) {
+    return typeof src == 'object' ? src[this.$options.iconlibrary] : src;
+  }
+
+  , setFullscreen: function(mode) {
+    var $editor = this.$editor,
         $textarea = this.$textarea;
 
-      if (mode === true) {
-        $editor.addClass('md-fullscreen-mode');
-        $('body').addClass('md-nooverflow');
-        this.$options.onFullscreen(this);
-      } else {
-        $editor.removeClass('md-fullscreen-mode');
-        $('body').removeClass('md-nooverflow');
-        this.$options.onFullscreenExit(this);
+    if (mode === true) {
+      $editor.addClass('md-fullscreen-mode');
+      $('body').addClass('md-nooverflow');
+      this.$options.onFullscreen(this);
+    } else {
+      $editor.removeClass('md-fullscreen-mode');
+      $('body').removeClass('md-nooverflow');
 
-        if (this.$isPreview === true)
-          this.hidePreview().showPreview();
-      }
+      if (this.$isPreview == true) this.hidePreview().showPreview()
+    }
 
-      this.$isFullscreen = mode;
-      $textarea.focus();
-    },
-    showEditor: function() {
+    this.$isFullscreen = mode;
+    $textarea.focus();
+  }
+
+  , showEditor: function() {
       var instance = this,
-        textarea,
-        ns = this.$ns,
-        container = this.$element,
-        originalHeigth = container.css('height'),
-        originalWidth = container.css('width'),
-        editable = this.$editable,
-        handler = this.$handler,
-        callback = this.$callback,
-        options = this.$options,
-        editor = $('<div/>', {
-          'class': 'md-editor',
-          click: function() {
-            instance.focus();
-          }
-        });
+          textarea,
+          ns = this.$ns,
+          container = this.$element,
+          originalHeigth = container.css('height'),
+          originalWidth = container.css('width'),
+          editable = this.$editable,
+          handler = this.$handler,
+          callback = this.$callback,
+          options = this.$options,
+          editor = $( '<div/>', {
+                      'class': 'md-editor',
+                      click: function() {
+                        instance.focus();
+                      }
+                    });
 
       // Prepare the editor
       if (this.$editor === null) {
         // Create the panel
         var editorHeader = $('<div/>', {
-          'class': 'md-header btn-toolbar'
-        });
+                            'class': 'md-header btn-toolbar'
+                            });
 
         // Merge the main & additional button groups together
         var allBtnGroups = [];
         if (options.buttons.length > 0) allBtnGroups = allBtnGroups.concat(options.buttons[0]);
         if (options.additionalButtons.length > 0) {
           // iterate the additional button groups
-          $.each(options.additionalButtons[0], function(idx, buttonGroup) {
-
-            // see if the group name of the additional group matches an existing group
-            var matchingGroups = $.grep(allBtnGroups, function(allButtonGroup, allIdx) {
+          $.each(options.additionalButtons[0], function(idx, buttonGroup){
+            
+            // see if the group name of the addional group matches an existing group
+            var matchingGroups = $.grep(allBtnGroups, function(allButtonGroup, allIdx){
               return allButtonGroup.name === buttonGroup.name;
             });
 
-            // if it matches add the additional buttons to that group, if not just add it to the all buttons group
-            if (matchingGroups.length > 0) {
+            // if it matches add the addional buttons to that group, if not just add it to the all buttons group
+            if(matchingGroups.length > 0) {
               matchingGroups[0].data = matchingGroups[0].data.concat(buttonGroup.data);
-            } else {
+            } else {              
               allBtnGroups.push(options.additionalButtons[0][idx]);
             }
 
           });
-        }
+        } 
 
         // Reduce and/or reorder the button groups
         if (options.reorderButtonGroups.length > 0) {
           allBtnGroups = allBtnGroups
-            .filter(function(btnGroup) {
-              return options.reorderButtonGroups.indexOf(btnGroup.name) > -1;
-            })
-            .sort(function(a, b) {
-              if (options.reorderButtonGroups.indexOf(a.name) < options.reorderButtonGroups.indexOf(b.name)) return -1;
-              if (options.reorderButtonGroups.indexOf(a.name) > options.reorderButtonGroups.indexOf(b.name)) return 1;
-              return 0;
-            });
+              .filter(function(btnGroup) {
+                return options.reorderButtonGroups.indexOf(btnGroup.name) > -1;
+              })
+              .sort(function(a, b) {
+                if (options.reorderButtonGroups.indexOf(a.name) < options.reorderButtonGroups.indexOf(b.name)) return -1;
+                if (options.reorderButtonGroups.indexOf(a.name) > options.reorderButtonGroups.indexOf(b.name)) return 1;
+                return 0;
+              });
         }
 
         // Build the buttons
@@ -18881,9 +18969,9 @@ function dismissLoaderAfterRender(showLoader)
         }
 
         if (options.fullscreen.enable) {
-          editorHeader.append('<div class="md-controls"><a class="md-control md-control-fullscreen" href="#"><span class="' + this.__getIcon(options.fullscreen.icons.fullscreenOn) + '"></span></a></div>').on('click', '.md-control-fullscreen', function(e) {
-            e.preventDefault();
-            instance.setFullscreen(true);
+          editorHeader.append('<div class="md-controls"><a class="md-control md-control-fullscreen" href="#"><span class="'+this.__getIcon(options.fullscreen.icons.fullscreenOn)+'"></span></a></div>').on('click', '.md-control-fullscreen', function(e) {
+              e.preventDefault();
+              instance.setFullscreen(true);
           });
         }
 
@@ -18897,13 +18985,13 @@ function dismissLoaderAfterRender(showLoader)
           editor.append(textarea);
         } else {
           var rawContent = (typeof toMarkdown == 'function') ? toMarkdown(container.html()) : container.html(),
-            currentContent = $.trim(rawContent);
+              currentContent = $.trim(rawContent);
 
           // This is some arbitrary content that could be edited
           textarea = $('<textarea/>', {
-            'class': 'md-input',
-            'val': currentContent
-          });
+                       'class': 'md-input',
+                       'val' : currentContent
+                      });
 
           editor.append(textarea);
 
@@ -18912,20 +19000,20 @@ function dismissLoaderAfterRender(showLoader)
           editable.type = container.prop('tagName').toLowerCase();
           editable.content = container.html();
 
-          $(container[0].attributes).each(function() {
+          $(container[0].attributes).each(function(){
             editable.attrKeys.push(this.nodeName);
             editable.attrValues.push(this.nodeValue);
           });
 
-          // Set editor to block the original container
+          // Set editor to blocked the original container
           container.replaceWith(editor);
         }
 
         var editorFooter = $('<div/>', {
-            'class': 'md-footer'
-          }),
-          createFooter = false,
-          footer = '';
+                           'class': 'md-footer'
+                         }),
+            createFooter = false,
+            footer = '';
         // Create the footer if savable
         if (options.savable) {
           createFooter = true;
@@ -18935,13 +19023,13 @@ function dismissLoaderAfterRender(showLoader)
           handler.push(saveHandler);
           callback.push(options.onSave);
 
-          editorFooter.append('<button class="btn btn-success" data-provider="' +
-            ns +
-            '" data-handler="' +
-            saveHandler +
-            '"><i class="icon icon-white icon-ok"></i> ' +
-            this.__localize('Save') +
-            '</button>');
+          editorFooter.append('<button class="btn btn-success" data-provider="'
+                              + ns
+                              + '" data-handler="'
+                              + saveHandler
+                              + '"><i class="icon icon-white icon-ok"></i> '
+                              + this.__localize('Save')
+                              + '</button>');
 
 
         }
@@ -18978,16 +19066,15 @@ function dismissLoaderAfterRender(showLoader)
         }
 
         // Reference
-        this.$editor = editor;
-        this.$textarea = textarea;
-        this.$editable = editable;
+        this.$editor     = editor;
+        this.$textarea   = textarea;
+        this.$editable   = editable;
         this.$oldContent = this.getContent();
 
         this.__setListener();
-        this.__setEventListeners();
 
         // Set editor attributes, data short-hand API and listener
-        this.$editor.attr('id', (new Date()).getTime());
+        this.$editor.attr('id',(new Date()).getTime());
         this.$editor.on('click', '[data-provider="bootstrap-markdown"]', $.proxy(this.__handle, this));
 
         if (this.$element.is(':disabled') || this.$element.is('[readonly]')) {
@@ -18998,7 +19085,7 @@ function dismissLoaderAfterRender(showLoader)
         if (this.eventSupported('keydown') && typeof jQuery.hotkeys === 'object') {
           editorHeader.find('[data-provider="bootstrap-markdown"]').each(function() {
             var $button = $(this),
-              hotkey = $button.attr('data-hotkey');
+                hotkey = $button.attr('data-hotkey');
             if (hotkey.toLowerCase() !== '') {
               textarea.bind('keydown', hotkey, function() {
                 $button.trigger('click');
@@ -19024,10 +19111,10 @@ function dismissLoaderAfterRender(showLoader)
       }
 
       if (options.fullscreen.enable && options.fullscreen !== false) {
-        this.$editor.append('<div class="md-fullscreen-controls">' +
-          '<a href="#" class="exit-fullscreen" title="Exit fullscreen"><span class="' + this.__getIcon(options.fullscreen.icons.fullscreenOff) + '">' +
-          '</span></a>' +
-          '</div>');
+        this.$editor.append('<div class="md-fullscreen-controls">'
+                        + '<a href="#" class="exit-fullscreen" title="Exit fullscreen"><span class="' + this.__getIcon(options.fullscreen.icons.fullscreenOff) + '">'
+                        + '</span></a>'
+                        + '</div>');
         this.$editor.on('click', '.exit-fullscreen', function(e) {
           e.preventDefault();
           instance.setFullscreen(false);
@@ -19040,64 +19127,17 @@ function dismissLoaderAfterRender(showLoader)
       // disable disabled buttons from options
       this.disableButtons(options.disabledButtons);
 
-      // enable dropZone if available and configured
-      if (options.dropZoneOptions) {
-        if (this.$editor.dropzone) {
-          if(!options.dropZoneOptions.init) {
-            options.dropZoneOptions.init = function() {
-              var caretPos = 0;
-              this.on('drop', function(e) {
-                  caretPos = textarea.prop('selectionStart');
-                  });
-              this.on('success', function(file, path) {
-                  var text = textarea.val();
-                  textarea.val(text.substring(0, caretPos) + '\n![description](' + path + ')\n' + text.substring(caretPos));
-                  });
-              this.on('error', function(file, error, xhr) {
-                  console.log('Error:', error);
-                  });
-            };
-          }
-          this.$editor.addClass('dropzone');
-          this.$editor.dropzone(options.dropZoneOptions);
-        } else {
-          console.log('dropZoneOptions was configured, but DropZone was not detected.');
-        }
-      }
-
-      // enable data-uris via drag and drop
-      if (options.enableDropDataUri === true) {
-        this.$editor.on('drop', function(e) {
-          var caretPos = textarea.prop('selectionStart');
-          e.stopPropagation();
-          e.preventDefault();
-          $.each(e.originalEvent.dataTransfer.files, function(index, file){
-            var fileReader = new FileReader();
-              fileReader.onload = (function(file) {
-                 var type = file.type.split('/')[0];
-                 return function(e) {
-                    var text = textarea.val();
-                    if (type === 'image')
-                      textarea.val(text.substring(0, caretPos) + '\n<img src="'+ e.target.result  +'" />\n' + text.substring(caretPos) );
-                    else
-                      textarea.val(text.substring(0, caretPos) + '\n<a href="'+ e.target.result  +'">Download ' + file.name + '</a>\n' + text.substring(caretPos) );
-                 };
-              })(file);
-            fileReader.readAsDataURL(file);
-          });
-        });
-      }
-
       // Trigger the onShow hook
       options.onShow(this);
 
       return this;
-    },
-    parseContent: function(val) {
+    }
+
+  , parseContent: function(val) {
       var content;
 
       // parse with supported markdown parser
-      val = val || this.$textarea.val();
+      var val = val || this.$textarea.val();
 
       if (this.$options.parser) {
         content = this.$options.parser(val);
@@ -19110,32 +19150,30 @@ function dismissLoaderAfterRender(showLoader)
       }
 
       return content;
-    },
-    showPreview: function() {
-      var options = this.$options,
-        container = this.$textarea,
-        afterContainer = container.next(),
-        replacementContainer = $('<div/>', {
-          'class': 'md-preview',
-          'data-provider': 'markdown-preview'
-        }),
-        content,
-        callbackContent;
+    }
 
-      if (this.$isPreview === true) {
-        // Avoid sequenced element creation on misused scenario
+  , showPreview: function() {
+      var options = this.$options,
+          container = this.$textarea,
+          afterContainer = container.next(),
+          replacementContainer = $('<div/>',{'class':'md-preview','data-provider':'markdown-preview'}),
+          content,
+          callbackContent;
+
+      if (this.$isPreview == true) {
+        // Avoid sequenced element creation on missused scenario
         // @see https://github.com/toopay/bootstrap-markdown/issues/170
         return this;
       }
-
-      // Give flag that tells the editor to enter preview mode
+      
+      // Give flag that tell the editor enter preview mode
       this.$isPreview = true;
       // Disable all buttons
       this.disableButtons('all').enableButtons('cmdPreview');
 
       // Try to get the content from callback
-      callbackContent = options.onPreview(this, replacementContainer);
-      // Set the content based on the callback content if string, otherwise parse value from textarea
+      callbackContent = options.onPreview(this);
+      // Set the content based from the callback content if string otherwise parse value from textarea
       content = typeof callbackContent == 'string' ? callbackContent : this.parseContent();
 
       // Build preview element
@@ -19151,20 +19189,19 @@ function dismissLoaderAfterRender(showLoader)
 
       // Set the preview element dimensions
       replacementContainer.css({
-        "width": container.outerWidth() + 'px',
-        "min-height": container.outerHeight() + 'px',
-        "height": "auto"
+        width: container.outerWidth() + 'px',
+        height: container.outerHeight() + 'px'
       });
 
       if (this.$options.resize) {
-        replacementContainer.css('resize', this.$options.resize);
+        replacementContainer.css('resize',this.$options.resize);
       }
 
       // Hide the last-active textarea
       container.hide();
 
       // Attach the editor instances
-      replacementContainer.data('markdown', this);
+      replacementContainer.data('markdown',this);
 
       if (this.$element.is(':disabled') || this.$element.is('[readonly]')) {
         this.$editor.addClass('md-editor-disabled');
@@ -19172,9 +19209,10 @@ function dismissLoaderAfterRender(showLoader)
       }
 
       return this;
-    },
-    hidePreview: function() {
-      // Give flag that tells the editor to quit preview mode
+    }
+
+  , hidePreview: function() {
+      // Give flag that tell the editor quit preview mode
       this.$isPreview = false;
 
       // Obtain the preview container
@@ -19188,110 +19226,108 @@ function dismissLoaderAfterRender(showLoader)
       // Disable configured disabled buttons
       this.disableButtons(this.$options.disabledButtons);
 
-      // Perform any callbacks
-      this.$options.onPreviewEnd(this);
-
       // Back to the editor
       this.$textarea.show();
       this.__setListener();
 
       return this;
-    },
-    isDirty: function() {
+    }
+
+  , isDirty: function() {
       return this.$oldContent != this.getContent();
-    },
-    getContent: function() {
+    }
+
+  , getContent: function() {
       return this.$textarea.val();
-    },
-    setContent: function(content) {
+    }
+
+  , setContent: function(content) {
       this.$textarea.val(content);
 
       return this;
-    },
-    findSelection: function(chunk) {
-      var content = this.getContent(),
-        startChunkPosition;
+    }
 
-      if (startChunkPosition = content.indexOf(chunk), startChunkPosition >= 0 && chunk.length > 0) {
-        var oldSelection = this.getSelection(),
-          selection;
+  , findSelection: function(chunk) {
+    var content = this.getContent(), startChunkPosition;
 
-        this.setSelection(startChunkPosition, startChunkPosition + chunk.length);
-        selection = this.getSelection();
+    if (startChunkPosition = content.indexOf(chunk), startChunkPosition >= 0 && chunk.length > 0) {
+      var oldSelection = this.getSelection(), selection;
 
-        this.setSelection(oldSelection.start, oldSelection.end);
+      this.setSelection(startChunkPosition,startChunkPosition+chunk.length);
+      selection = this.getSelection();
 
-        return selection;
-      } else {
-        return null;
-      }
-    },
-    getSelection: function() {
+      this.setSelection(oldSelection.start,oldSelection.end);
 
-      var e = this.$textarea[0];
+      return selection;
+    } else {
+      return null;
+    }
+  }
 
-      return (
-
-        ('selectionStart' in e && function() {
-          var l = e.selectionEnd - e.selectionStart;
-          return {
-            start: e.selectionStart,
-            end: e.selectionEnd,
-            length: l,
-            text: e.value.substr(e.selectionStart, l)
-          };
-        }) ||
-
-        /* browser not supported */
-        function() {
-          return null;
-        }
-
-      )();
-
-    },
-    setSelection: function(start, end) {
+  , getSelection: function() {
 
       var e = this.$textarea[0];
 
       return (
 
-        ('selectionStart' in e && function() {
-          e.selectionStart = start;
-          e.selectionEnd = end;
-          return;
-        }) ||
+          ('selectionStart' in e && function() {
+              var l = e.selectionEnd - e.selectionStart;
+              return { start: e.selectionStart, end: e.selectionEnd, length: l, text: e.value.substr(e.selectionStart, l) };
+          }) ||
 
-        /* browser not supported */
-        function() {
-          return null;
-        }
+          /* browser not supported */
+          function() {
+            return null;
+          }
 
       )();
 
-    },
-    replaceSelection: function(text) {
+    }
+
+  , setSelection: function(start,end) {
 
       var e = this.$textarea[0];
 
       return (
 
-        ('selectionStart' in e && function() {
-          e.value = e.value.substr(0, e.selectionStart) + text + e.value.substr(e.selectionEnd, e.value.length);
-          // Set cursor to the last replacement end
-          e.selectionStart = e.value.length;
-          return this;
-        }) ||
+          ('selectionStart' in e && function() {
+              e.selectionStart = start;
+              e.selectionEnd = end;
+              return;
+          }) ||
 
-        /* browser not supported */
-        function() {
-          e.value += text;
-          return jQuery(e);
-        }
+          /* browser not supported */
+          function() {
+            return null;
+          }
 
       )();
-    },
-    getNextTab: function() {
+
+    }
+
+  , replaceSelection: function(text) {
+
+      var e = this.$textarea[0];
+
+      return (
+
+          ('selectionStart' in e && function() {
+              e.value = e.value.substr(0, e.selectionStart) + text + e.value.substr(e.selectionEnd, e.value.length);
+              // Set cursor to the last replacement end
+              e.selectionStart = e.value.length;
+              return this;
+          }) ||
+
+          /* browser not supported */
+          function() {
+              e.value += text;
+              return jQuery(e);
+          }
+
+      )();
+    }
+
+  , getNextTab: function() {
       // Shift the nextTab
       if (this.$nextTab.length === 0) {
         return null;
@@ -19306,90 +19342,98 @@ function dismissLoaderAfterRender(showLoader)
 
         return nextTab;
       }
-    },
-    setNextTab: function(start, end) {
+    }
+
+  , setNextTab: function(start,end) {
       // Push new selection into nextTab collections
       if (typeof start == 'string') {
         var that = this;
-        this.$nextTab.push(function() {
+        this.$nextTab.push(function(){
           return that.findSelection(start);
         });
       } else if (typeof start == 'number' && typeof end == 'number') {
         var oldSelection = this.getSelection();
 
-        this.setSelection(start, end);
+        this.setSelection(start,end);
         this.$nextTab.push(this.getSelection());
 
-        this.setSelection(oldSelection.start, oldSelection.end);
+        this.setSelection(oldSelection.start,oldSelection.end);
       }
 
       return;
-    },
-    __parseButtonNameParam: function(names) {
-      return typeof names == 'string' ?
-        names.split(' ') :
-        names;
+    }
 
-    },
-    enableButtons: function(name) {
+  , __parseButtonNameParam: function (names) {
+      return typeof names == 'string' ?
+                      names.split(' ') :
+                      names;
+
+    }
+
+  , enableButtons: function(name) {
       var buttons = this.__parseButtonNameParam(name),
         that = this;
 
       $.each(buttons, function(i, v) {
-        that.__alterButtons(buttons[i], function(el) {
+        that.__alterButtons(buttons[i], function (el) {
           el.removeAttr('disabled');
         });
       });
 
       return this;
-    },
-    disableButtons: function(name) {
+    }
+
+  , disableButtons: function(name) {
       var buttons = this.__parseButtonNameParam(name),
         that = this;
 
       $.each(buttons, function(i, v) {
-        that.__alterButtons(buttons[i], function(el) {
-          el.attr('disabled', 'disabled');
+        that.__alterButtons(buttons[i], function (el) {
+          el.attr('disabled','disabled');
         });
       });
 
       return this;
-    },
-    hideButtons: function(name) {
+    }
+
+  , hideButtons: function(name) {
       var buttons = this.__parseButtonNameParam(name),
         that = this;
 
       $.each(buttons, function(i, v) {
-        that.__alterButtons(buttons[i], function(el) {
+        that.__alterButtons(buttons[i], function (el) {
           el.addClass('hidden');
         });
       });
 
       return this;
-    },
-    showButtons: function(name) {
+    }
+
+  , showButtons: function(name) {
       var buttons = this.__parseButtonNameParam(name),
         that = this;
 
       $.each(buttons, function(i, v) {
-        that.__alterButtons(buttons[i], function(el) {
+        that.__alterButtons(buttons[i], function (el) {
           el.removeClass('hidden');
         });
       });
 
       return this;
-    },
-    eventSupported: function(eventName) {
+    }
+
+  , eventSupported: function(eventName) {
       var isSupported = eventName in this.$element;
       if (!isSupported) {
         this.$element.setAttribute(eventName, 'return;');
         isSupported = typeof this.$element[eventName] === 'function';
       }
       return isSupported;
-    },
-    keyup: function(e) {
+    }
+
+  , keyup: function (e) {
       var blocked = false;
-      switch (e.keyCode) {
+      switch(e.keyCode) {
         case 40: // down arrow
         case 38: // up arrow
         case 16: // shift
@@ -19399,25 +19443,25 @@ function dismissLoaderAfterRender(showLoader)
 
         case 9: // tab
           var nextTab;
-          if (nextTab = this.getNextTab(), nextTab !== null) {
+          if (nextTab = this.getNextTab(),nextTab !== null) {
             // Get the nextTab if exists
             var that = this;
-            setTimeout(function() {
-              that.setSelection(nextTab.start, nextTab.end);
-            }, 500);
+            setTimeout(function(){
+              that.setSelection(nextTab.start,nextTab.end);
+            },500);
 
             blocked = true;
           } else {
-            // The next tab's memory contains nothing...
+            // The next tab memory contains nothing...
             // check the cursor position to determine tab action
             var cursor = this.getSelection();
 
             if (cursor.start == cursor.end && cursor.end == this.getContent().length) {
-              // The cursor has reached the end of the content
+              // The cursor already reach the end of the content
               blocked = false;
             } else {
               // Put the cursor to the end
-              this.setSelection(this.getContent().length, this.getContent().length);
+              this.setSelection(this.getContent().length,this.getContent().length);
 
               blocked = true;
             }
@@ -19427,33 +19471,7 @@ function dismissLoaderAfterRender(showLoader)
 
         case 13: // enter
           blocked = false;
-          var chars = this.getContent().split('');
-          var enterIndex = this.getSelection().start;
-          var priorNewlineIndex = -1; // initial line break at before index 0
-
-          // traverse backwards through chars to check if last line break was num/bullet item
-          for (var i = enterIndex - 2; i >= 0; i--) {
-            if (chars[i] === '\n') {
-              priorNewlineIndex = i;
-              break;
-            }
-          }
-
-          if (chars.slice(priorNewlineIndex + 1, priorNewlineIndex + 4).join('') == '---') {
-            break;
-          }
-
-          var charFollowingLastLineBreak = chars[priorNewlineIndex + 1];
-          if (charFollowingLastLineBreak === '-') {
-            this.addBullet(enterIndex);
-          } else if ($.isNumeric(charFollowingLastLineBreak)) {
-              var numBullet = this.getBulletNumber(priorNewlineIndex + 1);
-              if (numBullet) {
-                this.addNumberedBullet(enterIndex, numBullet);
-              }
-          }
           break;
-
         case 27: // escape
           if (this.$isFullscreen) this.setFullscreen(false);
           blocked = false;
@@ -19469,50 +19487,31 @@ function dismissLoaderAfterRender(showLoader)
       }
 
       this.$options.onChange(this);
-    },
-    insertContent: function(index, content) {
-      var firstHalf = this.getContent().slice(0, index);
-      var secondHalf = this.getContent().slice(index + 1);
-      this.setContent(firstHalf.concat(content).concat(secondHalf));
-    },
-    addBullet: function(index) {
-      this.insertContent(index, '- \n');
-      this.setSelection(index + 2, index + 2); // Put the cursor after the bullet
-    },
-    addNumberedBullet: function(index, num) {
-      var numBullet = (num + 1) + '. \n';
-      this.insertContent(index, numBullet);
+    }
 
-      var prefixLength = num.toString().length + 2;
-      this.setSelection(index + prefixLength, index + prefixLength); // Put the cursor after the number
-    },
-    getBulletNumber: function(startIndex) {
-      var bulletNum = this.getContent().slice(startIndex).split('.')[0];
-      return $.isNumeric(bulletNum) ? parseInt(bulletNum) : null;
-    },
-    change: function(e) {
+  , change: function(e) {
       this.$options.onChange(this);
       return this;
-    },
-    select: function(e) {
+    }
+  , select: function (e) {
       this.$options.onSelect(this);
       return this;
-    },
-    focus: function(e) {
+    }
+  , focus: function (e) {
       var options = this.$options,
-        isHideable = options.hideable,
-        editor = this.$editor;
+          isHideable = options.hideable,
+          editor = this.$editor;
 
       editor.addClass('active');
 
       // Blur other markdown(s)
-      $(document).find('.md-editor').each(function() {
+      $(document).find('.md-editor').each(function(){
         if ($(this).attr('id') !== editor.attr('id')) {
           var attachedMarkdown;
 
           if (attachedMarkdown = $(this).find('textarea').data('markdown'),
-            attachedMarkdown === null) {
-            attachedMarkdown = $(this).find('div[data-provider="markdown-preview"]').data('markdown');
+              attachedMarkdown === null) {
+              attachedMarkdown = $(this).find('div[data-provider="markdown-preview"]').data('markdown');
           }
 
           if (attachedMarkdown) {
@@ -19525,12 +19524,13 @@ function dismissLoaderAfterRender(showLoader)
       options.onFocus(this);
 
       return this;
-    },
-    blur: function(e) {
+    }
+
+  , blur: function (e) {
       var options = this.$options,
-        isHideable = options.hideable,
-        editor = this.$editor,
-        editable = this.$editable;
+          isHideable = options.hideable,
+          editor = this.$editor,
+          editable = this.$editable;
 
       if (editor.hasClass('active') || this.$element.parent().length === 0) {
         editor.removeClass('active');
@@ -19539,12 +19539,12 @@ function dismissLoaderAfterRender(showLoader)
           // Check for editable elements
           if (editable.el !== null) {
             // Build the original element
-            var oldElement = $('<' + editable.type + '/>'),
-              content = this.getContent(),
-              currentContent = this.parseContent(content);
+            var oldElement = $('<'+editable.type+'/>'),
+                content = this.getContent(),
+                currentContent = this.parseContent(content);
 
-            $(editable.attrKeys).each(function(k, v) {
-              oldElement.attr(editable.attrKeys[k], editable.attrValues[k]);
+            $(editable.attrKeys).each(function(k,v) {
+              oldElement.attr(editable.attrKeys[k],editable.attrValues[k]);
             });
 
             // Get the editor content
@@ -19565,19 +19565,18 @@ function dismissLoaderAfterRender(showLoader)
 
   };
 
-  /* MARKDOWN PLUGIN DEFINITION
-   * ========================== */
+ /* MARKDOWN PLUGIN DEFINITION
+  * ========================== */
 
   var old = $.fn.markdown;
 
-  $.fn.markdown = function(option) {
-    return this.each(function() {
-      var $this = $(this),
-        data = $this.data('markdown'),
-        options = typeof option == 'object' && option;
-      if (!data)
-        $this.data('markdown', (data = new Markdown(this, options)));
-    });
+  $.fn.markdown = function (option) {
+    return this.each(function () {
+      var $this = $(this)
+        , data = $this.data('markdown')
+        , options = typeof option == 'object' && option;
+      if (!data) $this.data('markdown', (data = new Markdown(this, options)))
+    })
   };
 
   $.fn.markdown.messages = {};
@@ -19594,8 +19593,6 @@ function dismissLoaderAfterRender(showLoader)
     language: 'en',
     initialstate: 'editor',
     parser: null,
-    dropZoneOptions: null,
-    enableDropDataUri: false,
 
     /* Buttons Properties */
     buttons: [
@@ -19605,17 +19602,10 @@ function dismissLoaderAfterRender(showLoader)
           name: 'cmdBold',
           hotkey: 'Ctrl+B',
           title: 'Bold',
-          icon: {
-            glyph: 'glyphicon glyphicon-bold',
-            fa: 'fa fa-bold',
-            'fa-3': 'icon-bold',
-            'fa-5': 'fas fa-bold',
-            octicons: 'octicon octicon-bold'
-          },
-          callback: function(e) {
+          icon: { glyph: 'glyphicon glyphicon-bold', fa: 'fa fa-bold', 'fa-3': 'icon-bold' },
+          callback: function(e){
             // Give/remove ** surround the selection
-            var chunk, cursor, selected = e.getSelection(),
-              content = e.getContent();
+            var chunk, cursor, selected = e.getSelection(), content = e.getContent();
 
             if (selected.length === 0) {
               // Give extra word
@@ -19625,34 +19615,27 @@ function dismissLoaderAfterRender(showLoader)
             }
 
             // transform selection and set the cursor into chunked text
-            if (content.substr(selected.start - 2, 2) === '**' &&
-              content.substr(selected.end, 2) === '**') {
-              e.setSelection(selected.start - 2, selected.end + 2);
+            if (content.substr(selected.start-2,2) === '**'
+                && content.substr(selected.end,2) === '**' ) {
+              e.setSelection(selected.start-2,selected.end+2);
               e.replaceSelection(chunk);
-              cursor = selected.start - 2;
+              cursor = selected.start-2;
             } else {
-              e.replaceSelection('**' + chunk + '**');
-              cursor = selected.start + 2;
+              e.replaceSelection('**'+chunk+'**');
+              cursor = selected.start+2;
             }
 
             // Set the cursor
-            e.setSelection(cursor, cursor + chunk.length);
+            e.setSelection(cursor,cursor+chunk.length);
           }
-        }, {
+        },{
           name: 'cmdItalic',
           title: 'Italic',
           hotkey: 'Ctrl+I',
-          icon: {
-            glyph: 'glyphicon glyphicon-italic',
-            fa: 'fa fa-italic',
-            'fa-3': 'icon-italic',
-            'fa-5': 'fas fa-italic',
-            octicons: 'octicon octicon-italic'
-          },
-          callback: function(e) {
+          icon: { glyph: 'glyphicon glyphicon-italic', fa: 'fa fa-italic', 'fa-3': 'icon-italic' },
+          callback: function(e){
             // Give/remove * surround the selection
-            var chunk, cursor, selected = e.getSelection(),
-              content = e.getContent();
+            var chunk, cursor, selected = e.getSelection(), content = e.getContent();
 
             if (selected.length === 0) {
               // Give extra word
@@ -19662,35 +19645,27 @@ function dismissLoaderAfterRender(showLoader)
             }
 
             // transform selection and set the cursor into chunked text
-            if (content.substr(selected.start - 1, 1) === '_' &&
-              content.substr(selected.end, 1) === '_') {
-              e.setSelection(selected.start - 1, selected.end + 1);
+            if (content.substr(selected.start-1,1) === '_'
+                && content.substr(selected.end,1) === '_' ) {
+              e.setSelection(selected.start-1,selected.end+1);
               e.replaceSelection(chunk);
-              cursor = selected.start - 1;
+              cursor = selected.start-1;
             } else {
-              e.replaceSelection('_' + chunk + '_');
-              cursor = selected.start + 1;
+              e.replaceSelection('_'+chunk+'_');
+              cursor = selected.start+1;
             }
 
             // Set the cursor
-            e.setSelection(cursor, cursor + chunk.length);
+            e.setSelection(cursor,cursor+chunk.length);
           }
-        }, {
+        },{
           name: 'cmdHeading',
           title: 'Heading',
           hotkey: 'Ctrl+H',
-          icon: {
-            glyph: 'glyphicon glyphicon-header',
-            fa: 'fa fa-header',
-            'fa-3': 'icon-font',
-            'fa-5': 'fas fa-heading',
-            octicons: 'octicon octicon-text-size'
-          },
-          callback: function(e) {
+          icon: { glyph: 'glyphicon glyphicon-header', fa: 'fa fa-header', 'fa-3': 'icon-font' },
+          callback: function(e){
             // Append/remove ### surround the selection
-            var chunk, cursor, selected = e.getSelection(),
-              content = e.getContent(),
-              pointer, prevChar;
+            var chunk, cursor, selected = e.getSelection(), content = e.getContent(), pointer, prevChar;
 
             if (selected.length === 0) {
               // Give extra word
@@ -19700,42 +19675,34 @@ function dismissLoaderAfterRender(showLoader)
             }
 
             // transform selection and set the cursor into chunked text
-            if ((pointer = 4, content.substr(selected.start - pointer, pointer) === '### ') ||
-              (pointer = 3, content.substr(selected.start - pointer, pointer) === '###')) {
-              e.setSelection(selected.start - pointer, selected.end);
+            if ((pointer = 4, content.substr(selected.start-pointer,pointer) === '### ')
+                || (pointer = 3, content.substr(selected.start-pointer,pointer) === '###')) {
+              e.setSelection(selected.start-pointer,selected.end);
               e.replaceSelection(chunk);
-              cursor = selected.start - pointer;
-            } else if (selected.start > 0 && (prevChar = content.substr(selected.start - 1, 1), !!prevChar && prevChar != '\n')) {
-              e.replaceSelection('\n\n### ' + chunk);
-              cursor = selected.start + 6;
+              cursor = selected.start-pointer;
+            } else if (selected.start > 0 && (prevChar = content.substr(selected.start-1,1), !!prevChar && prevChar != '\n')) {
+              e.replaceSelection('\n\n### '+chunk);
+              cursor = selected.start+6;
             } else {
               // Empty string before element
-              e.replaceSelection('### ' + chunk);
-              cursor = selected.start + 4;
+              e.replaceSelection('### '+chunk);
+              cursor = selected.start+4;
             }
 
             // Set the cursor
-            e.setSelection(cursor, cursor + chunk.length);
+            e.setSelection(cursor,cursor+chunk.length);
           }
         }]
-      }, {
+      },{
         name: 'groupLink',
         data: [{
           name: 'cmdUrl',
           title: 'URL/Link',
           hotkey: 'Ctrl+L',
-          icon: {
-            glyph: 'glyphicon glyphicon-link',
-            fa: 'fa fa-link',
-            'fa-3': 'icon-link',
-            'fa-5': 'fas fa-link',
-            octicons: 'octicon octicon-link'
-          },
-          callback: function(e) {
+          icon: { glyph: 'glyphicon glyphicon-link', fa: 'fa fa-link', 'fa-3': 'icon-link' },
+          callback: function(e){
             // Give [] surround the selection and prepend the link
-            var chunk, cursor, selected = e.getSelection(),
-              content = e.getContent(),
-              link;
+            var chunk, cursor, selected = e.getSelection(), content = e.getContent(), link;
 
             if (selected.length === 0) {
               // Give extra word
@@ -19744,34 +19711,28 @@ function dismissLoaderAfterRender(showLoader)
               chunk = selected.text;
             }
 
-            link = prompt(e.__localize('Insert Hyperlink'), 'http://');
+            link = prompt(e.__localize('Insert Hyperlink'),'http://');
 
             var urlRegex = new RegExp('^((http|https)://|(mailto:)|(//))[a-z0-9]', 'i');
             if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
+              var sanitizedLink = $('<div>'+link+'</div>').text();
+
               // transform selection and set the cursor into chunked text
-              e.replaceSelection('[' + chunk + '](' + link + ')');
-              cursor = selected.start + 1;
+              e.replaceSelection('['+chunk+']('+sanitizedLink+')');
+              cursor = selected.start+1;
 
               // Set the cursor
-              e.setSelection(cursor, cursor + chunk.length);
+              e.setSelection(cursor,cursor+chunk.length);
             }
           }
-        }, {
+        },{
           name: 'cmdImage',
           title: 'Image',
           hotkey: 'Ctrl+G',
-          icon: {
-            glyph: 'glyphicon glyphicon-picture',
-            fa: 'fa fa-picture-o',
-            'fa-3': 'icon-picture',
-            'fa-5': 'far fa-image',
-            octicons: 'octicon octicon-file-media'
-          },
-          callback: function(e) {
+          icon: { glyph: 'glyphicon glyphicon-picture', fa: 'fa fa-picture-o', 'fa-3': 'icon-picture' },
+          callback: function(e){
             // Give ![] surround the selection and prepend the image link
-            var chunk, cursor, selected = e.getSelection(),
-              content = e.getContent(),
-              link;
+            var chunk, cursor, selected = e.getSelection(), content = e.getContent(), link;
 
             if (selected.length === 0) {
               // Give extra word
@@ -19780,147 +19741,126 @@ function dismissLoaderAfterRender(showLoader)
               chunk = selected.text;
             }
 
-            link = prompt(e.__localize('Insert Image Hyperlink'), 'http://');
+            link = prompt(e.__localize('Insert Image Hyperlink'),'http://');
 
             var urlRegex = new RegExp('^((http|https)://|(//))[a-z0-9]', 'i');
             if (link !== null && link !== '' && link !== 'http://' && urlRegex.test(link)) {
-              var sanitizedLink = $('<div>' + link + '</div>').text();
+              var sanitizedLink = $('<div>'+link+'</div>').text();
 
               // transform selection and set the cursor into chunked text
-              e.replaceSelection('![' + chunk + '](' + sanitizedLink + ' "' + e.__localize('enter image title here') + '")');
-              cursor = selected.start + 2;
+              e.replaceSelection('!['+chunk+']('+sanitizedLink+' "'+e.__localize('enter image title here')+'")');
+              cursor = selected.start+2;
 
               // Set the next tab
               e.setNextTab(e.__localize('enter image title here'));
 
               // Set the cursor
-              e.setSelection(cursor, cursor + chunk.length);
+              e.setSelection(cursor,cursor+chunk.length);
             }
           }
         }]
-      }, {
+      },{
         name: 'groupMisc',
         data: [{
           name: 'cmdList',
           hotkey: 'Ctrl+U',
           title: 'Unordered List',
-          icon: {
-            glyph: 'glyphicon glyphicon-list',
-            fa: 'fa fa-list',
-            'fa-3': 'icon-list-ul',
-            'fa-5': 'fas fa-list-ul',
-            octicons: 'octicon octicon-list-unordered'
-          },
-          callback: function(e) {
+          icon: { glyph: 'glyphicon glyphicon-list', fa: 'fa fa-list', 'fa-3': 'icon-list-ul' },
+          callback: function(e){
             // Prepend/Give - surround the selection
-            var chunk, cursor, selected = e.getSelection(),
-              content = e.getContent();
+            var chunk, cursor, selected = e.getSelection(), content = e.getContent();
 
             // transform selection and set the cursor into chunked text
             if (selected.length === 0) {
               // Give extra word
               chunk = e.__localize('list text here');
 
-              e.replaceSelection('- ' + chunk);
+              e.replaceSelection('- '+chunk);
               // Set the cursor
-              cursor = selected.start + 2;
+              cursor = selected.start+2;
             } else {
               if (selected.text.indexOf('\n') < 0) {
                 chunk = selected.text;
 
-                e.replaceSelection('- ' + chunk);
+                e.replaceSelection('- '+chunk);
 
                 // Set the cursor
-                cursor = selected.start + 2;
+                cursor = selected.start+2;
               } else {
                 var list = [];
 
                 list = selected.text.split('\n');
                 chunk = list[0];
 
-                $.each(list, function(k, v) {
-                  list[k] = '- ' + v;
+                $.each(list,function(k,v) {
+                  list[k] = '- '+v;
                 });
 
-                e.replaceSelection('\n\n' + list.join('\n'));
+                e.replaceSelection('\n\n'+list.join('\n'));
 
                 // Set the cursor
-                cursor = selected.start + 4;
+                cursor = selected.start+4;
               }
             }
 
             // Set the cursor
-            e.setSelection(cursor, cursor + chunk.length);
+            e.setSelection(cursor,cursor+chunk.length);
           }
-        }, {
+        },
+        {
           name: 'cmdListO',
           hotkey: 'Ctrl+O',
           title: 'Ordered List',
-          icon: {
-            glyph: 'glyphicon glyphicon-th-list',
-            fa: 'fa fa-list-ol',
-            'fa-3': 'icon-list-ol',
-            'fa-5': 'fas fa-list-ol',
-            octicons: 'octicon octicon-list-ordered'
-          },
+          icon: { glyph: 'glyphicon glyphicon-th-list', fa: 'fa fa-list-ol', 'fa-3': 'icon-list-ol' },
           callback: function(e) {
 
             // Prepend/Give - surround the selection
-            var chunk, cursor, selected = e.getSelection(),
-              content = e.getContent();
+            var chunk, cursor, selected = e.getSelection(), content = e.getContent();
 
             // transform selection and set the cursor into chunked text
             if (selected.length === 0) {
               // Give extra word
               chunk = e.__localize('list text here');
-              e.replaceSelection('1. ' + chunk);
+              e.replaceSelection('1. '+chunk);
               // Set the cursor
-              cursor = selected.start + 3;
+              cursor = selected.start+3;
             } else {
               if (selected.text.indexOf('\n') < 0) {
                 chunk = selected.text;
 
-                e.replaceSelection('1. ' + chunk);
+                e.replaceSelection('1. '+chunk);
 
                 // Set the cursor
-                cursor = selected.start + 3;
+                cursor = selected.start+3;
               } else {
-                var i = 1;
                 var list = [];
 
                 list = selected.text.split('\n');
                 chunk = list[0];
 
-                $.each(list, function(k, v) {
-                  list[k] = i + '. ' + v;
-                  i++;
+                $.each(list,function(k,v) {
+                  list[k] = '1. '+v;
                 });
 
-                e.replaceSelection('\n\n' + list.join('\n'));
+                e.replaceSelection('\n\n'+list.join('\n'));
 
                 // Set the cursor
-                cursor = selected.start + 5;
+                cursor = selected.start+5;
               }
             }
 
             // Set the cursor
-            e.setSelection(cursor, cursor + chunk.length);
+            e.setSelection(cursor,cursor+chunk.length);
           }
-        }, {
+        },
+        {
           name: 'cmdCode',
           hotkey: 'Ctrl+K',
           title: 'Code',
-          icon: {
-            glyph: 'glyphicon glyphicon-console',
-            fa: 'fa fa-code',
-            'fa-3': 'icon-code',
-            'fa-5': 'fas fa-code',
-            octicons: 'octicon octicon-code'
-          },
+          icon: { glyph: 'glyphicon glyphicon-asterisk', fa: 'fa fa-code', 'fa-3': 'icon-code' },
           callback: function(e) {
             // Give/remove ** surround the selection
-            var chunk, cursor, selected = e.getSelection(),
-              content = e.getContent();
+            var chunk, cursor, selected = e.getSelection(), content = e.getContent();
 
             if (selected.length === 0) {
               // Give extra word
@@ -19930,82 +19870,76 @@ function dismissLoaderAfterRender(showLoader)
             }
 
             // transform selection and set the cursor into chunked text
-            if (content.substr(selected.start - 4, 4) === '```\n' &&
-              content.substr(selected.end, 4) === '\n```') {
-              e.setSelection(selected.start - 4, selected.end + 4);
+            if (content.substr(selected.start-4,4) === '```\n'
+                && content.substr(selected.end,4) === '\n```') {
+              e.setSelection(selected.start-4, selected.end+4);
               e.replaceSelection(chunk);
-              cursor = selected.start - 4;
-            } else if (content.substr(selected.start - 1, 1) === '`' &&
-              content.substr(selected.end, 1) === '`') {
-              e.setSelection(selected.start - 1, selected.end + 1);
+              cursor = selected.start-4;
+            } else if (content.substr(selected.start-1,1) === '`'
+                && content.substr(selected.end,1) === '`') {
+              e.setSelection(selected.start-1,selected.end+1);
               e.replaceSelection(chunk);
-              cursor = selected.start - 1;
+              cursor = selected.start-1;
             } else if (content.indexOf('\n') > -1) {
-              e.replaceSelection('```\n' + chunk + '\n```');
-              cursor = selected.start + 4;
+              e.replaceSelection('```\n'+chunk+'\n```');
+              cursor = selected.start+4;
             } else {
-              e.replaceSelection('`' + chunk + '`');
-              cursor = selected.start + 1;
+              e.replaceSelection('`'+chunk+'`');
+              cursor = selected.start+1;
             }
 
             // Set the cursor
-            e.setSelection(cursor, cursor + chunk.length);
+            e.setSelection(cursor,cursor+chunk.length);
           }
-        }, {
+        },
+        {
           name: 'cmdQuote',
           hotkey: 'Ctrl+Q',
           title: 'Quote',
-          icon: {
-            glyph: 'glyphicon glyphicon-comment',
-            fa: 'fa fa-quote-left',
-            'fa-3': 'icon-quote-left',
-            'fa-5': 'fas fa-quote-left',
-            octicons: 'octicon octicon-quote'
-          },
+          icon: { glyph: 'glyphicon glyphicon-comment', fa: 'fa fa-quote-left', 'fa-3': 'icon-quote-left' },
           callback: function(e) {
             // Prepend/Give - surround the selection
-            var chunk, cursor, selected = e.getSelection(),
-              content = e.getContent();
+            var chunk, cursor, selected = e.getSelection(), content = e.getContent();
 
             // transform selection and set the cursor into chunked text
             if (selected.length === 0) {
               // Give extra word
               chunk = e.__localize('quote here');
 
-              e.replaceSelection('> ' + chunk);
+              e.replaceSelection('> '+chunk);
 
               // Set the cursor
-              cursor = selected.start + 2;
+              cursor = selected.start+2;
             } else {
               if (selected.text.indexOf('\n') < 0) {
                 chunk = selected.text;
 
-                e.replaceSelection('> ' + chunk);
+                e.replaceSelection('> '+chunk);
 
                 // Set the cursor
-                cursor = selected.start + 2;
+                cursor = selected.start+2;
               } else {
                 var list = [];
 
                 list = selected.text.split('\n');
                 chunk = list[0];
 
-                $.each(list, function(k, v) {
-                  list[k] = '> ' + v;
+                $.each(list,function(k,v) {
+                  list[k] = '> '+v;
                 });
 
-                e.replaceSelection('\n\n' + list.join('\n'));
+                e.replaceSelection('\n\n'+list.join('\n'));
 
                 // Set the cursor
-                cursor = selected.start + 4;
+                cursor = selected.start+4;
               }
             }
 
             // Set the cursor
-            e.setSelection(cursor, cursor + chunk.length);
+            e.setSelection(cursor,cursor+chunk.length);
           }
         }]
-      }, {
+      },{
         name: 'groupUtil',
         data: [{
           name: 'cmdPreview',
@@ -20014,20 +19948,13 @@ function dismissLoaderAfterRender(showLoader)
           title: 'Preview',
           btnText: 'Preview',
           btnClass: 'btn btn-primary btn-sm',
-          icon: {
-            glyph: 'glyphicon glyphicon-search',
-            fa: 'fa fa-search',
-            'fa-3': 'icon-search',
-            'fa-5': 'fas fa-search',
-            octicons: 'octicon octicon-search'
-          },
-          callback: function(e) {
+          icon: { glyph: 'glyphicon glyphicon-search', fa: 'fa fa-search', 'fa-3': 'icon-search' },
+          callback: function(e){
             // Check the preview mode and toggle based on this flag
-            var isPreview = e.$isPreview,
-              content;
+            var isPreview = e.$isPreview,content;
 
             if (isPreview === false) {
-              // Give flag that tells the editor to enter preview mode
+              // Give flag that tell the editor enter preview mode
               e.showPreview();
             } else {
               e.hidePreview();
@@ -20036,64 +19963,51 @@ function dismissLoaderAfterRender(showLoader)
         }]
       }]
     ],
-    customIcons: {},
-    additionalButtons: [], // Place to hook more buttons by code
-    reorderButtonGroups: [],
-    hiddenButtons: [], // Default hidden buttons
-    disabledButtons: [], // Default disabled buttons
+    additionalButtons:[], // Place to hook more buttons by code
+    reorderButtonGroups:[],
+    hiddenButtons:[], // Default hidden buttons
+    disabledButtons:[], // Default disabled buttons
     footer: '',
     fullscreen: {
       enable: true,
       icons: {
         fullscreenOn: {
-          name: "fullscreenOn",
-          icon: {
-            fa: 'fa fa-expand',
-            glyph: 'glyphicon glyphicon-fullscreen',
-            'fa-3': 'icon-resize-full',
-            'fa-5': 'fas fa-expand-arrows-alt',
-            octicons: 'octicon octicon-link-external'
-          }
+          fa: 'fa fa-expand',
+          glyph: 'glyphicon glyphicon-fullscreen',
+          'fa-3': 'icon-resize-full'
         },
         fullscreenOff: {
-          name: "fullscreenOff",
-          icon: {
-            fa: 'fa fa-compress',
-            glyph: 'glyphicon glyphicon-fullscreen',
-            'fa-3': 'icon-resize-small',
-            'fa-5': 'fas fa-compress',
-            octicons: 'octicon octicon-browser'
-          }
+          fa: 'fa fa-compress',
+          glyph: 'glyphicon glyphicon-fullscreen',
+          'fa-3': 'icon-resize-small'
         }
       }
     },
 
     /* Events hook */
-    onShow: function(e) {},
-    onPreview: function(e) {},
-    onPreviewEnd: function(e) {},
-    onSave: function(e) {},
-    onBlur: function(e) {},
-    onFocus: function(e) {},
+    onShow: function (e) {},
+    onPreview: function (e) {},
+    onSave: function (e) {},
+    onBlur: function (e) {},
+    onFocus: function (e) {},
     onChange: function(e) {},
     onFullscreen: function(e) {},
-    onFullscreenExit: function(e) {},
-    onSelect: function(e) {}
+    onSelect: function (e) {}
   };
 
   $.fn.markdown.Constructor = Markdown;
 
 
-  /* MARKDOWN NO CONFLICT
-   * ==================== */
+ /* MARKDOWN NO CONFLICT
+  * ==================== */
 
-  $.fn.markdown.noConflict = function() {
+  $.fn.markdown.noConflict = function () {
     $.fn.markdown = old;
     return this;
   };
 
   /* MARKDOWN GLOBAL FUNCTION & DATA-API
-   * ==================================== */
+  * ==================================== */
   var initMarkdown = function(el) {
     var $this = el;
 
@@ -20102,37 +20016,37 @@ function dismissLoaderAfterRender(showLoader)
       return;
     }
 
-    $this.markdown();
+    $this.markdown()
   };
 
   var blurNonFocused = function(e) {
     var $activeElement = $(document.activeElement);
 
     // Blur event
-    $(document).find('.md-editor').each(function() {
-      var $this = $(this),
-        focused = $activeElement.closest('.md-editor')[0] === this,
-        attachedMarkdown = $this.find('textarea').data('markdown') ||
-        $this.find('div[data-provider="markdown-preview"]').data('markdown');
+    $(document).find('.md-editor').each(function(){
+      var $this            = $(this),
+          focused          = $activeElement.closest('.md-editor')[0] === this,
+          attachedMarkdown = $this.find('textarea').data('markdown') ||
+                             $this.find('div[data-provider="markdown-preview"]').data('markdown');
 
       if (attachedMarkdown && !focused) {
         attachedMarkdown.blur();
       }
-    });
+    })
   };
 
   $(document)
-    .on('click.markdown.data-api', '[data-provide="markdown-editable"]', function(e) {
+    .on('click.markdown.data-api', '[data-provide="markdown-editable"]', function (e) {
       initMarkdown($(this));
       e.preventDefault();
     })
-    .on('click focusin', function(e) {
+    .on('click focusin', function (e) {
       blurNonFocused(e);
     })
-    .ready(function() {
-      $('textarea[data-provide="markdown"]').each(function() {
+    .ready(function(){
+      $('textarea[data-provide="markdown"]').each(function(){
         initMarkdown($(this));
-      });
+      })
     });
 
 }));
@@ -20195,7 +20109,7 @@ function dismissLoaderAfterRender(showLoader)
  * Dan Storm <storm@catalystcode.net>
  */
 (function ($) {
-  $.fn.markdown.messages.da = {
+  $.fn.markdown.messages.nb = {
     'Bold': 'Fed',
     'Italic': 'Kursiv',
     'Heading': 'Overskrift',
@@ -20231,11 +20145,8 @@ function dismissLoaderAfterRender(showLoader)
     'Unordered List': "Unnummerierte Liste",
     'Ordered List': "Nummerierte Liste",
     'Code': "Quelltext",
-    'code text here': "Quelltext hier einfügen",
     'Quote': "Zitat",
-    'quote here': "Zitat hier einfügen",
     'Preview': "Vorschau",
-    'Save': "Speichern",
     'strong text': "Sehr betonter Text",
     'emphasized text': "Betonter Text",
     'heading text': "Überschrift Text",
@@ -20252,31 +20163,24 @@ function dismissLoaderAfterRender(showLoader)
  * Spanish translation for bootstrap-markdown
  * by Leandro Poblet <leandrodrhouse@gmail.com>
  */
-(function ($) {
-  $.fn.markdown.messages.es = {
+;(function($){
+  $.fn.markdown.messages['es'] = {
     'Bold': "Negrita",
     'Italic': "Itálica",
     'Heading': "Título",
     'URL/Link': "Inserte un link",
     'Image': "Inserte una imagen",
     'List': "Lista de items",
-    'Unordered List': "Lista desordenada",
-    'Ordered List': "Lista ordenada",
-    'Code': "Código",
-    'Quote': "Cita",
     'Preview': "Previsualizar",
-    'strong text': "Texto importante",
-    'emphasized text': "Texto con énfasis",
-    'heading text': "Texto de título",
-    'enter link description here': "Descripción del link",
+    'strong text': "texto importante",
+    'emphasized text': "texto con énfasis",
+    'heading text': "texto titular",
+    'enter link description here': "descripción del link",
     'Insert Hyperlink': "Inserte un hipervínculo",
-    'enter image description here': "Descripción de la imagen",
+    'enter image description here': "descripción de la imagen",
     'Insert Image Hyperlink': "Inserte una imagen con un hipervínculo",
     'enter image title here': "Inserte una imagen con título",
-    'list text here': "Texto de lista aquí",
-    'code text here': "Código aquí",
-    'quote here': "Cita aquí",
-    'Save': "Guardar"
+    'list text here': "lista con texto"
   };
 }(jQuery));
 
@@ -20342,7 +20246,7 @@ function dismissLoaderAfterRender(showLoader)
  * Kenta Murakami <kntmrkm@gmail.com>
  */
 (function ($) {
-  $.fn.markdown.messages.ja = {
+  $.fn.markdown.messages['ja'] = {
     'Bold': "太字",
     'Italic': "斜体",
     'Heading': "見出し",
@@ -20371,8 +20275,8 @@ function dismissLoaderAfterRender(showLoader)
  + * Korean translation for bootstrap-markdown
  + * WoongBi Kim <ssinss@gmail.com>
  + */
-(function ($) {
-  $.fn.markdown.messages.kr = {
+;(function($){
+  $.fn.markdown.messages['kr'] = {
     'Bold': "진하게",
     'Italic': "이탤릭체",
     'Heading': "머리글",
@@ -20583,6 +20487,8 @@ function dismissLoaderAfterRender(showLoader)
     'list text here': "这里是列表文本",
     'code text here': "这里输入代码",
     'quote here': "这里输入引用文本"
+
+
   };
 }(jQuery));
 
@@ -40367,34 +40273,6 @@ v("intlTelInputUtils.numberType",{FIXED_LINE:0,MOBILE:1,FIXED_LINE_OR_MOBILE:2,T
  */
 
 jQuery(document).ready(function() {
-    if (typeof customCountryData !== "undefined") {
-        var teleCountryData = $.fn['intlTelInput'].getCountryData();
-        for (var code in customCountryData) {
-            if (customCountryData.hasOwnProperty(code)) {
-                var countryDetails = customCountryData[code];
-                codeLower = code.toLowerCase();
-                if (countryDetails === false) {
-                    for (var i = 0; i < teleCountryData.length; i++) {
-                        if (codeLower === teleCountryData[i].iso2) {
-                            teleCountryData.splice(i, 1);
-                            break;
-                        }
-                    }
-                } else {
-                    teleCountryData.push(
-                        {
-                            name: countryDetails.name,
-                            iso2: codeLower,
-                            dialCode: countryDetails.callingCode,
-                            priority: 0,
-                            areaCodes: null
-                        }
-                    );
-                }
-            }
-        }
-    }
-
     if (jQuery('body').data('phone-cc-input')) {
         var phoneInput = jQuery('input[name^="phone"], input[name$="phone"], input[name="domaincontactphonenumber"]').not('input[type="hidden"]');
         if (phoneInput.length) {
@@ -40488,7 +40366,7 @@ jQuery(document).ready(function() {
              * In places where a form icon is present, hide it.
              * Where the input has a class of field, remove that and add form-control in place.
              */
-            phoneInput.parents('div.form-group').find('.field-icon').hide().end();
+            phoneInput.parents('div.form-group').find('.field-icon').addClass('hidden').end();
             phoneInput.removeClass('field').addClass('form-control');
         }
 
@@ -40549,448 +40427,3 @@ jQuery(document).ready(function() {
         }
     }
 });
-
-/*!
- * Lightbox v2.8.1
- * by Lokesh Dhakar
- *
- * More info:
- * http://lokeshdhakar.com/projects/lightbox2/
- *
- * Copyright 2007, 2015 Lokesh Dhakar
- * Released under the MIT license
- * https://github.com/lokesh/lightbox2/blob/master/LICENSE
- */
-
-// Uses Node, AMD or browser globals to create a module.
-(function (root, factory) {
-    if (typeof define === 'function' && define.amd) {
-        // AMD. Register as an anonymous module.
-        define(['jquery'], factory);
-    } else if (typeof exports === 'object') {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory(require('jquery'));
-    } else {
-        // Browser globals (root is window)
-        root.lightbox = factory(root.jQuery);
-    }
-}(this, function ($) {
-
-  function Lightbox(options) {
-    this.album = [];
-    this.currentImageIndex = void 0;
-    this.init();
-
-    // options
-    this.options = $.extend({}, this.constructor.defaults);
-    this.option(options);
-  }
-
-  // Descriptions of all options available on the demo site:
-  // http://lokeshdhakar.com/projects/lightbox2/index.html#options
-  Lightbox.defaults = {
-    albumLabel: 'Image %1 of %2',
-    alwaysShowNavOnTouchDevices: false,
-    fadeDuration: 500,
-    fitImagesInViewport: true,
-    // maxWidth: 800,
-    // maxHeight: 600,
-    positionFromTop: 50,
-    resizeDuration: 700,
-    showImageNumberLabel: true,
-    wrapAround: false
-  };
-
-  Lightbox.prototype.option = function(options) {
-    $.extend(this.options, options);
-  };
-
-  Lightbox.prototype.imageCountLabel = function(currentImageNum, totalImages) {
-    return this.options.albumLabel.replace(/%1/g, currentImageNum).replace(/%2/g, totalImages);
-  };
-
-  Lightbox.prototype.init = function() {
-    this.enable();
-    this.build();
-  };
-
-  // Loop through anchors and areamaps looking for either data-lightbox attributes or rel attributes
-  // that contain 'lightbox'. When these are clicked, start lightbox.
-  Lightbox.prototype.enable = function() {
-    var self = this;
-    $('body').on('click', 'a[rel^=lightbox], area[rel^=lightbox], a[data-lightbox], area[data-lightbox]', function(event) {
-      self.start($(event.currentTarget));
-      return false;
-    });
-  };
-
-  // Build html for the lightbox and the overlay.
-  // Attach event handlers to the new DOM elements. click click click
-  Lightbox.prototype.build = function() {
-    var self = this;
-    $('<div id="lightboxOverlay" class="lightboxOverlay"></div><div id="lightbox" class="lightbox"><div class="lb-outerContainer"><div class="lb-container"><img class="lb-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" /><div class="lb-nav"><a class="lb-prev" href="" ></a><a class="lb-next" href="" ></a></div><div class="lb-loader"><a class="lb-cancel"></a></div></div></div><div class="lb-dataContainer"><div class="lb-data"><div class="lb-details"><span class="lb-caption"></span><span class="lb-number"></span></div><div class="lb-closeContainer"><a class="lb-close"></a></div></div></div></div>').appendTo($('body'));
-
-    // Cache jQuery objects
-    this.$lightbox       = $('#lightbox');
-    this.$overlay        = $('#lightboxOverlay');
-    this.$outerContainer = this.$lightbox.find('.lb-outerContainer');
-    this.$container      = this.$lightbox.find('.lb-container');
-
-    // Store css values for future lookup
-    this.containerTopPadding = parseInt(this.$container.css('padding-top'), 10);
-    this.containerRightPadding = parseInt(this.$container.css('padding-right'), 10);
-    this.containerBottomPadding = parseInt(this.$container.css('padding-bottom'), 10);
-    this.containerLeftPadding = parseInt(this.$container.css('padding-left'), 10);
-
-    // Attach event handlers to the newly minted DOM elements
-    this.$overlay.hide().on('click', function() {
-      self.end();
-      return false;
-    });
-
-    this.$lightbox.hide().on('click', function(event) {
-      if ($(event.target).attr('id') === 'lightbox') {
-        self.end();
-      }
-      return false;
-    });
-
-    this.$outerContainer.on('click', function(event) {
-      if ($(event.target).attr('id') === 'lightbox') {
-        self.end();
-      }
-      return false;
-    });
-
-    this.$lightbox.find('.lb-prev').on('click', function() {
-      if (self.currentImageIndex === 0) {
-        self.changeImage(self.album.length - 1);
-      } else {
-        self.changeImage(self.currentImageIndex - 1);
-      }
-      return false;
-    });
-
-    this.$lightbox.find('.lb-next').on('click', function() {
-      if (self.currentImageIndex === self.album.length - 1) {
-        self.changeImage(0);
-      } else {
-        self.changeImage(self.currentImageIndex + 1);
-      }
-      return false;
-    });
-
-    this.$lightbox.find('.lb-loader, .lb-close').on('click', function() {
-      self.end();
-      return false;
-    });
-  };
-
-  // Show overlay and lightbox. If the image is part of a set, add siblings to album array.
-  Lightbox.prototype.start = function($link) {
-    var self    = this;
-    var $window = $(window);
-
-    $window.on('resize', $.proxy(this.sizeOverlay, this));
-
-    $('select, object, embed').css({
-      visibility: 'hidden'
-    });
-
-    this.sizeOverlay();
-
-    this.album = [];
-    var imageNumber = 0;
-
-    function addToAlbum($link) {
-      self.album.push({
-        link: $link.attr('href'),
-        title: $link.attr('data-title') || $link.attr('title')
-      });
-    }
-
-    // Support both data-lightbox attribute and rel attribute implementations
-    var dataLightboxValue = $link.attr('data-lightbox');
-    var $links;
-
-    if (dataLightboxValue) {
-      $links = $($link.prop('tagName') + '[data-lightbox="' + dataLightboxValue + '"]');
-      for (var i = 0; i < $links.length; i = ++i) {
-        addToAlbum($($links[i]));
-        if ($links[i] === $link[0]) {
-          imageNumber = i;
-        }
-      }
-    } else {
-      if ($link.attr('rel') === 'lightbox') {
-        // If image is not part of a set
-        addToAlbum($link);
-      } else {
-        // If image is part of a set
-        $links = $($link.prop('tagName') + '[rel="' + $link.attr('rel') + '"]');
-        for (var j = 0; j < $links.length; j = ++j) {
-          addToAlbum($($links[j]));
-          if ($links[j] === $link[0]) {
-            imageNumber = j;
-          }
-        }
-      }
-    }
-
-    // Position Lightbox
-    var top  = $window.scrollTop() + this.options.positionFromTop;
-    var left = $window.scrollLeft();
-    this.$lightbox.css({
-      top: top + 'px',
-      left: left + 'px'
-    }).fadeIn(this.options.fadeDuration);
-
-    this.changeImage(imageNumber);
-  };
-
-  // Hide most UI elements in preparation for the animated resizing of the lightbox.
-  Lightbox.prototype.changeImage = function(imageNumber) {
-    var self = this;
-
-    this.disableKeyboardNav();
-    var $image = this.$lightbox.find('.lb-image');
-
-    this.$overlay.fadeIn(this.options.fadeDuration);
-
-    $('.lb-loader').fadeIn('slow');
-    this.$lightbox.find('.lb-image, .lb-nav, .lb-prev, .lb-next, .lb-dataContainer, .lb-numbers, .lb-caption').hide();
-
-    this.$outerContainer.addClass('animating');
-
-    // When image to show is preloaded, we send the width and height to sizeContainer()
-    var preloader = new Image();
-    preloader.onload = function() {
-      var $preloader;
-      var imageHeight;
-      var imageWidth;
-      var maxImageHeight;
-      var maxImageWidth;
-      var windowHeight;
-      var windowWidth;
-
-      $image.attr('src', self.album[imageNumber].link);
-
-      $preloader = $(preloader);
-
-      $image.width(preloader.width);
-      $image.height(preloader.height);
-
-      if (self.options.fitImagesInViewport) {
-        // Fit image inside the viewport.
-        // Take into account the border around the image and an additional 10px gutter on each side.
-
-        windowWidth    = $(window).width();
-        windowHeight   = $(window).height();
-        maxImageWidth  = windowWidth - self.containerLeftPadding - self.containerRightPadding - 20;
-        maxImageHeight = windowHeight - self.containerTopPadding - self.containerBottomPadding - 120;
-
-        // Check if image size is larger then maxWidth|maxHeight in settings
-        if (self.options.maxWidth && self.options.maxWidth < maxImageWidth) {
-          maxImageWidth = self.options.maxWidth;
-        }
-        if (self.options.maxHeight && self.options.maxHeight < maxImageWidth) {
-          maxImageHeight = self.options.maxHeight;
-        }
-
-        // Is there a fitting issue?
-        if ((preloader.width > maxImageWidth) || (preloader.height > maxImageHeight)) {
-          if ((preloader.width / maxImageWidth) > (preloader.height / maxImageHeight)) {
-            imageWidth  = maxImageWidth;
-            imageHeight = parseInt(preloader.height / (preloader.width / imageWidth), 10);
-            $image.width(imageWidth);
-            $image.height(imageHeight);
-          } else {
-            imageHeight = maxImageHeight;
-            imageWidth = parseInt(preloader.width / (preloader.height / imageHeight), 10);
-            $image.width(imageWidth);
-            $image.height(imageHeight);
-          }
-        }
-      }
-      self.sizeContainer($image.width(), $image.height());
-    };
-
-    preloader.src          = this.album[imageNumber].link;
-    this.currentImageIndex = imageNumber;
-  };
-
-  // Stretch overlay to fit the viewport
-  Lightbox.prototype.sizeOverlay = function() {
-    this.$overlay
-      .width($(window).width())
-      .height($(document).height());
-  };
-
-  // Animate the size of the lightbox to fit the image we are showing
-  Lightbox.prototype.sizeContainer = function(imageWidth, imageHeight) {
-    var self = this;
-
-    var oldWidth  = this.$outerContainer.outerWidth();
-    var oldHeight = this.$outerContainer.outerHeight();
-    var newWidth  = imageWidth + this.containerLeftPadding + this.containerRightPadding;
-    var newHeight = imageHeight + this.containerTopPadding + this.containerBottomPadding;
-
-    function postResize() {
-      self.$lightbox.find('.lb-dataContainer').width(newWidth);
-      self.$lightbox.find('.lb-prevLink').height(newHeight);
-      self.$lightbox.find('.lb-nextLink').height(newHeight);
-      self.showImage();
-    }
-
-    if (oldWidth !== newWidth || oldHeight !== newHeight) {
-      this.$outerContainer.animate({
-        width: newWidth,
-        height: newHeight
-      }, this.options.resizeDuration, 'swing', function() {
-        postResize();
-      });
-    } else {
-      postResize();
-    }
-  };
-
-  // Display the image and its details and begin preload neighboring images.
-  Lightbox.prototype.showImage = function() {
-    this.$lightbox.find('.lb-loader').stop(true).hide();
-    this.$lightbox.find('.lb-image').fadeIn('slow');
-
-    this.updateNav();
-    this.updateDetails();
-    this.preloadNeighboringImages();
-    this.enableKeyboardNav();
-  };
-
-  // Display previous and next navigation if appropriate.
-  Lightbox.prototype.updateNav = function() {
-    // Check to see if the browser supports touch events. If so, we take the conservative approach
-    // and assume that mouse hover events are not supported and always show prev/next navigation
-    // arrows in image sets.
-    var alwaysShowNav = false;
-    try {
-      document.createEvent('TouchEvent');
-      alwaysShowNav = (this.options.alwaysShowNavOnTouchDevices) ? true : false;
-    } catch (e) {}
-
-    this.$lightbox.find('.lb-nav').show();
-
-    if (this.album.length > 1) {
-      if (this.options.wrapAround) {
-        if (alwaysShowNav) {
-          this.$lightbox.find('.lb-prev, .lb-next').css('opacity', '1');
-        }
-        this.$lightbox.find('.lb-prev, .lb-next').show();
-      } else {
-        if (this.currentImageIndex > 0) {
-          this.$lightbox.find('.lb-prev').show();
-          if (alwaysShowNav) {
-            this.$lightbox.find('.lb-prev').css('opacity', '1');
-          }
-        }
-        if (this.currentImageIndex < this.album.length - 1) {
-          this.$lightbox.find('.lb-next').show();
-          if (alwaysShowNav) {
-            this.$lightbox.find('.lb-next').css('opacity', '1');
-          }
-        }
-      }
-    }
-  };
-
-  // Display caption, image number, and closing button.
-  Lightbox.prototype.updateDetails = function() {
-    var self = this;
-
-    // Enable anchor clicks in the injected caption html.
-    // Thanks Nate Wright for the fix. @https://github.com/NateWr
-    if (typeof this.album[this.currentImageIndex].title !== 'undefined' &&
-      this.album[this.currentImageIndex].title !== '') {
-      this.$lightbox.find('.lb-caption')
-        .html(this.album[this.currentImageIndex].title)
-        .fadeIn('fast')
-        .find('a').on('click', function(event) {
-          if ($(this).attr('target') !== undefined) {
-            window.open($(this).attr('href'), $(this).attr('target'));
-          } else {
-            location.href = $(this).attr('href');
-          }
-        });
-    }
-
-    if (this.album.length > 1 && this.options.showImageNumberLabel) {
-      var labelText = this.imageCountLabel(this.currentImageIndex + 1, this.album.length);
-      this.$lightbox.find('.lb-number').text(labelText).fadeIn('fast');
-    } else {
-      this.$lightbox.find('.lb-number').hide();
-    }
-
-    this.$outerContainer.removeClass('animating');
-
-    this.$lightbox.find('.lb-dataContainer').fadeIn(this.options.resizeDuration, function() {
-      return self.sizeOverlay();
-    });
-  };
-
-  // Preload previous and next images in set.
-  Lightbox.prototype.preloadNeighboringImages = function() {
-    if (this.album.length > this.currentImageIndex + 1) {
-      var preloadNext = new Image();
-      preloadNext.src = this.album[this.currentImageIndex + 1].link;
-    }
-    if (this.currentImageIndex > 0) {
-      var preloadPrev = new Image();
-      preloadPrev.src = this.album[this.currentImageIndex - 1].link;
-    }
-  };
-
-  Lightbox.prototype.enableKeyboardNav = function() {
-    $(document).on('keyup.keyboard', $.proxy(this.keyboardAction, this));
-  };
-
-  Lightbox.prototype.disableKeyboardNav = function() {
-    $(document).off('.keyboard');
-  };
-
-  Lightbox.prototype.keyboardAction = function(event) {
-    var KEYCODE_ESC        = 27;
-    var KEYCODE_LEFTARROW  = 37;
-    var KEYCODE_RIGHTARROW = 39;
-
-    var keycode = event.keyCode;
-    var key     = String.fromCharCode(keycode).toLowerCase();
-    if (keycode === KEYCODE_ESC || key.match(/x|o|c/)) {
-      this.end();
-    } else if (key === 'p' || keycode === KEYCODE_LEFTARROW) {
-      if (this.currentImageIndex !== 0) {
-        this.changeImage(this.currentImageIndex - 1);
-      } else if (this.options.wrapAround && this.album.length > 1) {
-        this.changeImage(this.album.length - 1);
-      }
-    } else if (key === 'n' || keycode === KEYCODE_RIGHTARROW) {
-      if (this.currentImageIndex !== this.album.length - 1) {
-        this.changeImage(this.currentImageIndex + 1);
-      } else if (this.options.wrapAround && this.album.length > 1) {
-        this.changeImage(0);
-      }
-    }
-  };
-
-  // Closing time. :-(
-  Lightbox.prototype.end = function() {
-    this.disableKeyboardNav();
-    $(window).off('resize', this.sizeOverlay);
-    this.$lightbox.fadeOut(this.options.fadeDuration);
-    this.$overlay.fadeOut(this.options.fadeDuration);
-    $('select, object, embed').css({
-      visibility: 'visible'
-    });
-  };
-
-  return new Lightbox();
-}));

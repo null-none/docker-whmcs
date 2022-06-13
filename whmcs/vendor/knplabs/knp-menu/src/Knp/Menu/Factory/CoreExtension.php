@@ -16,21 +16,21 @@ class CoreExtension implements ExtensionInterface
      *
      * @return array
      */
-    public function buildOptions(array $options): array
+    public function buildOptions(array $options)
     {
-        return \array_merge(
-            [
+        return array_merge(
+            array(
                 'uri' => null,
                 'label' => null,
-                'attributes' => [],
-                'linkAttributes' => [],
-                'childrenAttributes' => [],
-                'labelAttributes' => [],
-                'extras' => [],
+                'attributes' => array(),
+                'linkAttributes' => array(),
+                'childrenAttributes' => array(),
+                'labelAttributes' => array(),
+                'extras' => array(),
                 'current' => null,
                 'display' => true,
                 'displayChildren' => true,
-            ],
+            ),
             $options
         );
     }
@@ -41,7 +41,7 @@ class CoreExtension implements ExtensionInterface
      * @param ItemInterface $item
      * @param array         $options
      */
-    public function buildItem(ItemInterface $item, array $options): void
+    public function buildItem(ItemInterface $item, array $options)
     {
         $item
             ->setUri($options['uri'])
@@ -65,7 +65,7 @@ class CoreExtension implements ExtensionInterface
      * @param ItemInterface $item
      * @param array         $options
      */
-    private function buildExtras(ItemInterface $item, array $options): void
+    private function buildExtras(ItemInterface $item, array $options)
     {
         if (!empty($options['extras'])) {
             foreach ($options['extras'] as $key => $value) {

@@ -2,11 +2,7 @@
 
 namespace League\CLImate\TerminalObject\Basic;
 
-use League\CLImate\Exceptions\InvalidArgumentException;
 use League\CLImate\TerminalObject\Helper\StringLength;
-use function get_object_vars;
-use function is_array;
-use function is_object;
 
 class Table extends BasicTerminalObject
 {
@@ -54,43 +50,10 @@ class Table extends BasicTerminalObject
      */
     protected $rows           = [];
 
-    /**
-     * @var string $pregix A string to be output before each row is output.
-     */
-    private $prefix = "";
-
-
-    public function __construct(array $data, $prefix = "")
+    public function __construct(array $data)
     {
-        $this->data = $this->getData($data);
-        $this->prefix = $prefix;
+        $this->data = $data;
     }
-
-
-    /**
-     * @param array $input
-     *
-     * @return array
-     */
-    private function getData(array $input)
-    {
-        $output = [];
-
-        foreach ($input as $item) {
-            if (is_object($item)) {
-                $item = get_object_vars($item);
-            }
-
-            if (!is_array($item)) {
-                throw new InvalidArgumentException("Invalid table data, you must pass an array of arrays or objects");
-            }
-
-            $output[] = $item;
-        }
-
-        return $output;
-    }
-
 
     /**
      * Return the built rows
@@ -105,26 +68,13 @@ class Table extends BasicTerminalObject
 
         $this->buildHeaderRow();
 
-        foreach ($this->data as $columns) {
-            $this->addLine($this->buildRow($columns));
-            $this->addLine($this->border);
+        foreach ($this->data as $key => $columns) {
+            $this->rows[] = $this->buildRow($columns);
+            $this->rows[] = $this->border;
         }
 
         return $this->rows;
     }
-
-    /**
-     * Append a line to the output.
-     *
-     * @param string $line The line to output
-     *
-     * @return void
-     */
-    private function addLine($line)
-    {
-        $this->rows[] = $this->prefix . $line;
-    }
-
 
     /**
      * Determine the width of the table
@@ -153,12 +103,14 @@ class Table extends BasicTerminalObject
      */
     protected function buildHeaderRow()
     {
-        $this->addLine($this->border);
-
         $header_row = $this->getHeaderRow();
+
         if ($header_row) {
-            $this->addLine($this->buildRow($header_row));
-            $this->addLine((new Border)->char('=')->length($this->table_width)->result());
+            $this->rows[] = $this->border;
+            $this->rows[] = $this->buildRow($header_row);
+            $this->rows[] = (new Border())->char('=')->length($this->table_width)->result();
+        } else {
+            $this->rows[] = $this->border;
         }
     }
 
@@ -204,6 +156,10 @@ class Table extends BasicTerminalObject
     {
         $first_item = reset($this->data);
 
+        if (is_object($first_item)) {
+            $first_item = get_object_vars($first_item);
+        }
+
         $keys       = array_keys($first_item);
         $first_key  = reset($keys);
 
@@ -223,6 +179,10 @@ class Table extends BasicTerminalObject
     protected function getColumnWidths()
     {
         $first_row = reset($this->data);
+
+        if (is_object($first_row)) {
+            $first_row = get_object_vars($first_row);
+        }
 
         // Create an array with the columns as keys and values of zero
         $column_widths = $this->getDefaultColumnWidths($first_row);

@@ -4,13 +4,12 @@ namespace OAuth2\HttpFoundationBridge;
 
 use Symfony\Component\HttpFoundation\Request as BaseRequest;
 use OAuth2\RequestInterface;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  *
  */
-class Request extends BaseRequest implements RequestInterface
-{
+ class Request extends BaseRequest implements RequestInterface
+ {
     public function query($name, $default = null)
     {
         return $this->query->get($name, $default);
@@ -40,15 +39,9 @@ class Request extends BaseRequest implements RequestInterface
     {
         return new static($request->query->all(), $request->request->all(), $request->attributes->all(), $request->cookies->all(), $request->files->all(), $request->server->all(), $request->getContent());
     }
-
-    public static function createFromRequestStack(RequestStack $request)
-    {
-        $request = $request->getCurrentRequest();
-        return self::createFromRequest($request);
-    }
-
+    
     /**
-     * Creates a new request with values from PHP's super globals.
+     * Creates a new request with values from PHP's super globals. 
      * Overwrite to fix an apache header bug. Read more here:
      * http://stackoverflow.com/questions/11990388/request-headers-bag-is-missing-authorization-header-in-symfony-2%E2%80%94
      *
@@ -59,13 +52,13 @@ class Request extends BaseRequest implements RequestInterface
     public static function createFromGlobals()
     {
         $request = parent::createFromGlobals();
-
+        
         //fix the bug.
         self::fixAuthHeader($request->headers);
-
+        
         return $request;
     }
-
+    
     /**
      * PHP does not include HTTP_AUTHORIZATION in the $_SERVER array, so this header is missing.
      * We retrieve it from apache_request_headers()
@@ -83,4 +76,4 @@ class Request extends BaseRequest implements RequestInterface
             }
         }
     }
-}
+ }

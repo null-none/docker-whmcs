@@ -6,6 +6,7 @@
 
 namespace Whoops\Exception;
 
+
 class Formatter
 {
     /**

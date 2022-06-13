@@ -5,20 +5,17 @@ class Configuration implements ConfigurationInterface
 {
     private $clientId;
     private $enabled;
-    private $host;
     private $port;
 
     /**
      * Constructs a new Configuration object with the specified CSM options set.
      *
      * @param mixed $enabled
-     * @param string $host
      * @param string|int $port
      * @param string $clientId
      */
-    public function __construct($enabled, $host, $port, $clientId = '')
+    public function __construct($enabled, $port, $clientId = '')
     {
-        $this->host = $host;
         $this->port = filter_var($port, FILTER_VALIDATE_INT);
         if ($this->port === false) {
             throw new \InvalidArgumentException(
@@ -47,14 +44,6 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * /{@inheritdoc}
-     */
-    public function getHost()
-    {
-        return $this->host;
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function getPort()
@@ -70,7 +59,6 @@ class Configuration implements ConfigurationInterface
         return [
             'client_id' => $this->getClientId(),
             'enabled' => $this->isEnabled(),
-            'host' => $this->getHost(),
             'port' => $this->getPort()
         ];
     }

@@ -119,9 +119,5 @@ use Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise restoreDBClusterFromSnapshotAsync(array $args = [])
  * @method \Aws\Result restoreDBClusterToPointInTime(array $args = [])
  * @method \GuzzleHttp\Promise\Promise restoreDBClusterToPointInTimeAsync(array $args = [])
- * @method \Aws\Result startDBCluster(array $args = [])
- * @method \GuzzleHttp\Promise\Promise startDBClusterAsync(array $args = [])
- * @method \Aws\Result stopDBCluster(array $args = [])
- * @method \GuzzleHttp\Promise\Promise stopDBClusterAsync(array $args = [])
  */
 class NeptuneClient extends AwsClient {}

@@ -11,16 +11,15 @@
 
 namespace Symfony\Component\Translation\Tests\Dumper;
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Translation\Dumper\IniFileDumper;
 use Symfony\Component\Translation\MessageCatalogue;
+use Symfony\Component\Translation\Dumper\IniFileDumper;
 
-class IniFileDumperTest extends TestCase
+class IniFileDumperTest extends \PHPUnit_Framework_TestCase
 {
     public function testFormatCatalogue()
     {
         $catalogue = new MessageCatalogue('en');
-        $catalogue->add(['foo' => 'bar']);
+        $catalogue->add(array('foo' => 'bar'));
 
         $dumper = new IniFileDumper();
 

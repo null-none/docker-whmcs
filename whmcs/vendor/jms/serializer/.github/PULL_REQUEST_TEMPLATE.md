@@ -7,5 +7,5 @@
 | Deprecations? | yes/no <!-- don't forget updating UPGRADING.md file -->
 | Tests pass?   | yes/no
 | Fixed tickets | #... <!-- #-prefixed issue number(s), if any -->
-| License       | MIT
+| License       | Apache-2.0
 

@@ -32,8 +32,7 @@ class DepthRangeFilterIteratorTest extends RealIteratorTestCase
 
     public function getAcceptData()
     {
-        $lessThan1 = [
-            '.gitignore',
+        $lessThan1 = array(
             '.git',
             'test.py',
             'foo',
@@ -42,17 +41,9 @@ class DepthRangeFilterIteratorTest extends RealIteratorTestCase
             '.foo',
             '.bar',
             'foo bar',
-            'qux',
-            'qux_0_1.php',
-            'qux_1000_1.php',
-            'qux_1002_0.php',
-            'qux_10_2.php',
-            'qux_12_0.php',
-            'qux_2_0.php',
-        ];
+        );
 
-        $lessThanOrEqualTo1 = [
-            '.gitignore',
+        $lessThanOrEqualTo1 = array(
             '.git',
             'test.py',
             'foo',
@@ -65,41 +56,28 @@ class DepthRangeFilterIteratorTest extends RealIteratorTestCase
             '.bar',
             'foo bar',
             '.foo/bar',
-            'qux',
-            'qux/baz_100_1.py',
-            'qux/baz_1_2.py',
-            'qux_0_1.php',
-            'qux_1000_1.php',
-            'qux_1002_0.php',
-            'qux_10_2.php',
-            'qux_12_0.php',
-            'qux_2_0.php',
-        ];
+        );
 
-        $graterThanOrEqualTo1 = [
+        $graterThanOrEqualTo1 = array(
             'toto/.git',
             'foo/bar.tmp',
             '.foo/.bar',
             '.foo/bar',
-            'qux/baz_100_1.py',
-            'qux/baz_1_2.py',
-        ];
+        );
 
-        $equalTo1 = [
+        $equalTo1 = array(
             'toto/.git',
             'foo/bar.tmp',
             '.foo/.bar',
             '.foo/bar',
-            'qux/baz_100_1.py',
-            'qux/baz_1_2.py',
-        ];
+        );
 
-        return [
-            [0, 0, $this->toAbsolute($lessThan1)],
-            [0, 1, $this->toAbsolute($lessThanOrEqualTo1)],
-            [2, PHP_INT_MAX, []],
-            [1, PHP_INT_MAX, $this->toAbsolute($graterThanOrEqualTo1)],
-            [1, 1, $this->toAbsolute($equalTo1)],
-        ];
+        return array(
+            array(0, 0, $this->toAbsolute($lessThan1)),
+            array(0, 1, $this->toAbsolute($lessThanOrEqualTo1)),
+            array(2, PHP_INT_MAX, array()),
+            array(1, PHP_INT_MAX, $this->toAbsolute($graterThanOrEqualTo1)),
+            array(1, 1, $this->toAbsolute($equalTo1)),
+        );
     }
 }

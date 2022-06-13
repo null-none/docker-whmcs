@@ -2,13 +2,13 @@
 
 namespace Illuminate\Database\Capsule;
 
-use Illuminate\Container\Container;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Database\Connectors\ConnectionFactory;
-use Illuminate\Database\DatabaseManager;
-use Illuminate\Database\Eloquent\Model as Eloquent;
-use Illuminate\Support\Traits\CapsuleManagerTrait;
 use PDO;
+use Illuminate\Container\Container;
+use Illuminate\Database\DatabaseManager;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Support\Traits\CapsuleManagerTrait;
+use Illuminate\Database\Eloquent\Model as Eloquent;
+use Illuminate\Database\Connectors\ConnectionFactory;
 
 class Manager
 {
@@ -33,7 +33,7 @@ class Manager
 
         // Once we have the container setup, we will setup the default configuration
         // options in the container "config" binding. This will make the database
-        // manager work correctly out of the box without extreme configuration.
+        // manager behave correctly since all the correct binding are in place.
         $this->setupDefaultConfiguration();
 
         $this->setupManager();
@@ -66,7 +66,7 @@ class Manager
     /**
      * Get a connection instance from the global manager.
      *
-     * @param  string|null  $connection
+     * @param  string  $connection
      * @return \Illuminate\Database\Connection
      */
     public static function connection($connection = null)
@@ -77,20 +77,19 @@ class Manager
     /**
      * Get a fluent query builder instance.
      *
-     * @param  \Closure|\Illuminate\Database\Query\Builder|string  $table
-     * @param  string|null  $as
-     * @param  string|null  $connection
+     * @param  string  $table
+     * @param  string  $connection
      * @return \Illuminate\Database\Query\Builder
      */
-    public static function table($table, $as = null, $connection = null)
+    public static function table($table, $connection = null)
     {
-        return static::$instance->connection($connection)->table($table, $as);
+        return static::$instance->connection($connection)->table($table);
     }
 
     /**
      * Get a schema builder instance.
      *
-     * @param  string|null  $connection
+     * @param  string  $connection
      * @return \Illuminate\Database\Schema\Builder
      */
     public static function schema($connection = null)
@@ -101,7 +100,7 @@ class Manager
     /**
      * Get a registered connection instance.
      *
-     * @param  string|null  $name
+     * @param  string  $name
      * @return \Illuminate\Database\Connection
      */
     public function getConnection($name = null)
@@ -112,7 +111,7 @@ class Manager
     /**
      * Register a connection with the manager.
      *
-     * @param  array  $config
+     * @param  array   $config
      * @param  string  $name
      * @return void
      */
@@ -136,7 +135,7 @@ class Manager
 
         // If we have an event dispatcher instance, we will go ahead and register it
         // with the Eloquent ORM, allowing for model callbacks while creating and
-        // updating "model" instances; however, it is not necessary to operate.
+        // updating "model" instances; however, if it not necessary to operate.
         if ($dispatcher = $this->getEventDispatcher()) {
             Eloquent::setEventDispatcher($dispatcher);
         }
@@ -192,11 +191,11 @@ class Manager
      * Dynamically pass methods to the default connection.
      *
      * @param  string  $method
-     * @param  array  $parameters
+     * @param  array   $parameters
      * @return mixed
      */
     public static function __callStatic($method, $parameters)
     {
-        return static::connection()->$method(...$parameters);
+        return call_user_func_array([static::connection(), $method], $parameters);
     }
 }

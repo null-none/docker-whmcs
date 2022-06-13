@@ -2,35 +2,39 @@
 
 namespace Knp\Menu\Renderer;
 
+if (!defined('ENT_SUBSTITUTE')) {
+    define('ENT_SUBSTITUTE', 8);
+}
+
 abstract class Renderer
 {
     protected $charset = 'UTF-8';
 
     /**
-     * @param string|null $charset
+     * @param string $charset
      */
-    public function __construct(?string $charset = null)
+    public function __construct($charset = null)
     {
         if (null !== $charset) {
-            $this->charset = $charset;
+            $this->charset = (string) $charset;
         }
     }
 
     /**
      * Renders a HTML attribute
      *
-     * @param string      $name
-     * @param string|bool $value
+     * @param string $name
+     * @param string $value
      *
      * @return string
      */
-    protected function renderHtmlAttribute(string $name, $value): string
+    protected function renderHtmlAttribute($name, $value)
     {
         if (true === $value) {
-            return \sprintf('%s="%s"', $name, $this->escape($name));
+            return sprintf('%s="%s"', $name, $this->escape($name));
         }
 
-        return \sprintf('%s="%s"', $name, $this->escape($value));
+        return sprintf('%s="%s"', $name, $this->escape($value));
     }
 
     /**
@@ -40,9 +44,9 @@ abstract class Renderer
      *
      * @return string
      */
-    protected function renderHtmlAttributes(array $attributes): string
+    protected function renderHtmlAttributes(array $attributes)
     {
-        return \implode('', \array_map([$this, 'htmlAttributesCallback'], \array_keys($attributes), \array_values($attributes)));
+        return implode('', array_map(array($this, 'htmlAttributesCallback'), array_keys($attributes), array_values($attributes)));
     }
 
     /**
@@ -50,12 +54,12 @@ abstract class Renderer
      *
      * It removes empty attributes.
      *
-     * @param string           $name  The attribute name
-     * @param string|bool|null $value The attribute value
+     * @param string $name  The attribute name
+     * @param string $value The attribute value
      *
      * @return string The HTML representation of the HTML key attribute pair.
      */
-    private function htmlAttributesCallback(string $name, $value): string
+    private function htmlAttributesCallback($name, $value)
     {
         if (false === $value || null === $value) {
             return '';
@@ -71,9 +75,9 @@ abstract class Renderer
      *
      * @return string
      */
-    protected function escape(string $value): string
+    protected function escape($value)
     {
-        return $this->fixDoubleEscape(\htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, $this->charset));
+        return $this->fixDoubleEscape(htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, $this->charset));
     }
 
     /**
@@ -83,9 +87,9 @@ abstract class Renderer
      *
      * @return string A single escaped string
      */
-    protected function fixDoubleEscape(string $escaped): string
+    protected function fixDoubleEscape($escaped)
     {
-        return \preg_replace('/&amp;([a-z]+|(#\d+)|(#x[\da-f]+));/i', '&$1;', $escaped);
+        return preg_replace('/&amp;([a-z]+|(#\d+)|(#x[\da-f]+));/i', '&$1;', $escaped);
     }
 
     /**
@@ -93,7 +97,7 @@ abstract class Renderer
      *
      * @return string
      */
-    public function getCharset(): string
+    public function getCharset()
     {
         return $this->charset;
     }
@@ -103,8 +107,8 @@ abstract class Renderer
      *
      * @param string $charset
      */
-    public function setCharset(string $charset): void
+    public function setCharset($charset)
     {
-        $this->charset = $charset;
+        $this->charset = (string) $charset;
     }
 }

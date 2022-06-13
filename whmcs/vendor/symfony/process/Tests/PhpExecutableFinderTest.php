@@ -24,12 +24,33 @@ class PhpExecutableFinderTest extends TestCase
      */
     public function testFind()
     {
+        if (defined('HHVM_VERSION')) {
+            $this->markTestSkipped('Should not be executed in HHVM context.');
+        }
+
         $f = new PhpExecutableFinder();
 
         $current = PHP_BINARY;
-        $args = 'phpdbg' === \PHP_SAPI ? ' -qrr' : '';
+        $args = 'phpdbg' === PHP_SAPI ? ' -qrr' : '';
 
         $this->assertEquals($current.$args, $f->find(), '::find() returns the executable PHP');
+        $this->assertEquals($current, $f->find(false), '::find() returns the executable PHP');
+    }
+
+    /**
+     * tests find() with the env var / constant PHP_BINARY with HHVM.
+     */
+    public function testFindWithHHVM()
+    {
+        if (!defined('HHVM_VERSION')) {
+            $this->markTestSkipped('Should be executed in HHVM context.');
+        }
+
+        $f = new PhpExecutableFinder();
+
+        $current = getenv('PHP_BINARY') ?: PHP_BINARY;
+
+        $this->assertEquals($current.' --php', $f->find(), '::find() returns the executable PHP');
         $this->assertEquals($current, $f->find(false), '::find() returns the executable PHP');
     }
 
@@ -40,22 +61,12 @@ class PhpExecutableFinderTest extends TestCase
     {
         $f = new PhpExecutableFinder();
 
-        if ('phpdbg' === \PHP_SAPI) {
-            $this->assertEquals($f->findArguments(), ['-qrr'], '::findArguments() returns phpdbg arguments');
+        if (defined('HHVM_VERSION')) {
+            $this->assertEquals($f->findArguments(), array('--php'), '::findArguments() returns HHVM arguments');
+        } elseif ('phpdbg' === PHP_SAPI) {
+            $this->assertEquals($f->findArguments(), array('-qrr'), '::findArguments() returns phpdbg arguments');
         } else {
-            $this->assertEquals($f->findArguments(), [], '::findArguments() returns no arguments');
+            $this->assertEquals($f->findArguments(), array(), '::findArguments() returns no arguments');
         }
-    }
-
-    public function testNotExitsBinaryFile()
-    {
-        $f = new PhpExecutableFinder();
-        $phpBinaryEnv = PHP_BINARY;
-        putenv('PHP_BINARY=/usr/local/php/bin/php-invalid');
-
-        $this->assertFalse($f->find(), '::find() returns false because of not exist file');
-        $this->assertFalse($f->find(false), '::find(false) returns false because of not exist file');
-
-        putenv('PHP_BINARY='.$phpBinaryEnv);
     }
 }

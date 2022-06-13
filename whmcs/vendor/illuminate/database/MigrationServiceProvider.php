@@ -2,37 +2,26 @@
 
 namespace Illuminate\Database;
 
-use Illuminate\Contracts\Support\DeferrableProvider;
-use Illuminate\Database\Console\Migrations\FreshCommand;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Database\Migrations\Migrator;
+use Illuminate\Database\Migrations\MigrationCreator;
+use Illuminate\Database\Console\Migrations\ResetCommand;
+use Illuminate\Database\Console\Migrations\StatusCommand;
 use Illuminate\Database\Console\Migrations\InstallCommand;
 use Illuminate\Database\Console\Migrations\MigrateCommand;
-use Illuminate\Database\Console\Migrations\MigrateMakeCommand;
 use Illuminate\Database\Console\Migrations\RefreshCommand;
-use Illuminate\Database\Console\Migrations\ResetCommand;
 use Illuminate\Database\Console\Migrations\RollbackCommand;
-use Illuminate\Database\Console\Migrations\StatusCommand;
+use Illuminate\Database\Console\Migrations\MigrateMakeCommand;
 use Illuminate\Database\Migrations\DatabaseMigrationRepository;
-use Illuminate\Database\Migrations\MigrationCreator;
-use Illuminate\Database\Migrations\Migrator;
-use Illuminate\Support\ServiceProvider;
 
-class MigrationServiceProvider extends ServiceProvider implements DeferrableProvider
+class MigrationServiceProvider extends ServiceProvider
 {
     /**
-     * The commands to be registered.
+     * Indicates if loading of the provider is deferred.
      *
-     * @var array
+     * @var bool
      */
-    protected $commands = [
-        'Migrate' => 'command.migrate',
-        'MigrateFresh' => 'command.migrate.fresh',
-        'MigrateInstall' => 'command.migrate.install',
-        'MigrateRefresh' => 'command.migrate.refresh',
-        'MigrateReset' => 'command.migrate.reset',
-        'MigrateRollback' => 'command.migrate.rollback',
-        'MigrateStatus' => 'command.migrate.status',
-        'MigrateMake' => 'command.migrate.make',
-    ];
+    protected $defer = true;
 
     /**
      * Register the service provider.
@@ -43,11 +32,14 @@ class MigrationServiceProvider extends ServiceProvider implements DeferrableProv
     {
         $this->registerRepository();
 
+        // Once we have registered the migrator instance we will go ahead and register
+        // all of the migration related commands that are used by the "Artisan" CLI
+        // so that they may be easily accessed for registering with the consoles.
         $this->registerMigrator();
 
         $this->registerCreator();
 
-        $this->registerCommands($this->commands);
+        $this->registerCommands();
     }
 
     /**
@@ -77,7 +69,7 @@ class MigrationServiceProvider extends ServiceProvider implements DeferrableProv
         $this->app->singleton('migrator', function ($app) {
             $repository = $app['migration.repository'];
 
-            return new Migrator($repository, $app['db'], $app['files'], $app['events']);
+            return new Migrator($repository, $app['db'], $app['files']);
         });
     }
 
@@ -89,27 +81,39 @@ class MigrationServiceProvider extends ServiceProvider implements DeferrableProv
     protected function registerCreator()
     {
         $this->app->singleton('migration.creator', function ($app) {
-            return new MigrationCreator($app['files'], $app->basePath('stubs'));
+            return new MigrationCreator($app['files']);
         });
     }
 
     /**
-     * Register the given commands.
+     * Register all of the migration commands.
      *
-     * @param  array  $commands
      * @return void
      */
-    protected function registerCommands(array $commands)
+    protected function registerCommands()
     {
-        foreach (array_keys($commands) as $command) {
-            call_user_func_array([$this, "register{$command}Command"], []);
+        $commands = ['Migrate', 'Rollback', 'Reset', 'Refresh', 'Install', 'Make', 'Status'];
+
+        // We'll simply spin through the list of commands that are migration related
+        // and register each one of them with an application container. They will
+        // be resolved in the Artisan start file and registered on the console.
+        foreach ($commands as $command) {
+            $this->{'register'.$command.'Command'}();
         }
 
-        $this->commands(array_values($commands));
+        // Once the commands are registered in the application IoC container we will
+        // register them with the Artisan start event so that these are available
+        // when the Artisan application actually starts up and is getting used.
+        $this->commands(
+            'command.migrate', 'command.migrate.make',
+            'command.migrate.install', 'command.migrate.rollback',
+            'command.migrate.reset', 'command.migrate.refresh',
+            'command.migrate.status'
+        );
     }
 
     /**
-     * Register the command.
+     * Register the "migrate" migration command.
      *
      * @return void
      */
@@ -121,35 +125,47 @@ class MigrationServiceProvider extends ServiceProvider implements DeferrableProv
     }
 
     /**
-     * Register the command.
+     * Register the "rollback" migration command.
      *
      * @return void
      */
-    protected function registerMigrateFreshCommand()
+    protected function registerRollbackCommand()
     {
-        $this->app->singleton('command.migrate.fresh', function () {
-            return new FreshCommand;
+        $this->app->singleton('command.migrate.rollback', function ($app) {
+            return new RollbackCommand($app['migrator']);
         });
     }
 
     /**
-     * Register the command.
+     * Register the "reset" migration command.
      *
      * @return void
      */
-    protected function registerMigrateInstallCommand()
+    protected function registerResetCommand()
     {
-        $this->app->singleton('command.migrate.install', function ($app) {
-            return new InstallCommand($app['migration.repository']);
+        $this->app->singleton('command.migrate.reset', function ($app) {
+            return new ResetCommand($app['migrator']);
         });
     }
 
     /**
-     * Register the command.
+     * Register the "refresh" migration command.
      *
      * @return void
      */
-    protected function registerMigrateMakeCommand()
+    protected function registerRefreshCommand()
+    {
+        $this->app->singleton('command.migrate.refresh', function () {
+            return new RefreshCommand;
+        });
+    }
+
+    /**
+     * Register the "make" migration command.
+     *
+     * @return void
+     */
+    protected function registerMakeCommand()
     {
         $this->app->singleton('command.migrate.make', function ($app) {
             // Once we have the migration creator registered, we will create the command
@@ -164,50 +180,26 @@ class MigrationServiceProvider extends ServiceProvider implements DeferrableProv
     }
 
     /**
-     * Register the command.
+     * Register the "status" migration command.
      *
      * @return void
      */
-    protected function registerMigrateRefreshCommand()
-    {
-        $this->app->singleton('command.migrate.refresh', function () {
-            return new RefreshCommand;
-        });
-    }
-
-    /**
-     * Register the command.
-     *
-     * @return void
-     */
-    protected function registerMigrateResetCommand()
-    {
-        $this->app->singleton('command.migrate.reset', function ($app) {
-            return new ResetCommand($app['migrator']);
-        });
-    }
-
-    /**
-     * Register the command.
-     *
-     * @return void
-     */
-    protected function registerMigrateRollbackCommand()
-    {
-        $this->app->singleton('command.migrate.rollback', function ($app) {
-            return new RollbackCommand($app['migrator']);
-        });
-    }
-
-    /**
-     * Register the command.
-     *
-     * @return void
-     */
-    protected function registerMigrateStatusCommand()
+    protected function registerStatusCommand()
     {
         $this->app->singleton('command.migrate.status', function ($app) {
             return new StatusCommand($app['migrator']);
+        });
+    }
+
+    /**
+     * Register the "install" migration command.
+     *
+     * @return void
+     */
+    protected function registerInstallCommand()
+    {
+        $this->app->singleton('command.migrate.install', function ($app) {
+            return new InstallCommand($app['migration.repository']);
         });
     }
 
@@ -218,8 +210,12 @@ class MigrationServiceProvider extends ServiceProvider implements DeferrableProv
      */
     public function provides()
     {
-        return array_merge([
-            'migrator', 'migration.repository', 'migration.creator',
-        ], array_values($this->commands));
+        return [
+            'migrator', 'migration.repository', 'command.migrate',
+            'command.migrate.rollback', 'command.migrate.reset',
+            'command.migrate.refresh', 'command.migrate.install',
+            'command.migrate.status', 'migration.creator',
+            'command.migrate.make',
+        ];
     }
 }

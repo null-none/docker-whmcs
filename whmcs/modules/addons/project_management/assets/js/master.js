@@ -7423,10 +7423,7 @@ $( document ).ready(function() {
                 },
                 sort: false,
                 ghostClass: 'ghost',
-                handle: '.handle',
-                onEnd: function() {
-                    initDateRangePicker();
-                }
+                handle: '.handle'
             }
         );
     }
@@ -7852,10 +7849,6 @@ $( document ).ready(function() {
         jQuery(this).find('input[name="title"]').focus();
     });
 
-    jQuery('#modalTaskEdit,#modalEditTimer').on('hidden.bs.modal', function() {
-        jQuery(this).find('.modal-body').find('div.loading,div.body-content').toggleClass('hidden');
-    });
-
 
     jQuery(document).on('keyup', '.displayHours', function(){
         var hms = jQuery(this).val().split(":"),
@@ -7947,39 +7940,6 @@ $( document ).ready(function() {
         importTaskResults.find('#tasksResultInfo').removeClass('hidden').show();
         jQuery('#btnImportTasks').addClass('disabled').prop('disabled', true);
     });
-
-    jQuery('#addTimerEndDate').on('apply.daterangepicker', function(ev, picker) {
-        var addTimerStartDateInput = jQuery('#addTimerStartDate'),
-            addTimerStartDate = parseInt(addTimerStartDateInput.data('daterangepicker').startDate.format('X')),
-            addTimerStartDateFormatted = addTimerStartDateInput.data('daterangepicker').startDate
-                .format(adminJsVars.dateTimeRangeFormat),
-            thisValue = parseInt(picker.startDate.format('X'));
-
-        if (thisValue < addTimerStartDate) {
-            jQuery(this).data('daterangepicker').setStartDate(
-                addTimerStartDateFormatted
-            );
-            jQuery(this).val(
-                addTimerStartDateFormatted
-            );
-        }
-    });
-    jQuery('#editTimerEndDate').on('apply.daterangepicker', function(ev, picker) {
-        var editTimerStartDateInput = jQuery('#editTimerStartDate'),
-            editTimerStartDate = parseInt(editTimerStartDateInput.data('daterangepicker').startDate.format('X')),
-            editTimerStartDateFormatted = editTimerStartDateInput.data('daterangepicker').startDate
-                .format(adminJsVars.dateTimeRangeFormat),
-            thisValue = parseInt(picker.startDate.format('X'));
-
-        if (thisValue < editTimerStartDate) {
-            jQuery(this).data('daterangepicker').setStartDate(
-                editTimerStartDateFormatted
-            );
-            jQuery(this).val(
-                editTimerStartDateFormatted
-            );
-        }
-    });
 });
 
 function appendFile(key, attachment)
@@ -8039,9 +7999,8 @@ function appendInvoice(invoice)
         '<td><span class="label ' + invoice.status.toLowerCase() + '">' + invoice.status + '</span></td>' +
         '<td class="text-right">' +
         '<button type="button" class="btn btn-default view-invoice" data-invoice-id="' + invoice.id + '">' +
-        '<i class="fas fa-search font-size-normal"></i> ' + lang.view + '</button> ' +
-        '<button type="button" class="btn btn-danger unlink-invoice" data-invoice-id="' + invoice.id + '">' +
-        '<i class="fas fa-unlink font-size-normal"></i> ' + lang.unlink + ' </button>' +
+        '<i class="fas fa-search"></i> ' + lang.view + '</button> ' +
+        '<button type="button" class="btn btn-danger unlink-invoice" data-invoice-id="' + invoice.id + '"> ' + lang.unlink + ' </button>' +
         '</td></tr>'
     );
 }
@@ -8127,11 +8086,11 @@ var ProjectManagerHandlers = {
                 sort: false,
                 ghostClass: 'ghost',
                 onAdd: function(evt) {
-                    jQuery(evt.target).html('<span class="label label-assigned-user">' + lang.updating + '...</span>');
+                    jQuery(evt.target).html('<span class="label label-assigned-user">Updating...</span>');
                     ProjectManager.call(
                         'taskduedate',
                         'taskid=' + jQuery(evt.target).data('id')
-                        + '&duedate=' + jQuery(evt.item).find('input').val()
+                        + '&duedate=' + jQuery(evt.item).data('id')
                     );
                 }
             }
@@ -8196,7 +8155,6 @@ var ProjectManagerHandlers = {
         $('#inputTaskNotes').val(decodeHtml(task.notes));
         $('#inputTaskEditAdminAssignment').val(task.adminId);
         $('#inputTaskDue').val(task.rawDueDate);
-        jQuery('#frmModalEditTask').find('div.loading,div.body-content').toggleClass('hidden');
     },
 
     deletemsg: function (data) {
@@ -8627,7 +8585,7 @@ var ProjectManagerHandlers = {
         editTimerStartDate.val(timer.dateTime);
         editTimerStartDate.data('daterangepicker').setStartDate(timer.dateTime);
         editTimerStartDate.data('daterangepicker').setEndDate(timer.dateTime);
-        jQuery('#frmTimeTracking').find('div.loading,div.body-content').toggleClass('hidden').end().find('.btn-primary').focus();
+        jQuery('#frmTimeTracking').find('.btn-primary').focus();
     },
     updateTimer: function (data) {
         var timer = data.timer[0],
@@ -11991,6 +11949,39 @@ var ProjectManagerHandlers = {
  */
 
 $(document).ready(function(){
+
+    Selectize.define('whmcs_no_results', function(options) {
+        var self = this;
+        this.search = (function() {
+            var original = self.search;
+
+            return function() {
+                var results = original.apply(this, arguments);
+
+                var isActualItem = function (item) {
+                    // item.id may be 'client' - this is an actual item
+                    return isNaN(item.id) || item.id > 0;
+                };
+
+                var actualItems = results.items.filter(function (item) {
+                    return isActualItem(item);
+                });
+
+                var noResultsItems = results.items.filter(function (item) {
+                    return !isActualItem(item);
+                });
+
+                if (actualItems.length > 0) {
+                    results.items = actualItems;
+                } else if (noResultsItems.length > 0) {
+                    results.items = [noResultsItems[0]];
+                }
+
+                return results;
+            };
+        })();
+    });
+
     if (typeof WHMCS.selectize !== "undefined") {
         jQuery('.selectize-client-search').data('search-url', getClientSearchPostUrl());
         WHMCS.selectize.clientSearch();

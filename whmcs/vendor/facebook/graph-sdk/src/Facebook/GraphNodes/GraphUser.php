@@ -123,7 +123,7 @@ class GraphUser extends GraphNode
     /**
      * Returns the users birthday, if available.
      *
-     * @return Birthday|null
+     * @return \DateTime|null
      */
     public function getBirthday()
     {

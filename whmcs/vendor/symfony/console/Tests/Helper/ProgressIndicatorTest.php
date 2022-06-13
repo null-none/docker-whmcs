@@ -2,14 +2,13 @@
 
 namespace Symfony\Component\Console\Tests\Helper;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Helper\ProgressIndicator;
 use Symfony\Component\Console\Output\StreamOutput;
 
 /**
  * @group time-sensitive
  */
-class ProgressIndicatorTest extends TestCase
+class ProgressIndicatorTest extends \PHPUnit_Framework_TestCase
 {
     public function testDefaultIndicator()
     {
@@ -45,11 +44,11 @@ class ProgressIndicatorTest extends TestCase
             $this->generateOutput(' \\ Starting...').
             $this->generateOutput(' \\ Advancing...').
             $this->generateOutput(' | Advancing...').
-            $this->generateOutput(' | Done...').
+            $this->generateOutput(' | Done...     ').
             PHP_EOL.
             $this->generateOutput(' - Starting Again...').
             $this->generateOutput(' \\ Starting Again...').
-            $this->generateOutput(' \\ Done Again...').
+            $this->generateOutput(' \\ Done Again...    ').
             PHP_EOL,
             stream_get_contents($output->getStream())
         );
@@ -71,15 +70,15 @@ class ProgressIndicatorTest extends TestCase
 
         $this->assertEquals(
             ' Starting...'.PHP_EOL.
-            ' Midway...'.PHP_EOL.
-            ' Done...'.PHP_EOL.PHP_EOL,
+            ' Midway...  '.PHP_EOL.
+            ' Done...    '.PHP_EOL.PHP_EOL,
             stream_get_contents($output->getStream())
         );
     }
 
     public function testCustomIndicatorValues()
     {
-        $bar = new ProgressIndicator($output = $this->getOutputStream(), null, 100, ['a', 'b', 'c']);
+        $bar = new ProgressIndicator($output = $this->getOutputStream(), null, 100, array('a', 'b', 'c'));
 
         $bar->start('Starting...');
         usleep(101000);
@@ -100,34 +99,42 @@ class ProgressIndicatorTest extends TestCase
         );
     }
 
+    /**
+     * @expectedException \InvalidArgumentException
+     * @expectedExceptionMessage Must have at least 2 indicator value characters.
+     */
     public function testCannotSetInvalidIndicatorCharacters()
     {
-        $this->expectException('InvalidArgumentException');
-        $this->expectExceptionMessage('Must have at least 2 indicator value characters.');
-        new ProgressIndicator($this->getOutputStream(), null, 100, ['1']);
+        $bar = new ProgressIndicator($this->getOutputStream(), null, 100, array('1'));
     }
 
+    /**
+     * @expectedException \LogicException
+     * @expectedExceptionMessage Progress indicator already started.
+     */
     public function testCannotStartAlreadyStartedIndicator()
     {
-        $this->expectException('LogicException');
-        $this->expectExceptionMessage('Progress indicator already started.');
         $bar = new ProgressIndicator($this->getOutputStream());
         $bar->start('Starting...');
         $bar->start('Starting Again.');
     }
 
+    /**
+     * @expectedException \LogicException
+     * @expectedExceptionMessage Progress indicator has not yet been started.
+     */
     public function testCannotAdvanceUnstartedIndicator()
     {
-        $this->expectException('LogicException');
-        $this->expectExceptionMessage('Progress indicator has not yet been started.');
         $bar = new ProgressIndicator($this->getOutputStream());
         $bar->advance();
     }
 
+    /**
+     * @expectedException \LogicException
+     * @expectedExceptionMessage Progress indicator has not yet been started.
+     */
     public function testCannotFinishUnstartedIndicator()
     {
-        $this->expectException('LogicException');
-        $this->expectExceptionMessage('Progress indicator has not yet been started.');
         $bar = new ProgressIndicator($this->getOutputStream());
         $bar->finish('Finished');
     }
@@ -148,15 +155,17 @@ class ProgressIndicatorTest extends TestCase
 
     /**
      * Provides each defined format.
+     *
+     * @return array
      */
-    public function provideFormat(): array
+    public function provideFormat()
     {
-        return [
-            ['normal'],
-            ['verbose'],
-            ['very_verbose'],
-            ['debug'],
-        ];
+        return array(
+            array('normal'),
+            array('verbose'),
+            array('very_verbose'),
+            array('debug'),
+        );
     }
 
     protected function getOutputStream($decorated = true, $verbosity = StreamOutput::VERBOSITY_NORMAL)
@@ -168,6 +177,6 @@ class ProgressIndicatorTest extends TestCase
     {
         $count = substr_count($expected, "\n");
 
-        return "\x0D\x1B[2K".($count ? sprintf("\033[%dA", $count) : '').$expected;
+        return "\x0D".($count ? sprintf("\033[%dA", $count) : '').$expected;
     }
 }

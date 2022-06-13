@@ -13,7 +13,7 @@ interface ExtensionInterface
      *
      * @return array
      */
-    public function buildOptions(array $options): array;
+    public function buildOptions(array $options);
 
     /**
      * Configures the item with the passed options
@@ -21,5 +21,5 @@ interface ExtensionInterface
      * @param ItemInterface $item
      * @param array         $options
      */
-    public function buildItem(ItemInterface $item, array $options): void;
+    public function buildItem(ItemInterface $item, array $options);
 }

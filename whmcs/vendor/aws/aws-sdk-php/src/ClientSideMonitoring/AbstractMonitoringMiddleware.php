@@ -60,11 +60,42 @@ abstract class AbstractMonitoringMiddleware
     }
 
     /**
+     * Standard middleware wrapper function with CSM options passed in.
+     *
+     * @param callable $credentialProvider
+     * @param mixed  $options
+     * @param string $region
+     * @param string $service
+     * @return callable
+     */
+    public static function wrap(
+        callable $credentialProvider,
+        $options,
+        $region,
+        $service
+    ) {
+        return function (callable $handler) use (
+            $credentialProvider,
+            $options,
+            $region,
+            $service
+        ) {
+            return new static(
+                $handler,
+                $credentialProvider,
+                $options,
+                $region,
+                $service
+            );
+        };
+    }
+
+    /**
      * Constructor stores the passed in handler and options.
      *
      * @param callable $handler
      * @param callable $credentialProvider
-     * @param $options
+     * @param array $options
      * @param $region
      * @param $service
      */
@@ -141,19 +172,9 @@ abstract class AbstractMonitoringMiddleware
             'Region' => $this->getRegion(),
             'Service' => $this->getService(),
             'Timestamp' => (int) floor(microtime(true) * 1000),
-            'UserAgent' => substr(
-                $request->getHeaderLine('User-Agent') . ' ' . \Aws\default_user_agent(),
-                0,
-                256
-            ),
             'Version' => 1
         ];
         return $event;
-    }
-
-    private function getHost()
-    {
-        return $this->unwrappedOptions()->getHost();
     }
 
     private function getPort()
@@ -241,7 +262,7 @@ abstract class AbstractMonitoringMiddleware
         ) {
             self::$socket = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
             socket_clear_error(self::$socket);
-            socket_connect(self::$socket, $this->getHost(), $this->getPort());
+            socket_connect(self::$socket, '127.0.0.1', $this->getPort());
         }
 
         return self::$socket;
@@ -273,16 +294,7 @@ abstract class AbstractMonitoringMiddleware
     private function unwrappedOptions()
     {
         if (!($this->options instanceof ConfigurationInterface)) {
-            try {
-                $this->options = ConfigurationProvider::unwrap($this->options);
-            } catch (\Exception $e) {
-                // Errors unwrapping CSM config defaults to disabling it
-                $this->options = new Configuration(
-                    false,
-                    ConfigurationProvider::DEFAULT_HOST,
-                    ConfigurationProvider::DEFAULT_PORT
-                );
-            }
+            $this->options = ConfigurationProvider::unwrap($this->options);
         }
         return $this->options;
     }

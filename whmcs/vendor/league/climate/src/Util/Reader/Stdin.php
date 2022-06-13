@@ -2,7 +2,6 @@
 
 namespace League\CLImate\Util\Reader;
 
-use League\CLImate\Exceptions\RuntimeException;
 use Seld\CliPrompt\CliPrompt;
 
 class Stdin implements ReaderInterface
@@ -57,7 +56,7 @@ class Stdin implements ReaderInterface
      * Lazily re-opens STDIN after hitting an EOF
      *
      * @return resource
-     * @throws RuntimeException
+     * @throws \Exception
      */
     protected function getStdIn()
     {
@@ -68,7 +67,7 @@ class Stdin implements ReaderInterface
         try {
             $this->setStdIn();
         } catch (\Error $e) {
-            throw new RuntimeException('Unable to read from STDIN', 0, $e);
+            throw new \Exception('Unable to read from STDIN', 0, $e);
         }
 
         return $this->stdIn;
@@ -77,8 +76,7 @@ class Stdin implements ReaderInterface
     /**
      * Attempt to set the stdin property
      *
-     * @return void
-     * @throws RuntimeException
+     * @throws \Exception
      */
     protected function setStdIn()
     {
@@ -89,7 +87,7 @@ class Stdin implements ReaderInterface
         $this->stdIn = fopen('php://stdin', 'r');
 
         if (!$this->stdIn) {
-            throw new RuntimeException('Unable to read from STDIN');
+            throw new \Exception('Unable to read from STDIN');
         }
     }
 }

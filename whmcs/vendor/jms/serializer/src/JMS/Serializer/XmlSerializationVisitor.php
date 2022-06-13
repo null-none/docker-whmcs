@@ -1,12 +1,27 @@
 <?php
 
+/*
+ * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 namespace JMS\Serializer;
 
 use JMS\Serializer\Accessor\AccessorStrategyInterface;
 use JMS\Serializer\Exception\RuntimeException;
 use JMS\Serializer\Metadata\ClassMetadata;
 use JMS\Serializer\Metadata\PropertyMetadata;
-use JMS\Serializer\Naming\AdvancedNamingStrategyInterface;
 use JMS\Serializer\Naming\PropertyNamingStrategyInterface;
 
 /**
@@ -34,7 +49,7 @@ class XmlSerializationVisitor extends AbstractVisitor
     /** @var boolean */
     private $formatOutput;
 
-    public function __construct($namingStrategy, AccessorStrategyInterface $accessorStrategy = null)
+    public function __construct(PropertyNamingStrategyInterface $namingStrategy, AccessorStrategyInterface $accessorStrategy = null)
     {
         parent::__construct($namingStrategy, $accessorStrategy);
         $this->objectMetadataStack = new \SplStack;
@@ -229,11 +244,7 @@ class XmlSerializationVisitor extends AbstractVisitor
             if (!$node instanceof \DOMCharacterData) {
                 throw new RuntimeException(sprintf('Unsupported value for XML attribute for %s. Expected character data, but got %s.', $metadata->name, json_encode($v)));
             }
-            if ($this->namingStrategy instanceof AdvancedNamingStrategyInterface) {
-                $attributeName = $this->namingStrategy->getPropertyName($metadata, $context);
-            } else {
-                $attributeName = $this->namingStrategy->translateName($metadata);
-            }
+            $attributeName = $this->namingStrategy->translateName($metadata);
             $this->setAttributeOnNode($this->currentNode, $attributeName, $node->nodeValue, $metadata->xmlNamespace);
 
             return;
@@ -253,7 +264,7 @@ class XmlSerializationVisitor extends AbstractVisitor
             $this->revertCurrentMetadata();
 
             if (!$node instanceof \DOMCharacterData) {
-                throw new RuntimeException(sprintf('Unsupported value for property %s::$%s. Expected character data, but got %s.', $metadata->reflection->class, $metadata->reflection->name, \is_object($node) ? \get_class($node) : \gettype($node)));
+                throw new RuntimeException(sprintf('Unsupported value for property %s::$%s. Expected character data, but got %s.', $metadata->reflection->class, $metadata->reflection->name, is_object($node) ? get_class($node) : gettype($node)));
             }
 
             $this->currentNode->appendChild($node);
@@ -262,8 +273,8 @@ class XmlSerializationVisitor extends AbstractVisitor
         }
 
         if ($metadata->xmlAttributeMap) {
-            if (!\is_array($v)) {
-                throw new RuntimeException(sprintf('Unsupported value type for XML attribute map. Expected array but got %s.', \gettype($v)));
+            if (!is_array($v)) {
+                throw new RuntimeException(sprintf('Unsupported value type for XML attribute map. Expected array but got %s.', gettype($v)));
             }
 
             foreach ($v as $key => $value) {
@@ -282,11 +293,7 @@ class XmlSerializationVisitor extends AbstractVisitor
         }
 
         if ($addEnclosingElement = !$this->isInLineCollection($metadata) && !$metadata->inline) {
-            if ($this->namingStrategy instanceof AdvancedNamingStrategyInterface) {
-                $elementName = $this->namingStrategy->getPropertyName($metadata, $context);
-            } else {
-                $elementName = $this->namingStrategy->translateName($metadata);
-            }
+            $elementName = $this->namingStrategy->translateName($metadata);
 
             $namespace = null !== $metadata->xmlNamespace
                 ? $metadata->xmlNamespace
@@ -361,18 +368,8 @@ class XmlSerializationVisitor extends AbstractVisitor
         return $this->currentMetadata;
     }
 
-    /**
-     * @param bool $create (default = false)
-     * @return \DOMDocument
-     */
     public function getDocument()
     {
-        if (func_num_args() === 1) {
-            if (null === $this->document && func_get_arg(0) === true) {
-                $this->document = $this->createDocument();
-            }
-        }
-
         return $this->document;
     }
 
@@ -398,13 +395,6 @@ class XmlSerializationVisitor extends AbstractVisitor
         return $this->currentMetadata = $this->metadataStack->pop();
     }
 
-    /**
-     * @deprecated Use $this->getDocument(true) instead
-     * @param null $version
-     * @param null $encoding
-     * @param bool $addRoot
-     * @return \DOMDocument
-     */
     public function createDocument($version = null, $encoding = null, $addRoot = true)
     {
         $doc = new \DOMDocument($version ?: $this->defaultVersion, $encoding ?: $this->defaultEncoding);

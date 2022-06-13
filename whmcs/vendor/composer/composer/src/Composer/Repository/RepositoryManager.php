@@ -54,7 +54,6 @@ class RepositoryManager
     public function findPackage($name, $constraint)
     {
         foreach ($this->repositories as $repository) {
-            /** @var RepositoryInterface $repository */
             if ($package = $repository->findPackage($name, $constraint)) {
                 return $package;
             }
@@ -69,13 +68,13 @@ class RepositoryManager
      * @param string                                                 $name       package name
      * @param string|\Composer\Semver\Constraint\ConstraintInterface $constraint package version or version constraint to match against
      *
-     * @return PackageInterface[]
+     * @return array
      */
     public function findPackages($name, $constraint)
     {
         $packages = array();
 
-        foreach ($this->getRepositories() as $repository) {
+        foreach ($this->repositories as $repository) {
             $packages = array_merge($packages, $repository->findPackages($name, $constraint));
         }
 
@@ -109,18 +108,13 @@ class RepositoryManager
      *
      * @param  string                    $type   repository type
      * @param  array                     $config repository configuration
-     * @param  string                    $name   repository name
      * @throws \InvalidArgumentException if repository for provided type is not registered
      * @return RepositoryInterface
      */
-    public function createRepository($type, $config, $name = null)
+    public function createRepository($type, $config)
     {
         if (!isset($this->repositoryClasses[$type])) {
             throw new \InvalidArgumentException('Repository type is not registered: '.$type);
-        }
-
-        if (isset($config['packagist']) && false === $config['packagist']) {
-            $this->io->writeError('<warning>Repository "'.$name.'" ('.json_encode($config).') has a packagist key which should be in its own repository definition</warning>');
         }
 
         $class = $this->repositoryClasses[$type];
@@ -148,7 +142,7 @@ class RepositoryManager
     /**
      * Returns all repositories, except local one.
      *
-     * @return RepositoryInterface[]
+     * @return array
      */
     public function getRepositories()
     {

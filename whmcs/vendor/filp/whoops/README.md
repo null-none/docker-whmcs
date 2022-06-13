@@ -28,12 +28,8 @@ powerful stacked error handling system.
 - Easy to extend and integrate with existing libraries
 - Clean, well-structured & tested code-base
 
-## Sponsors
-
-<a href="https://blackfire.io/docs/introduction?utm_source=whoops&amp;utm_medium=github_readme&amp;utm_campaign=logo"><img src="https://i.imgur.com/zR8rsqk.png" alt="Blackfire.io" width="254" height="64"></a>
-
 ## Installing
-If you use Laravel 4 or Laravel 5.5+, you already have Whoops. There are also community-provided instructions on how to integrate Whoops into
+If you use Laravel 4, you already have Whoops. There are also community-provided instructions on how to integrate Whoops into
 [Silex 1](https://github.com/whoops-php/silex-1),
 [Silex 2](https://github.com/texthtml/whoops-silex),
 [Phalcon](https://github.com/whoops-php/phalcon),
@@ -47,7 +43,6 @@ If you use Laravel 4 or Laravel 5.5+, you already have Whoops. There are also co
 [FuelPHP](https://github.com/indigophp/fuel-whoops),
 [Slim](https://github.com/zeuxisoo/php-slim-whoops/),
 [Pimple](https://github.com/texthtml/whoops-pimple),
-[Laminas](https://github.com/Ppito/laminas-whoops),
 or any framework consuming [StackPHP middlewares](https://github.com/thecodingmachine/whoops-stackphp)
 or [PSR-7 middlewares](https://github.com/franzliedke/whoops-middleware).
 
@@ -67,7 +62,7 @@ If you are not using any of these frameworks, here's a very simple way to instal
     $whoops->register();
     ```
 
-For more options, have a look at the **example files** in `examples/` to get a feel for how things work. Also take a look at the [API Documentation](docs/API%20Documentation.md) and the list of available handlers below.
+For more options, have a look at the **example files** in `examples/` to get a feel for how things work. Also take a look at the [API Documentation](docs/API%20Documentation.md) and the list of available handers below.
 
 You may also want to override some system calls Whoops does. To do that, extend `Whoops\Util\SystemFacade`, override functions that you want and pass it as the argument to the `Run` constructor.
 
@@ -86,5 +81,3 @@ You can also use pluggable handlers, such as [SOAP handler](https://github.com/w
 ## Authors
 
 This library was primarily developed by [Filipe Dobreira](https://github.com/filp), and is currently maintained by [Denis Sokolov](https://github.com/denis-sokolov). A lot of awesome fixes and enhancements were also sent in by [various contributors](https://github.com/filp/whoops/contributors). Special thanks to [Graham Campbell](https://github.com/GrahamCampbell) and [Markus Staab](https://github.com/staabm) for continuous participation.
-
-This software includes [Prettify](https://github.com/google/code-prettify), licensed under Apache License 2.0. It is bundled only as a performance optimization.

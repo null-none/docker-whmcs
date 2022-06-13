@@ -19,8 +19,6 @@ namespace Google\Auth;
 
 trait CacheTrait
 {
-    private $maxKeyLength = 64;
-
     /**
      * Gets the cached value if it is present in the cache when that is
      * available.
@@ -37,9 +35,7 @@ trait CacheTrait
         }
 
         $cacheItem = $this->cache->getItem($key);
-        if ($cacheItem->isHit()) {
-            return $cacheItem->get();
-        }
+        return $cacheItem->get();
     }
 
     /**
@@ -71,13 +67,6 @@ trait CacheTrait
         $key = $this->cacheConfig['prefix'] . $key;
 
         // ensure we do not have illegal characters
-        $key = preg_replace('|[^a-zA-Z0-9_\.!]|', '', $key);
-
-        // Hash keys if they exceed $maxKeyLength (defaults to 64)
-        if ($this->maxKeyLength && strlen($key) > $this->maxKeyLength) {
-            $key = substr(hash('sha256', $key), 0, $this->maxKeyLength);
-        }
-
-        return $key;
+        return preg_replace('|[^a-zA-Z0-9_\.!]|', '', $key);
     }
 }

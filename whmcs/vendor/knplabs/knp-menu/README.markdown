@@ -1,8 +1,8 @@
 KnpMenu
 =======
 
-The KnpMenu library provides object oriented menus for PHP 7.
-It is used by the [KnpMenuBundle](https://github.com/KnpLabs/KnpMenuBundle) for Symfony
+The KnpMenu library provides object oriented menus for PHP 5.3.
+It is used by the [KnpMenuBundle](https://github.com/KnpLabs/KnpMenuBundle) for Symfony2
 but can now be used stand-alone.
 
 [![Build Status](https://secure.travis-ci.org/KnpLabs/KnpMenu.svg)](http://travis-ci.org/KnpLabs/KnpMenu)
@@ -21,7 +21,7 @@ entry in your `composer.json` and update the `composer.lock` as well.
 $ composer require knplabs/knp-menu
 ```
 
-> KnpMenu follows the PSR-4 convention names for its classes, which means you can easily integrate `knp-menu` classes loading in your own autoloader.
+> KnpMenu follows the PSR-0 convention names for its classes, which means you can easily integrate `knp-menu` classes loading in your own autoloader.
 
 ## Getting Started
 
@@ -36,10 +36,10 @@ use Knp\Menu\Renderer\ListRenderer;
 
 $factory = new MenuFactory();
 $menu = $factory->createItem('My menu');
-$menu->addChild('Home', ['uri' => '/']);
-$menu->addChild('Comments', ['uri' => '#comments']);
-$menu->addChild('Symfony', ['uri' => 'http://symfony.com/']);
-$menu->addChild('Happy Awesome Developers');
+$menu->addChild('Home', array('uri' => '/'));
+$menu->addChild('Comments', array('uri' => '#comments'));
+$menu->addChild('Symfony2', array('uri' => 'http://symfony-reloaded.org/'));
+$menu->addChild('Coming soon');
 
 $renderer = new ListRenderer(new \Knp\Menu\Matcher\Matcher());
 echo $renderer->render($menu);
@@ -56,10 +56,10 @@ The above menu would render the following HTML:
     <a href="#comments">Comments</a>
   </li>
   <li>
-    <a href="http://symfony.com/">Symfony</a>
+    <a href="http://symfony-reloaded.org/">Symfony2</a>
   </li>
   <li class="last">
-    <span>Happy Awesome Developers</span>
+    <span>Coming soon</span>
   </li>
 </ul>
 ```
@@ -71,25 +71,14 @@ the first and last items, submenus, ...
 
 ## What now?
 
-Follow the tutorial in [`doc/01-Basic-Menus.md`][0] and [`doc/02-Twig-Integration.md`][1]
+Follow the tutorial in [`doc/01-Basic-Menus.markdown`][0] and [`doc/02-Twig-Integration.markdown`][1]
 to discover how KnpMenu will rock your world!
-
-Find all available documentation at [`doc/`][2].
-
-## Maintainers
-
-This library is maintained by the following people (alphabetically sorted) :
-
-- @derrabus
-- @garak
-- @stof
 
 ## Credits
 
 This bundle was originally ported from [ioMenuPlugin](http://github.com/weaverryan/ioMenuPlugin),
 a menu plugin for symfony1. It has since been developed by [KnpLabs](http://www.knplabs.com) and
-the [Symfony community](https://github.com/KnpLabs/KnpMenu/graphs/contributors).
+the Symfony community.
 
-[0]: doc/01-Basic-Menus.md
-[1]: doc/02-Twig-Integration.md
-[2]: doc/
+[0]: doc/01-Basic-Menus.markdown
+[1]: doc/02-Twig-Integration.markdown

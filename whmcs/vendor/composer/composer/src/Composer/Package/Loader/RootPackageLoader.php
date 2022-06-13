@@ -15,7 +15,6 @@ namespace Composer\Package\Loader;
 use Composer\Package\BasePackage;
 use Composer\Package\AliasPackage;
 use Composer\Config;
-use Composer\IO\IOInterface;
 use Composer\Package\RootPackageInterface;
 use Composer\Repository\RepositoryFactory;
 use Composer\Package\Version\VersionGuesser;
@@ -47,19 +46,13 @@ class RootPackageLoader extends ArrayLoader
      */
     private $versionGuesser;
 
-    /**
-     * @var IOInterface
-     */
-    private $io;
-
-    public function __construct(RepositoryManager $manager, Config $config, VersionParser $parser = null, VersionGuesser $versionGuesser = null, IOInterface $io = null)
+    public function __construct(RepositoryManager $manager, Config $config, VersionParser $parser = null, VersionGuesser $versionGuesser = null)
     {
         parent::__construct($parser);
 
         $this->manager = $manager;
         $this->config = $config;
         $this->versionGuesser = $versionGuesser ?: new VersionGuesser($config, new ProcessExecutor(), $this->versionParser);
-        $this->io = $io;
     }
 
     /**
@@ -72,32 +65,25 @@ class RootPackageLoader extends ArrayLoader
     {
         if (!isset($config['name'])) {
             $config['name'] = '__root__';
-        } elseif ($this->io) {
-            if ($err = ValidatingArrayLoader::hasPackageNamingError($config['name'])) {
-                $this->io->writeError('<warning>Deprecation warning: Your package name '.$err.' Make sure you fix this as Composer 2.0 will error.</warning>');
-            }
         }
         $autoVersioned = false;
         if (!isset($config['version'])) {
-            $commit = null;
-
             // override with env var if available
             if (getenv('COMPOSER_ROOT_VERSION')) {
-                $config['version'] = getenv('COMPOSER_ROOT_VERSION');
+                $version = getenv('COMPOSER_ROOT_VERSION');
+                $commit = null;
             } else {
-                $versionData = $this->versionGuesser->guessVersion($config, $cwd ?: getcwd());
-                if ($versionData) {
-                    $config['version'] = $versionData['pretty_version'];
-                    $config['version_normalized'] = $versionData['version'];
-                    $commit = $versionData['commit'];
-                }
+                $versionData =  $this->versionGuesser->guessVersion($config, $cwd ?: getcwd());
+                $version = $versionData['version'];
+                $commit = $versionData['commit'];
             }
 
-            if (!isset($config['version'])) {
-                $config['version'] = '1.0.0';
+            if (!$version) {
+                $version = '1.0.0';
                 $autoVersioned = true;
             }
 
+            $config['version'] = $version;
             if ($commit) {
                 $config['source'] = array(
                     'type' => '',
@@ -139,24 +125,12 @@ class RootPackageLoader extends ArrayLoader
                 $aliases = $this->extractAliases($links, $aliases);
                 $stabilityFlags = $this->extractStabilityFlags($links, $stabilityFlags, $realPackage->getMinimumStability());
                 $references = $this->extractReferences($links, $references);
-
-                if (isset($links[$config['name']])) {
-                    throw new \RuntimeException(sprintf('Root package \'%s\' cannot require itself in its composer.json' . PHP_EOL .
-                                'Did you accidentally name your root package after an external package?', $config['name']));
-                }
             }
         }
 
-        if ($this->io) {
-            foreach (array_keys(BasePackage::$supportedLinkTypes) as $linkType) {
-                if (isset($config[$linkType])) {
-                    foreach ($config[$linkType] as $linkName => $constraint) {
-                        if ($err = ValidatingArrayLoader::hasPackageNamingError($linkName, true)) {
-                            $this->io->writeError('<warning>Deprecation warning: '.$linkType.'.'.$err.' Make sure you fix this as Composer 2.0 will error.</warning>');
-                        }
-                    }
-                }
-            }
+        if (isset($links[$config['name']])) {
+            throw new \InvalidArgumentException(sprintf('Root package \'%s\' cannot require itself in its composer.json' . PHP_EOL .
+                        'Did you accidentally name your root package after an external package?', $config['name']));
         }
 
         $realPackage->setAliases($aliases);
@@ -165,10 +139,6 @@ class RootPackageLoader extends ArrayLoader
 
         if (isset($config['prefer-stable'])) {
             $realPackage->setPreferStable((bool) $config['prefer-stable']);
-        }
-
-        if (isset($config['config'])) {
-            $realPackage->setConfig($config['config']);
         }
 
         $repos = RepositoryFactory::defaultRepos(null, $this->config, $this->manager);
@@ -253,7 +223,7 @@ class RootPackageLoader extends ArrayLoader
     {
         foreach ($requires as $reqName => $reqVersion) {
             $reqVersion = preg_replace('{^([^,\s@]+) as .+$}', '$1', $reqVersion);
-            if (preg_match('{^[^,\s@]+?#([a-f0-9]+)$}', $reqVersion, $match) && 'dev' === VersionParser::parseStability($reqVersion)) {
+            if (preg_match('{^[^,\s@]+?#([a-f0-9]+)$}', $reqVersion, $match) && 'dev' === ($stabilityName = VersionParser::parseStability($reqVersion))) {
                 $name = strtolower($reqName);
                 $references[$name] = $match[1];
             }

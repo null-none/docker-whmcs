@@ -2,11 +2,12 @@
 
 namespace Illuminate\Database\Console\Migrations;
 
+use Illuminate\Console\Command;
 use Illuminate\Console\ConfirmableTrait;
 use Illuminate\Database\Migrations\Migrator;
 use Symfony\Component\Console\Input\InputOption;
 
-class RollbackCommand extends BaseCommand
+class RollbackCommand extends Command
 {
     use ConfirmableTrait;
 
@@ -47,24 +48,26 @@ class RollbackCommand extends BaseCommand
     /**
      * Execute the console command.
      *
-     * @return int
+     * @return void
      */
-    public function handle()
+    public function fire()
     {
         if (! $this->confirmToProceed()) {
-            return 1;
+            return;
         }
 
-        $this->migrator->usingConnection($this->option('database'), function () {
-            $this->migrator->setOutput($this->output)->rollback(
-                $this->getMigrationPaths(), [
-                    'pretend' => $this->option('pretend'),
-                    'step' => (int) $this->option('step'),
-                ]
-            );
-        });
+        $this->migrator->setConnection($this->input->getOption('database'));
 
-        return 0;
+        $pretend = $this->input->getOption('pretend');
+
+        $this->migrator->rollback($pretend);
+
+        // Once the migrator has run we will grab the note output and send it out to
+        // the console screen, since the migrator itself functions without having
+        // any instances of the OutputInterface contract passed into the class.
+        foreach ($this->migrator->getNotes() as $note) {
+            $this->output->writeln($note);
+        }
     }
 
     /**
@@ -75,17 +78,11 @@ class RollbackCommand extends BaseCommand
     protected function getOptions()
     {
         return [
-            ['database', null, InputOption::VALUE_OPTIONAL, 'The database connection to use'],
+            ['database', null, InputOption::VALUE_OPTIONAL, 'The database connection to use.'],
 
-            ['force', null, InputOption::VALUE_NONE, 'Force the operation to run when in production'],
+            ['force', null, InputOption::VALUE_NONE, 'Force the operation to run when in production.'],
 
-            ['path', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'The path(s) to the migrations files to be executed'],
-
-            ['realpath', null, InputOption::VALUE_NONE, 'Indicate any provided migration file paths are pre-resolved absolute paths'],
-
-            ['pretend', null, InputOption::VALUE_NONE, 'Dump the SQL queries that would be run'],
-
-            ['step', null, InputOption::VALUE_OPTIONAL, 'The number of migrations to be reverted'],
+            ['pretend', null, InputOption::VALUE_NONE, 'Dump the SQL queries that would be run.'],
         ];
     }
 }

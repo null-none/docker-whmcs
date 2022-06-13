@@ -14,7 +14,6 @@ use Psr\Http\Message\ResponseInterface;
 abstract class AbstractRestParser extends AbstractParser
 {
     use PayloadParserTrait;
-
     /**
      * Parses a payload from a response.
      *
@@ -129,21 +128,10 @@ abstract class AbstractRestParser extends AbstractParser
                     return;
                 }
             case 'string':
-                try {
-                    if ($shape['jsonvalue']) {
-                        $value = $this->parseJson(base64_decode($value), $response);
-                    }
-
-                    // If value is not set, do not add to output structure.
-                    if (!isset($value)) {
-                        return;
-                    }
-                    break;
-                } catch (\Exception $e) {
-                    //If the value cannot be parsed, then do not add it to the
-                    //output structure.
-                    return;
+                if ($shape['jsonvalue']) {
+                    $value = $this->parseJson(base64_decode($value), $response);
                 }
+                break;
         }
 
         $result[$name] = $value;

@@ -16,6 +16,9 @@ namespace Symfony\Component\Console\Output;
  */
 class BufferedOutput extends Output
 {
+    /**
+     * @var string
+     */
     private $buffer = '';
 
     /**
@@ -34,12 +37,12 @@ class BufferedOutput extends Output
     /**
      * {@inheritdoc}
      */
-    protected function doWrite(string $message, bool $newline)
+    protected function doWrite($message, $newline)
     {
         $this->buffer .= $message;
 
         if ($newline) {
-            $this->buffer .= PHP_EOL;
+            $this->buffer .= "\n";
         }
     }
 }

@@ -1,11 +1,26 @@
 <?php
 
+/*
+ * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 namespace JMS\Serializer;
 
 use JMS\Serializer\Accessor\AccessorStrategyInterface;
 use JMS\Serializer\Metadata\ClassMetadata;
 use JMS\Serializer\Metadata\PropertyMetadata;
-use JMS\Serializer\Naming\AdvancedNamingStrategyInterface;
 use JMS\Serializer\Naming\PropertyNamingStrategyInterface;
 use JMS\Serializer\Util\Writer;
 use Symfony\Component\Yaml\Inline;
@@ -25,7 +40,7 @@ class YamlSerializationVisitor extends AbstractVisitor
     private $metadataStack;
     private $currentMetadata;
 
-    public function __construct($namingStrategy, AccessorStrategyInterface $accessorStrategy = null)
+    public function __construct(PropertyNamingStrategyInterface $namingStrategy, AccessorStrategyInterface $accessorStrategy = null)
     {
         parent::__construct($namingStrategy, $accessorStrategy);
 
@@ -70,7 +85,7 @@ class YamlSerializationVisitor extends AbstractVisitor
 
         $count = $this->writer->changeCount;
         $isList = (isset($type['params'][0]) && !isset($type['params'][1]))
-            || array_keys($data) === range(0, \count($data) - 1);
+            || array_keys($data) === range(0, count($data) - 1);
 
         foreach ($data as $k => $v) {
             if (null === $v && $context->shouldSerializeNull() !== true) {
@@ -146,17 +161,11 @@ class YamlSerializationVisitor extends AbstractVisitor
     {
         $v = $this->accessor->getValue($data, $metadata);
 
-        if ((null === $v && $context->shouldSerializeNull() !== true)
-            || (true === $metadata->skipWhenEmpty && ($v instanceof \ArrayObject || \is_array($v)) && 0 === count($v))
-        ) {
+        if (null === $v && $context->shouldSerializeNull() !== true) {
             return;
         }
 
-        if ($this->namingStrategy instanceof AdvancedNamingStrategyInterface) {
-            $name = $this->namingStrategy->getPropertyName($metadata, $context);
-        } else {
-            $name = $this->namingStrategy->translateName($metadata);
-        }
+        $name = $this->namingStrategy->translateName($metadata);
 
         if (!$metadata->inline) {
             $this->writer

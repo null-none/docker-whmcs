@@ -2,26 +2,11 @@
 
 Starting with version 5, the Facebook PHP SDK follows [SemVer](http://semver.org/).
 
+
 ## 5.x
 
 Version 5 of the Facebook PHP SDK is a complete refactor of version 4. It comes loaded with lots of new features and a friendlier API.
 
-- 5.7.1 (2018-XX-XX)
-- 5.7.0 (2018-12-12)
-  - Add `joined` to list of fields to be cast to `\DateTime` (#950)
-  - Add `GraphPage::getFanCount()` to get the number of people who like the page (#815)
-  - Fixed HTTP/2 support (#1079)
-  - Fixed resumable upload error (#1001)
-  - Strip 'enforce_https' param (#1084)
-  - Conserve id when next to data key, resolves #700 (#1034)
-- 5.6.3 (2018-07-01)
-  - Add fix for countable error in PHP 7.2 (originally #969 by @andreybolonin)
-- 5.6.2 (2018-02-15)
-  - Strip 'code' param (#913)
-- 5.6.1 (2017-08-16)
-  - Fixed doc block syntax that interfered with Doctrine (#844)
-- 5.6.0 (2017-07-23)
-  - Bump Graph API version to v2.10 (#829)
 - 5.5.0 (2017-04-20)
   - Added support for batch options (#713)
   - Bump Graph API version to v2.9.
@@ -96,9 +81,11 @@ Version 5 of the Facebook PHP SDK is a complete refactor of version 4. It comes 
     - Added `ext-mbstring` to composer require
     - Added this CHANGELOG. Hi! :)
 
+
 ## 4.1-dev
 
 Since the Facebook PHP SDK didn't follow SemVer in version 4.x, the master branch was going to be released as 4.1. However, the SDK switched to SemVer in v5.0. So any references on the internet to version 4.1 can be assumed to be an alias to version `5.0.0`
+
 
 ## 4.0.x
 

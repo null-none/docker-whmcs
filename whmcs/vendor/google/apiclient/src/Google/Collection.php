@@ -91,10 +91,11 @@ class Google_Collection extends Google_Model implements Iterator, Countable
 
   private function coerceType($offset)
   {
-    $keyType = $this->keyType($this->collection_key);
-    if ($keyType && !is_object($this->{$this->collection_key}[$offset])) {
+    $typeKey = $this->keyType($this->collection_key);
+    if (isset($this->$typeKey) && !is_object($this->{$this->collection_key}[$offset])) {
+      $type = $this->$typeKey;
       $this->{$this->collection_key}[$offset] =
-          new $keyType($this->{$this->collection_key}[$offset]);
+          new $type($this->{$this->collection_key}[$offset]);
     }
   }
 }

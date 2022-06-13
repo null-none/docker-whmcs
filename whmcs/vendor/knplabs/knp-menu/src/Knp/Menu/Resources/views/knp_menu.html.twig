@@ -9,9 +9,9 @@
 {% endmacro %}
 
 {% block compressed_root %}
-{% apply spaceless %}
+{% spaceless %}
 {{ block('root') }}
-{% endapply %}
+{% endspaceless %}
 {% endblock %}
 
 {% block root %}

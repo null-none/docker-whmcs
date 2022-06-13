@@ -2,14 +2,16 @@
 
 namespace Illuminate\Contracts\Routing;
 
+use Closure;
+
 interface Registrar
 {
     /**
      * Register a new GET route with the router.
      *
      * @param  string  $uri
-     * @param  array|string|callable  $action
-     * @return \Illuminate\Routing\Route
+     * @param  \Closure|array|string  $action
+     * @return void
      */
     public function get($uri, $action);
 
@@ -17,8 +19,8 @@ interface Registrar
      * Register a new POST route with the router.
      *
      * @param  string  $uri
-     * @param  array|string|callable  $action
-     * @return \Illuminate\Routing\Route
+     * @param  \Closure|array|string  $action
+     * @return void
      */
     public function post($uri, $action);
 
@@ -26,8 +28,8 @@ interface Registrar
      * Register a new PUT route with the router.
      *
      * @param  string  $uri
-     * @param  array|string|callable  $action
-     * @return \Illuminate\Routing\Route
+     * @param  \Closure|array|string  $action
+     * @return void
      */
     public function put($uri, $action);
 
@@ -35,8 +37,8 @@ interface Registrar
      * Register a new DELETE route with the router.
      *
      * @param  string  $uri
-     * @param  array|string|callable  $action
-     * @return \Illuminate\Routing\Route
+     * @param  \Closure|array|string  $action
+     * @return void
      */
     public function delete($uri, $action);
 
@@ -44,8 +46,8 @@ interface Registrar
      * Register a new PATCH route with the router.
      *
      * @param  string  $uri
-     * @param  array|string|callable  $action
-     * @return \Illuminate\Routing\Route
+     * @param  \Closure|array|string  $action
+     * @return void
      */
     public function patch($uri, $action);
 
@@ -53,8 +55,8 @@ interface Registrar
      * Register a new OPTIONS route with the router.
      *
      * @param  string  $uri
-     * @param  array|string|callable  $action
-     * @return \Illuminate\Routing\Route
+     * @param  \Closure|array|string  $action
+     * @return void
      */
     public function options($uri, $action);
 
@@ -63,8 +65,8 @@ interface Registrar
      *
      * @param  array|string  $methods
      * @param  string  $uri
-     * @param  array|string|callable  $action
-     * @return \Illuminate\Routing\Route
+     * @param  \Closure|array|string  $action
+     * @return void
      */
     public function match($methods, $uri, $action);
 
@@ -73,33 +75,17 @@ interface Registrar
      *
      * @param  string  $name
      * @param  string  $controller
-     * @param  array  $options
-     * @return \Illuminate\Routing\PendingResourceRegistration
+     * @param  array   $options
+     * @return void
      */
     public function resource($name, $controller, array $options = []);
 
     /**
      * Create a route group with shared attributes.
      *
-     * @param  array  $attributes
-     * @param  \Closure|string  $routes
+     * @param  array     $attributes
+     * @param  \Closure  $callback
      * @return void
      */
-    public function group(array $attributes, $routes);
-
-    /**
-     * Substitute the route bindings onto the route.
-     *
-     * @param  \Illuminate\Routing\Route  $route
-     * @return \Illuminate\Routing\Route
-     */
-    public function substituteBindings($route);
-
-    /**
-     * Substitute the implicit Eloquent model bindings for the route.
-     *
-     * @param  \Illuminate\Routing\Route  $route
-     * @return void
-     */
-    public function substituteImplicitBindings($route);
+    public function group(array $attributes, Closure $callback);
 }

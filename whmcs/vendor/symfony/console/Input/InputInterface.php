@@ -11,9 +11,6 @@
 
 namespace Symfony\Component\Console\Input;
 
-use Symfony\Component\Console\Exception\InvalidArgumentException;
-use Symfony\Component\Console\Exception\RuntimeException;
-
 /**
  * InputInterface is the interface implemented by all input classes.
  *
@@ -24,7 +21,7 @@ interface InputInterface
     /**
      * Returns the first argument from the raw parameters (not parsed).
      *
-     * @return string|null The value of the first argument or null otherwise
+     * @return string The value of the first argument or null otherwise
      */
     public function getFirstArgument();
 
@@ -33,43 +30,39 @@ interface InputInterface
      *
      * This method is to be used to introspect the input parameters
      * before they have been validated. It must be used carefully.
-     * Does not necessarily return the correct result for short options
-     * when multiple flags are combined in the same option.
      *
-     * @param string|array $values     The values to look for in the raw parameters (can be an array)
-     * @param bool         $onlyParams Only check real parameters, skip those following an end of options (--) signal
+     * @param string|array $values The values to look for in the raw parameters (can be an array)
      *
      * @return bool true if the value is contained in the raw parameters
      */
-    public function hasParameterOption($values, bool $onlyParams = false);
+    public function hasParameterOption($values);
 
     /**
      * Returns the value of a raw option (not parsed).
      *
      * This method is to be used to introspect the input parameters
      * before they have been validated. It must be used carefully.
-     * Does not necessarily return the correct result for short options
-     * when multiple flags are combined in the same option.
      *
-     * @param string|array $values     The value(s) to look for in the raw parameters (can be an array)
-     * @param mixed        $default    The default value to return if no result is found
-     * @param bool         $onlyParams Only check real parameters, skip those following an end of options (--) signal
+     * @param string|array $values  The value(s) to look for in the raw parameters (can be an array)
+     * @param mixed        $default The default value to return if no result is found
      *
      * @return mixed The option value
      */
-    public function getParameterOption($values, $default = false, bool $onlyParams = false);
+    public function getParameterOption($values, $default = false);
 
     /**
      * Binds the current Input instance with the given arguments and options.
      *
-     * @throws RuntimeException
+     * @param InputDefinition $definition A InputDefinition instance
      */
     public function bind(InputDefinition $definition);
 
     /**
-     * Validates the input.
+     * Validates if arguments given are correct.
      *
-     * @throws RuntimeException When not enough arguments are given
+     * Throws an exception when not enough arguments are given.
+     *
+     * @throws \RuntimeException
      */
     public function validate();
 
@@ -81,22 +74,23 @@ interface InputInterface
     public function getArguments();
 
     /**
-     * Returns the argument value for a given argument name.
+     * Gets argument by name.
      *
-     * @return string|string[]|null The argument value
+     * @param string $name The name of the argument
      *
-     * @throws InvalidArgumentException When argument given doesn't exist
+     * @return mixed
      */
-    public function getArgument(string $name);
+    public function getArgument($name);
 
     /**
      * Sets an argument value by name.
      *
-     * @param string|string[]|null $value The argument value
+     * @param string $name  The argument name
+     * @param string $value The argument value
      *
      * @throws InvalidArgumentException When argument given doesn't exist
      */
-    public function setArgument(string $name, $value);
+    public function setArgument($name, $value);
 
     /**
      * Returns true if an InputArgument object exists by name or position.
@@ -115,29 +109,32 @@ interface InputInterface
     public function getOptions();
 
     /**
-     * Returns the option value for a given option name.
+     * Gets an option by name.
      *
-     * @return string|string[]|bool|null The option value
+     * @param string $name The name of the option
      *
-     * @throws InvalidArgumentException When option given doesn't exist
+     * @return mixed
      */
-    public function getOption(string $name);
+    public function getOption($name);
 
     /**
      * Sets an option value by name.
      *
-     * @param string|string[]|bool|null $value The option value
+     * @param string      $name  The option name
+     * @param string|bool $value The option value
      *
      * @throws InvalidArgumentException When option given doesn't exist
      */
-    public function setOption(string $name, $value);
+    public function setOption($name, $value);
 
     /**
      * Returns true if an InputOption object exists by name.
      *
+     * @param string $name The InputOption name
+     *
      * @return bool true if the InputOption object exists, false otherwise
      */
-    public function hasOption(string $name);
+    public function hasOption($name);
 
     /**
      * Is this input means interactive?
@@ -148,6 +145,8 @@ interface InputInterface
 
     /**
      * Sets the input interactivity.
+     *
+     * @param bool $interactive If the input should be interactive
      */
-    public function setInteractive(bool $interactive);
+    public function setInteractive($interactive);
 }

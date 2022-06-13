@@ -4,7 +4,6 @@ namespace Knp\Menu\Matcher\Voter;
 
 use Knp\Menu\ItemInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Voter based on the route
@@ -12,45 +11,43 @@ use Symfony\Component\HttpFoundation\RequestStack;
 class RouteVoter implements VoterInterface
 {
     /**
-     * @var RequestStack
-     */
-    private $requestStack;
-
-    /**
-     * @var Request|null
+     * @var Request
      */
     private $request;
 
-    public function __construct(RequestStack $requestStack)
+    public function __construct(Request $request = null)
     {
-        $this->requestStack = $requestStack;
+        $this->request = $request;
     }
 
-    public function matchItem(ItemInterface $item): ?bool
+    public function setRequest(Request $request)
     {
-        $request = $this->requestStack->getMasterRequest();
+        $this->request = $request;
+    }
 
-        if (null === $request) {
+    public function matchItem(ItemInterface $item)
+    {
+        if (null === $this->request) {
             return null;
         }
 
-        $route = $request->attributes->get('_route');
+        $route = $this->request->attributes->get('_route');
         if (null === $route) {
             return null;
         }
 
-        $routes = (array) $item->getExtra('routes', []);
+        $routes = (array) $item->getExtra('routes', array());
 
         foreach ($routes as $testedRoute) {
-            if (\is_string($testedRoute)) {
-                $testedRoute = ['route' => $testedRoute];
+            if (is_string($testedRoute)) {
+                $testedRoute = array('route' => $testedRoute);
             }
 
-            if (!\is_array($testedRoute)) {
+            if (!is_array($testedRoute)) {
                 throw new \InvalidArgumentException('Routes extra items must be strings or arrays.');
             }
 
-            if ($this->isMatchingRoute($request, $testedRoute)) {
+            if ($this->isMatchingRoute($testedRoute)) {
                 return true;
             }
         }
@@ -58,16 +55,16 @@ class RouteVoter implements VoterInterface
         return null;
     }
 
-    private function isMatchingRoute(Request $request, array $testedRoute): bool
+    private function isMatchingRoute(array $testedRoute)
     {
-        $route = $request->attributes->get('_route');
+        $route = $this->request->attributes->get('_route');
 
         if (isset($testedRoute['route'])) {
             if ($route !== $testedRoute['route']) {
                 return false;
             }
         } elseif (!empty($testedRoute['pattern'])) {
-            if (!\preg_match($testedRoute['pattern'], $route)) {
+            if (!preg_match($testedRoute['pattern'], $route)) {
                 return false;
             }
         } else {
@@ -78,11 +75,10 @@ class RouteVoter implements VoterInterface
             return true;
         }
 
-        $routeParameters = $request->attributes->get('_route_params', []);
+        $routeParameters = $this->request->attributes->get('_route_params', array());
 
         foreach ($testedRoute['parameters'] as $name => $value) {
-            // cast both to string so that we handle integer and other non-string parameters, but don't stumble on 0 == 'abc'.
-            if (!isset($routeParameters[$name]) || (string) $routeParameters[$name] !== (string) $value) {
+            if (!isset($routeParameters[$name]) || $routeParameters[$name] !== (string) $value) {
                 return false;
             }
         }

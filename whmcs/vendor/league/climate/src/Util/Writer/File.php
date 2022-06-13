@@ -2,8 +2,6 @@
 
 namespace League\CLImate\Util\Writer;
 
-use League\CLImate\Exceptions\RuntimeException;
-
 class File implements WriterInterface
 {
     /** @var resource|string */
@@ -73,11 +71,11 @@ class File implements WriterInterface
         $this->close_locally = true;
 
         if (!is_writable($this->resource)) {
-            throw new RuntimeException("The resource [{$this->resource}] is not writable");
+            throw new \Exception("The resource [{$this->resource}] is not writable");
         }
 
         if (!($this->resource = $this->openResource())) {
-            throw new RuntimeException("The resource could not be opened");
+            throw new \Exception("The resource could not be opened");
         }
 
         return $this->resource;

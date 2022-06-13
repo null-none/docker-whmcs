@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\Console\Tests\Input;
 
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputArgument;
 
-class InputArgumentTest extends TestCase
+class InputArgumentTest extends \PHPUnit_Framework_TestCase
 {
     public function testConstructor()
     {
@@ -37,12 +36,22 @@ class InputArgumentTest extends TestCase
         $this->assertTrue($argument->isRequired(), '__construct() can take "InputArgument::REQUIRED" as its mode');
     }
 
-    public function testInvalidModes()
+    /**
+     * @dataProvider provideInvalidModes
+     */
+    public function testInvalidModes($mode)
     {
-        $this->expectException('InvalidArgumentException');
-        $this->expectExceptionMessage('Argument mode "-1" is not valid.');
+        $this->setExpectedException('InvalidArgumentException', sprintf('Argument mode "%s" is not valid.', $mode));
 
-        new InputArgument('foo', '-1');
+        new InputArgument('foo', $mode);
+    }
+
+    public function provideInvalidModes()
+    {
+        return array(
+            array('ANOTHER_ONE'),
+            array(-1),
+        );
     }
 
     public function testIsArray()
@@ -76,22 +85,26 @@ class InputArgumentTest extends TestCase
         $this->assertEquals('another', $argument->getDefault(), '->setDefault() changes the default value');
 
         $argument = new InputArgument('foo', InputArgument::OPTIONAL | InputArgument::IS_ARRAY);
-        $argument->setDefault([1, 2]);
-        $this->assertEquals([1, 2], $argument->getDefault(), '->setDefault() changes the default value');
+        $argument->setDefault(array(1, 2));
+        $this->assertEquals(array(1, 2), $argument->getDefault(), '->setDefault() changes the default value');
     }
 
+    /**
+     * @expectedException        \LogicException
+     * @expectedExceptionMessage Cannot set a default value except for InputArgument::OPTIONAL mode.
+     */
     public function testSetDefaultWithRequiredArgument()
     {
-        $this->expectException('LogicException');
-        $this->expectExceptionMessage('Cannot set a default value except for InputArgument::OPTIONAL mode.');
         $argument = new InputArgument('foo', InputArgument::REQUIRED);
         $argument->setDefault('default');
     }
 
+    /**
+     * @expectedException        \LogicException
+     * @expectedExceptionMessage A default value for an array argument must be an array.
+     */
     public function testSetDefaultWithArrayArgument()
     {
-        $this->expectException('LogicException');
-        $this->expectExceptionMessage('A default value for an array argument must be an array.');
         $argument = new InputArgument('foo', InputArgument::IS_ARRAY);
         $argument->setDefault('default');
     }

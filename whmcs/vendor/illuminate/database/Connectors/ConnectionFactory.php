@@ -2,15 +2,14 @@
 
 namespace Illuminate\Database\Connectors;
 
-use Illuminate\Contracts\Container\Container;
-use Illuminate\Database\Connection;
-use Illuminate\Database\MySqlConnection;
-use Illuminate\Database\PostgresConnection;
-use Illuminate\Database\SQLiteConnection;
-use Illuminate\Database\SqlServerConnection;
+use PDO;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
-use PDOException;
+use Illuminate\Database\MySqlConnection;
+use Illuminate\Database\SQLiteConnection;
+use Illuminate\Database\PostgresConnection;
+use Illuminate\Database\SqlServerConnection;
+use Illuminate\Contracts\Container\Container;
 
 class ConnectionFactory
 {
@@ -35,8 +34,8 @@ class ConnectionFactory
     /**
      * Establish a PDO connection based on the configuration.
      *
-     * @param  array  $config
-     * @param  string|null  $name
+     * @param  array   $config
+     * @param  string  $name
      * @return \Illuminate\Database\Connection
      */
     public function make(array $config, $name = null)
@@ -51,18 +50,6 @@ class ConnectionFactory
     }
 
     /**
-     * Parse and prepare the database configuration.
-     *
-     * @param  array  $config
-     * @param  string  $name
-     * @return array
-     */
-    protected function parseConfig(array $config, $name)
-    {
-        return Arr::add(Arr::add($config, 'prefix', ''), 'name', $name);
-    }
-
-    /**
      * Create a single database connection instance.
      *
      * @param  array  $config
@@ -70,15 +57,15 @@ class ConnectionFactory
      */
     protected function createSingleConnection(array $config)
     {
-        $pdo = $this->createPdoResolver($config);
+        $pdo = function () use ($config) {
+            return $this->createConnector($config)->connect($config);
+        };
 
-        return $this->createConnection(
-            $config['driver'], $pdo, $config['database'], $config['prefix'], $config
-        );
+        return $this->createConnection($config['driver'], $pdo, $config['database'], $config['prefix'], $config);
     }
 
     /**
-     * Create a read / write database connection instance.
+     * Create a single database connection instance.
      *
      * @param  array  $config
      * @return \Illuminate\Database\Connection
@@ -94,11 +81,13 @@ class ConnectionFactory
      * Create a new PDO instance for reading.
      *
      * @param  array  $config
-     * @return \Closure
+     * @return \PDO
      */
     protected function createReadPdo(array $config)
     {
-        return $this->createPdoResolver($this->getReadConfig($config));
+        $readConfig = $this->getReadConfig($config);
+
+        return $this->createConnector($readConfig)->connect($readConfig);
     }
 
     /**
@@ -109,36 +98,44 @@ class ConnectionFactory
      */
     protected function getReadConfig(array $config)
     {
-        return $this->mergeReadWriteConfig(
-            $config, $this->getReadWriteConfig($config, 'read')
-        );
+        $readConfig = $this->getReadWriteConfig($config, 'read');
+
+        if (isset($readConfig['host']) && is_array($readConfig['host'])) {
+            $readConfig['host'] = count($readConfig['host']) > 1
+                ? $readConfig['host'][array_rand($readConfig['host'])]
+                : $readConfig['host'][0];
+        }
+
+        return $this->mergeReadWriteConfig($config, $readConfig);
     }
 
     /**
-     * Get the write configuration for a read / write connection.
+     * Get the read configuration for a read / write connection.
      *
      * @param  array  $config
      * @return array
      */
     protected function getWriteConfig(array $config)
     {
-        return $this->mergeReadWriteConfig(
-            $config, $this->getReadWriteConfig($config, 'write')
-        );
+        $writeConfig = $this->getReadWriteConfig($config, 'write');
+
+        return $this->mergeReadWriteConfig($config, $writeConfig);
     }
 
     /**
      * Get a read / write level configuration.
      *
-     * @param  array  $config
+     * @param  array   $config
      * @param  string  $type
      * @return array
      */
     protected function getReadWriteConfig(array $config, $type)
     {
-        return isset($config[$type][0])
-                        ? Arr::random($config[$type])
-                        : $config[$type];
+        if (isset($config[$type][0])) {
+            return $config[$type][array_rand($config[$type])];
+        }
+
+        return $config[$type];
     }
 
     /**
@@ -154,71 +151,15 @@ class ConnectionFactory
     }
 
     /**
-     * Create a new Closure that resolves to a PDO instance.
+     * Parse and prepare the database configuration.
      *
-     * @param  array  $config
-     * @return \Closure
-     */
-    protected function createPdoResolver(array $config)
-    {
-        return array_key_exists('host', $config)
-                            ? $this->createPdoResolverWithHosts($config)
-                            : $this->createPdoResolverWithoutHosts($config);
-    }
-
-    /**
-     * Create a new Closure that resolves to a PDO instance with a specific host or an array of hosts.
-     *
-     * @param  array  $config
-     * @return \Closure
-     */
-    protected function createPdoResolverWithHosts(array $config)
-    {
-        return function () use ($config) {
-            foreach (Arr::shuffle($hosts = $this->parseHosts($config)) as $key => $host) {
-                $config['host'] = $host;
-
-                try {
-                    return $this->createConnector($config)->connect($config);
-                } catch (PDOException $e) {
-                    continue;
-                }
-            }
-
-            throw $e;
-        };
-    }
-
-    /**
-     * Parse the hosts configuration item into an array.
-     *
-     * @param  array  $config
+     * @param  array   $config
+     * @param  string  $name
      * @return array
-     *
-     * @throws \InvalidArgumentException
      */
-    protected function parseHosts(array $config)
+    protected function parseConfig(array $config, $name)
     {
-        $hosts = Arr::wrap($config['host']);
-
-        if (empty($hosts)) {
-            throw new InvalidArgumentException('Database hosts array is empty.');
-        }
-
-        return $hosts;
-    }
-
-    /**
-     * Create a new Closure that resolves to a PDO instance where there is no configured host.
-     *
-     * @param  array  $config
-     * @return \Closure
-     */
-    protected function createPdoResolverWithoutHosts(array $config)
-    {
-        return function () use ($config) {
-            return $this->createConnector($config)->connect($config);
-        };
+        return Arr::add(Arr::add($config, 'prefix', ''), 'name', $name);
     }
 
     /**
@@ -250,25 +191,25 @@ class ConnectionFactory
                 return new SqlServerConnector;
         }
 
-        throw new InvalidArgumentException("Unsupported driver [{$config['driver']}].");
+        throw new InvalidArgumentException("Unsupported driver [{$config['driver']}]");
     }
 
     /**
      * Create a new connection instance.
      *
-     * @param  string  $driver
-     * @param  \PDO|\Closure  $connection
-     * @param  string  $database
-     * @param  string  $prefix
-     * @param  array  $config
+     * @param  string   $driver
+     * @param  \PDO|\Closure     $connection
+     * @param  string   $database
+     * @param  string   $prefix
+     * @param  array    $config
      * @return \Illuminate\Database\Connection
      *
      * @throws \InvalidArgumentException
      */
     protected function createConnection($driver, $connection, $database, $prefix = '', array $config = [])
     {
-        if ($resolver = Connection::getResolver($driver)) {
-            return $resolver($connection, $database, $prefix, $config);
+        if ($this->container->bound($key = "db.connection.{$driver}")) {
+            return $this->container->make($key, [$connection, $database, $prefix, $config]);
         }
 
         switch ($driver) {
@@ -282,6 +223,6 @@ class ConnectionFactory
                 return new SqlServerConnection($connection, $database, $prefix, $config);
         }
 
-        throw new InvalidArgumentException("Unsupported driver [{$driver}].");
+        throw new InvalidArgumentException("Unsupported driver [$driver]");
     }
 }

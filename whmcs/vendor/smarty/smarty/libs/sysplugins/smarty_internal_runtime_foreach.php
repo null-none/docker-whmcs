@@ -46,9 +46,12 @@ class Smarty_Internal_Runtime_Foreach
         $total = null;
         if (!is_array($from)) {
             if (is_object($from)) {
-                if ($needTotal) {
-                    $total = $this->count($from);
-                }
+                /*
+                 * Always calculate total for objects - an empty collection will have a non-empty $from
+                 * reference, and that will result in an erroneous $total of 1 (see lines below), and
+                 * foreachelse will then not be executed if present.
+                 */
+                $total = $this->count($from);
             } else {
                 settype($from, 'array');
             }

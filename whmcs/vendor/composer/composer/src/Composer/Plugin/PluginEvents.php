@@ -20,16 +20,6 @@ namespace Composer\Plugin;
 class PluginEvents
 {
     /**
-     * The INIT event occurs after a Composer instance is done being initialized
-     *
-     * The event listener method receives a
-     * Composer\EventDispatcher\Event instance.
-     *
-     * @var string
-     */
-    const INIT = 'init';
-
-    /**
      * The COMMAND event occurs as a command begins
      *
      * The event listener method receives a
@@ -48,14 +38,4 @@ class PluginEvents
      * @var string
      */
     const PRE_FILE_DOWNLOAD = 'pre-file-download';
-
-    /**
-     * The PRE_COMMAND_RUN event occurs before a command is executed and lets you modify the input arguments/options
-     *
-     * The event listener method receives a
-     * Composer\Plugin\PreCommandRunEvent instance.
-     *
-     * @var string
-     */
-    const PRE_COMMAND_RUN = 'pre-command-run';
 }

@@ -14,30 +14,33 @@ namespace Symfony\Component\Console\Output;
 use Symfony\Component\Console\Formatter\OutputFormatterInterface;
 
 /**
- * ConsoleOutput is the default class for all CLI output. It uses STDOUT and STDERR.
+ * ConsoleOutput is the default class for all CLI output. It uses STDOUT.
  *
- * This class is a convenient wrapper around `StreamOutput` for both STDOUT and STDERR.
+ * This class is a convenient wrapper around `StreamOutput`.
  *
  *     $output = new ConsoleOutput();
  *
  * This is equivalent to:
  *
  *     $output = new StreamOutput(fopen('php://stdout', 'w'));
- *     $stdErr = new StreamOutput(fopen('php://stderr', 'w'));
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
 class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
 {
+    /**
+     * @var StreamOutput
+     */
     private $stderr;
-    private $consoleSectionOutputs = [];
 
     /**
+     * Constructor.
+     *
      * @param int                           $verbosity The verbosity level (one of the VERBOSITY constants in OutputInterface)
      * @param bool|null                     $decorated Whether to decorate messages (null for auto-guessing)
      * @param OutputFormatterInterface|null $formatter Output formatter instance (null to use default OutputFormatter)
      */
-    public function __construct(int $verbosity = self::VERBOSITY_NORMAL, bool $decorated = null, OutputFormatterInterface $formatter = null)
+    public function __construct($verbosity = self::VERBOSITY_NORMAL, $decorated = null, OutputFormatterInterface $formatter = null)
     {
         parent::__construct($this->openOutputStream(), $verbosity, $decorated, $formatter);
 
@@ -50,17 +53,9 @@ class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
     }
 
     /**
-     * Creates a new output section.
-     */
-    public function section(): ConsoleSectionOutput
-    {
-        return new ConsoleSectionOutput($this->getStream(), $this->consoleSectionOutputs, $this->getVerbosity(), $this->isDecorated(), $this->getFormatter());
-    }
-
-    /**
      * {@inheritdoc}
      */
-    public function setDecorated(bool $decorated)
+    public function setDecorated($decorated)
     {
         parent::setDecorated($decorated);
         $this->stderr->setDecorated($decorated);
@@ -78,7 +73,7 @@ class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
     /**
      * {@inheritdoc}
      */
-    public function setVerbosity(int $level)
+    public function setVerbosity($level)
     {
         parent::setVerbosity($level);
         $this->stderr->setVerbosity($level);
@@ -125,14 +120,16 @@ class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
     /**
      * Checks if current executing environment is IBM iSeries (OS400), which
      * doesn't properly convert character-encodings between ASCII to EBCDIC.
+     *
+     * @return bool
      */
-    private function isRunningOS400(): bool
+    private function isRunningOS400()
     {
-        $checks = [
-            \function_exists('php_uname') ? php_uname('s') : '',
+        $checks = array(
+            function_exists('php_uname') ? php_uname('s') : '',
             getenv('OSTYPE'),
             PHP_OS,
-        ];
+        );
 
         return false !== stripos(implode(';', $checks), 'OS400');
     }
@@ -142,11 +139,9 @@ class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
      */
     private function openOutputStream()
     {
-        if (!$this->hasStdoutSupport()) {
-            return fopen('php://output', 'w');
-        }
+        $outputStream = $this->hasStdoutSupport() ? 'php://stdout' : 'php://output';
 
-        return @fopen('php://stdout', 'w') ?: fopen('php://output', 'w');
+        return @fopen($outputStream, 'w') ?: fopen('php://output', 'w');
     }
 
     /**
@@ -154,6 +149,8 @@ class ConsoleOutput extends StreamOutput implements ConsoleOutputInterface
      */
     private function openErrorStream()
     {
-        return fopen($this->hasStderrSupport() ? 'php://stderr' : 'php://output', 'w');
+        $errorStream = $this->hasStderrSupport() ? 'php://stderr' : 'php://output';
+
+        return fopen($errorStream, 'w');
     }
 }

@@ -2,21 +2,19 @@
 
 namespace Knp\Menu\Provider;
 
-use Knp\Menu\ItemInterface;
-
 class ChainProvider implements MenuProviderInterface
 {
+    /**
+     * @var MenuProviderInterface[]
+     */
     private $providers;
 
-    /**
-     * @param MenuProviderInterface[]|iterable $providers
-     */
-    public function __construct($providers)
+    public function __construct(array $providers)
     {
         $this->providers = $providers;
     }
 
-    public function get(string $name, array $options = []): ItemInterface
+    public function get($name, array $options = array())
     {
         foreach ($this->providers as $provider) {
             if ($provider->has($name, $options)) {
@@ -24,10 +22,10 @@ class ChainProvider implements MenuProviderInterface
             }
         }
 
-        throw new \InvalidArgumentException(\sprintf('The menu "%s" is not defined.', $name));
+        throw new \InvalidArgumentException(sprintf('The menu "%s" is not defined.', $name));
     }
 
-    public function has(string $name, array $options = []): bool
+    public function has($name, array $options = array())
     {
         foreach ($this->providers as $provider) {
             if ($provider->has($name, $options)) {

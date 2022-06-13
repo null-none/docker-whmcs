@@ -150,8 +150,7 @@ class GraphNode extends Collection
             'backdated_time',
             'issued_at',
             'expires_at',
-            'publish_time',
-            'joined'
+            'publish_time'
         ], true);
     }
 

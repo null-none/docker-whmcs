@@ -12,7 +12,6 @@
 namespace Symfony\Component\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Exception\EnvParameterException;
 
 /**
  * This class is used to remove circular dependencies between individual passes.
@@ -22,13 +21,15 @@ use Symfony\Component\DependencyInjection\Exception\EnvParameterException;
 class Compiler
 {
     private $passConfig;
-    private $log = [];
+    private $log = array();
+    private $loggingFormatter;
     private $serviceReferenceGraph;
 
     public function __construct()
     {
         $this->passConfig = new PassConfig();
         $this->serviceReferenceGraph = new ServiceReferenceGraph();
+        $this->loggingFormatter = new LoggingFormatter();
     }
 
     /**
@@ -52,23 +53,34 @@ class Compiler
     }
 
     /**
-     * Adds a pass to the PassConfig.
+     * Returns the logging formatter which can be used by compilation passes.
+     *
+     * @return LoggingFormatter
      */
-    public function addPass(CompilerPassInterface $pass, string $type = PassConfig::TYPE_BEFORE_OPTIMIZATION, int $priority = 0)
+    public function getLoggingFormatter()
     {
-        $this->passConfig->addPass($pass, $type, $priority);
+        return $this->loggingFormatter;
     }
 
     /**
-     * @final
+     * Adds a pass to the PassConfig.
+     *
+     * @param CompilerPassInterface $pass A compiler pass
+     * @param string                $type The type of the pass
      */
-    public function log(CompilerPassInterface $pass, string $message)
+    public function addPass(CompilerPassInterface $pass, $type = PassConfig::TYPE_BEFORE_OPTIMIZATION)
     {
-        if (false !== strpos($message, "\n")) {
-            $message = str_replace("\n", "\n".\get_class($pass).': ', trim($message));
-        }
+        $this->passConfig->addPass($pass, $type);
+    }
 
-        $this->log[] = \get_class($pass).': '.$message;
+    /**
+     * Adds a log message.
+     *
+     * @param string $string The log message
+     */
+    public function addLogMessage($string)
+    {
+        $this->log[] = $string;
     }
 
     /**
@@ -83,34 +95,13 @@ class Compiler
 
     /**
      * Run the Compiler and process all Passes.
+     *
+     * @param ContainerBuilder $container
      */
     public function compile(ContainerBuilder $container)
     {
-        try {
-            foreach ($this->passConfig->getPasses() as $pass) {
-                $pass->process($container);
-            }
-        } catch (\Exception $e) {
-            $usedEnvs = [];
-            $prev = $e;
-
-            do {
-                $msg = $prev->getMessage();
-
-                if ($msg !== $resolvedMsg = $container->resolveEnvPlaceholders($msg, null, $usedEnvs)) {
-                    $r = new \ReflectionProperty($prev, 'message');
-                    $r->setAccessible(true);
-                    $r->setValue($prev, $resolvedMsg);
-                }
-            } while ($prev = $prev->getPrevious());
-
-            if ($usedEnvs) {
-                $e = new EnvParameterException($usedEnvs, $e);
-            }
-
-            throw $e;
-        } finally {
-            $this->getServiceReferenceGraph()->clear();
+        foreach ($this->passConfig->getPasses() as $pass) {
+            $pass->process($container);
         }
     }
 }

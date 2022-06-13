@@ -17,7 +17,7 @@ namespace Symfony\Component\HttpFoundation;
  * A StreamedResponse uses a callback for its content.
  *
  * The callback should use the standard PHP functions like echo
- * to stream the response back to the client. The flush() function
+ * to stream the response back to the client. The flush() method
  * can also be used if needed.
  *
  * @see flush()
@@ -28,9 +28,15 @@ class StreamedResponse extends Response
 {
     protected $callback;
     protected $streamed;
-    private $headersSent;
 
-    public function __construct(callable $callback = null, int $status = 200, array $headers = [])
+    /**
+     * Constructor.
+     *
+     * @param callable|null $callback A valid PHP callback or null to set it later
+     * @param int           $status   The response status code
+     * @param array         $headers  An array of response headers
+     */
+    public function __construct($callback = null, $status = 200, $headers = array())
     {
         parent::__construct(null, $status, $headers);
 
@@ -38,17 +44,18 @@ class StreamedResponse extends Response
             $this->setCallback($callback);
         }
         $this->streamed = false;
-        $this->headersSent = false;
     }
 
     /**
      * Factory method for chainability.
      *
      * @param callable|null $callback A valid PHP callback or null to set it later
+     * @param int           $status   The response status code
+     * @param array         $headers  An array of response headers
      *
-     * @return static
+     * @return StreamedResponse
      */
-    public static function create($callback = null, int $status = 200, array $headers = [])
+    public static function create($callback = null, $status = 200, $headers = array())
     {
         return new static($callback, $status, $headers);
     }
@@ -56,44 +63,27 @@ class StreamedResponse extends Response
     /**
      * Sets the PHP callback associated with this Response.
      *
-     * @return $this
-     */
-    public function setCallback(callable $callback)
-    {
-        $this->callback = $callback;
-
-        return $this;
-    }
-
-    /**
-     * {@inheritdoc}
+     * @param callable $callback A valid PHP callback
      *
-     * This method only sends the headers once.
-     *
-     * @return $this
+     * @throws \LogicException
      */
-    public function sendHeaders()
+    public function setCallback($callback)
     {
-        if ($this->headersSent) {
-            return $this;
+        if (!is_callable($callback)) {
+            throw new \LogicException('The Response callback must be a valid PHP callable.');
         }
-
-        $this->headersSent = true;
-
-        return parent::sendHeaders();
+        $this->callback = $callback;
     }
 
     /**
      * {@inheritdoc}
      *
      * This method only sends the content once.
-     *
-     * @return $this
      */
     public function sendContent()
     {
         if ($this->streamed) {
-            return $this;
+            return;
         }
 
         $this->streamed = true;
@@ -102,31 +92,25 @@ class StreamedResponse extends Response
             throw new \LogicException('The Response callback must not be null.');
         }
 
-        ($this->callback)();
-
-        return $this;
+        call_user_func($this->callback);
     }
 
     /**
      * {@inheritdoc}
      *
      * @throws \LogicException when the content is not null
-     *
-     * @return $this
      */
-    public function setContent(?string $content)
+    public function setContent($content)
     {
         if (null !== $content) {
             throw new \LogicException('The content cannot be set on a StreamedResponse instance.');
         }
-
-        $this->streamed = true;
-
-        return $this;
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @return false
      */
     public function getContent()
     {

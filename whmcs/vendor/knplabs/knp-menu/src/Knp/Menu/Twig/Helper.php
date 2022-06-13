@@ -3,33 +3,29 @@
 namespace Knp\Menu\Twig;
 
 use Knp\Menu\ItemInterface;
-use Knp\Menu\Matcher\MatcherInterface;
-use Knp\Menu\Provider\MenuProviderInterface;
-use Knp\Menu\Renderer\RendererProviderInterface;
 use Knp\Menu\Util\MenuManipulator;
+use Knp\Menu\Renderer\RendererProviderInterface;
+use Knp\Menu\Provider\MenuProviderInterface;
 
 /**
  * Helper class containing logic to retrieve and render menus from templating engines
+ *
  */
 class Helper
 {
     private $rendererProvider;
     private $menuProvider;
     private $menuManipulator;
-    private $matcher;
 
     /**
      * @param RendererProviderInterface  $rendererProvider
      * @param MenuProviderInterface|null $menuProvider
-     * @param MenuManipulator|null       $menuManipulator
-     * @param MatcherInterface|null      $matcher
      */
-    public function __construct(RendererProviderInterface $rendererProvider, MenuProviderInterface $menuProvider = null, MenuManipulator $menuManipulator = null, MatcherInterface $matcher = null)
+    public function __construct(RendererProviderInterface $rendererProvider, MenuProviderInterface $menuProvider = null, MenuManipulator $menuManipulator = null)
     {
         $this->rendererProvider = $rendererProvider;
         $this->menuProvider = $menuProvider;
         $this->menuManipulator = $menuManipulator;
-        $this->matcher = $matcher;
     }
 
     /**
@@ -45,7 +41,7 @@ class Helper
      * @throws \LogicException
      * @throws \InvalidArgumentException when the path is invalid
      */
-    public function get($menu, array $path = [], array $options = [])
+    public function get($menu, array $path = array(), array $options = array())
     {
         if (!$menu instanceof ItemInterface) {
             if (null === $this->menuProvider) {
@@ -56,14 +52,14 @@ class Helper
             $menu = $this->menuProvider->get($menuName, $options);
 
             if (!$menu instanceof ItemInterface) {
-                throw new \LogicException(\sprintf('The menu "%s" exists, but is not a valid menu item object. Check where you created the menu to be sure it returns an ItemInterface object.', $menuName));
+                throw new \LogicException(sprintf('The menu "%s" exists, but is not a valid menu item object. Check where you created the menu to be sure it returns an ItemInterface object.', $menuName));
             }
         }
 
         foreach ($path as $child) {
             $menu = $menu->getChild($child);
             if (null === $menu) {
-                throw new \InvalidArgumentException(\sprintf('The menu has no child named "%s"', $child));
+                throw new \InvalidArgumentException(sprintf('The menu has no child named "%s"', $child));
             }
         }
 
@@ -86,7 +82,7 @@ class Helper
      *
      * @throws \InvalidArgumentException
      */
-    public function render($menu, array $options = [], $renderer = null)
+    public function render($menu, array $options = array(), $renderer =  null)
     {
         $menu = $this->castMenu($menu);
 
@@ -104,11 +100,11 @@ class Helper
      * The subItem can be one of the following forms
      *   * 'subItem'
      *   * ItemInterface object
-     *   * ['subItem' => '@homepage']
-     *   * ['subItem1', 'subItem2']
-     *   * [['label' => 'subItem1', 'url' => '@homepage'], ['label' => 'subItem2']]
+     *   * array('subItem' => '@homepage')
+     *   * array('subItem1', 'subItem2')
+     *   * array(array('label' => 'subItem1', 'url' => '@homepage'), array('label' => 'subItem2'))
      *
-     * @param mixed $menu
+     * @param mixed $item
      * @param mixed $subItem A string or array to append onto the end of the array
      *
      * @return array
@@ -125,24 +121,6 @@ class Helper
     }
 
     /**
-     * Returns the current item of a menu.
-     *
-     * @param ItemInterface|array|string $menu
-     *
-     * @return ItemInterface|null
-     */
-    public function getCurrentItem($menu)
-    {
-        if (null === $this->matcher) {
-            throw new \BadMethodCallException('The matcher must be set to get the current item of a menu');
-        }
-
-        $menu = $this->castMenu($menu);
-
-        return $this->retrieveCurrentItem($menu);
-    }
-
-    /**
      * @param ItemInterface|array|string $menu
      *
      * @return ItemInterface
@@ -150,42 +128,18 @@ class Helper
     private function castMenu($menu)
     {
         if (!$menu instanceof ItemInterface) {
-            $path = [];
-            if (\is_array($menu)) {
+            $path = array();
+            if (is_array($menu)) {
                 if (empty($menu)) {
                     throw new \InvalidArgumentException('The array cannot be empty');
                 }
                 $path = $menu;
-                $menu = \array_shift($path);
+                $menu = array_shift($path);
             }
 
             return $this->get($menu, $path);
         }
 
         return $menu;
-    }
-
-    /**
-     * @param ItemInterface $item
-     *
-     * @return ItemInterface|null
-     */
-    private function retrieveCurrentItem(ItemInterface $item)
-    {
-        if ($this->matcher->isCurrent($item)) {
-            return $item;
-        }
-
-        if ($this->matcher->isAncestor($item)) {
-            foreach ($item->getChildren() as $child) {
-                $currentItem = $this->retrieveCurrentItem($child);
-
-                if (null !== $currentItem) {
-                    return $currentItem;
-                }
-            }
-        }
-
-        return null;
     }
 }

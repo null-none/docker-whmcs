@@ -147,7 +147,7 @@ class Filter
      */
     protected function noValue($argument)
     {
-        return $argument->values() == [];
+        return is_null($argument->value());
     }
 
     /**
@@ -178,6 +178,6 @@ class Filter
      */
     protected function prefixCompareString(Argument $argument)
     {
-        return mb_strtolower($argument->longPrefix() ?: $argument->prefix() ?: '');
+        return strtolower($argument->longPrefix() ?: $argument->prefix() ?: '');
     }
 }

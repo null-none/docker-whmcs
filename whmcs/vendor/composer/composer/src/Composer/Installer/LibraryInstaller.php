@@ -18,7 +18,6 @@ use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
 use Composer\Util\Silencer;
-use Composer\Util\Platform;
 
 /**
  * Package installation manager.
@@ -26,7 +25,7 @@ use Composer\Util\Platform;
  * @author Jordi Boggiano <j.boggiano@seld.be>
  * @author Konstantin Kudryashov <ever.zet@gmail.com>
  */
-class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
+class LibraryInstaller implements InstallerInterface
 {
     protected $composer;
     protected $vendorDir;
@@ -72,17 +71,7 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
      */
     public function isInstalled(InstalledRepositoryInterface $repo, PackageInterface $package)
     {
-        if (!$repo->hasPackage($package)) {
-            return false;
-        }
-
-        $installPath = $this->getInstallPath($package);
-
-        if (is_readable($installPath)) {
-            return true;
-        }
-
-        return (Platform::isWindows() && $this->filesystem->isJunction($installPath)) || is_link($installPath);
+        return $repo->hasPackage($package) && is_readable($this->getInstallPath($package));
     }
 
     /**
@@ -158,16 +147,6 @@ class LibraryInstaller implements InstallerInterface, BinaryPresenceInterface
         $targetDir = $package->getTargetDir();
 
         return $basePath . ($targetDir ? '/'.$targetDir : '');
-    }
-
-    /**
-     * Make sure binaries are installed for a given package.
-     *
-     * @param PackageInterface $package Package instance
-     */
-    public function ensureBinariesPresence(PackageInterface $package)
-    {
-        $this->binaryInstaller->installBinaries($package, $this->getInstallPath($package), false);
     }
 
     /**

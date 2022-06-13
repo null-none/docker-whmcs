@@ -30,8 +30,7 @@ class ObjectUploader implements PromisorInterface
     /**
      * @param S3ClientInterface $client         The S3 Client used to execute
      *                                          the upload command(s).
-     * @param string            $bucket         Bucket to upload the object, or
-     *                                          an S3 access point ARN.
+     * @param string            $bucket         Bucket to upload the object.
      * @param string            $key            Key of the object.
      * @param mixed             $body           Object data to upload. Can be a
      *                                          StreamInterface, PHP stream
@@ -124,7 +123,7 @@ class ObjectUploader implements PromisorInterface
         }
 
         // If body >= 5 MB, then use multipart. [YES]
-        if ($body->isSeekable() && $body->getMetadata('uri') !== 'php://input') {
+        if ($body->isSeekable()) {
             // If the body is seekable, just rewind the body.
             $body->seek(0);
         } else {

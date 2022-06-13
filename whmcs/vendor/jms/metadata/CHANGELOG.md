@@ -3,15 +3,9 @@ CHANGELOG
 
 This changelog references all relevant changes:
 
-* 1.7.0 (2018-10-26)
- * allow to run the metadata on read-only file systems
- * Change license to MIT
- * Composer improvements
- 
-* 1.6.0 (2016-12-05)
- * PRS cache adapter
- * other fixes
- 
+To get the diff between the two last versions, go to 
+https://github.com/schmittjoh/metadata/compare/1.0.0...1.1.0
+
 * 1.5.0 (2013-11-06)
  * adds ability to inject new drivers into the DriverChain after it has been constructed
  * improves performance by removing some superfluous filesystem calls

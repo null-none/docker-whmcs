@@ -13,13 +13,9 @@
 namespace Composer\Command;
 
 use Composer\Composer;
-use Composer\Config;
 use Composer\Console\Application;
-use Composer\Factory;
 use Composer\IO\IOInterface;
 use Composer\IO\NullIO;
-use Composer\Plugin\PreCommandRunEvent;
-use Composer\Plugin\PluginEvents;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Command\Command;
@@ -33,7 +29,7 @@ use Symfony\Component\Console\Command\Command;
 abstract class BaseCommand extends Command
 {
     /**
-     * @var Composer|null
+     * @var Composer
      */
     private $composer;
 
@@ -44,11 +40,11 @@ abstract class BaseCommand extends Command
 
     /**
      * @param  bool              $required
-     * @param  bool|null         $disablePlugins
+     * @param  bool              $disablePlugins
      * @throws \RuntimeException
      * @return Composer
      */
-    public function getComposer($required = true, $disablePlugins = null)
+    public function getComposer($required = true, $disablePlugins = false)
     {
         if (null === $this->composer) {
             $application = $this->getApplication();
@@ -84,18 +80,6 @@ abstract class BaseCommand extends Command
     }
 
     /**
-     * Whether or not this command is meant to call another command.
-     *
-     * This is mainly needed to avoid duplicated warnings messages.
-     *
-     * @return bool
-     */
-    public function isProxyCommand()
-    {
-        return false;
-    }
-
-    /**
      * @return IOInterface
      */
     public function getIO()
@@ -126,56 +110,10 @@ abstract class BaseCommand extends Command
      */
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
-        // initialize a plugin-enabled Composer instance, either local or global
-        $disablePlugins = $input->hasParameterOption('--no-plugins');
-        $composer = $this->getComposer(false, $disablePlugins);
-        if (null === $composer) {
-            $composer = Factory::createGlobal($this->getIO(), $disablePlugins);
-        }
-        if ($composer) {
-            $preCommandRunEvent = new PreCommandRunEvent(PluginEvents::PRE_COMMAND_RUN, $input, $this->getName());
-            $composer->getEventDispatcher()->dispatch($preCommandRunEvent->getName(), $preCommandRunEvent);
-        }
-
         if (true === $input->hasParameterOption(array('--no-ansi')) && $input->hasOption('no-progress')) {
             $input->setOption('no-progress', true);
         }
 
         parent::initialize($input, $output);
-    }
-
-    /**
-     * Returns preferSource and preferDist values based on the configuration.
-     *
-     * @param Config         $config
-     * @param InputInterface $input
-     * @param bool           $keepVcsRequiresPreferSource
-     *
-     * @return bool[] An array composed of the preferSource and preferDist values
-     */
-    protected function getPreferredInstallOptions(Config $config, InputInterface $input, $keepVcsRequiresPreferSource = false)
-    {
-        $preferSource = false;
-        $preferDist = false;
-
-        switch ($config->get('preferred-install')) {
-            case 'source':
-                $preferSource = true;
-                break;
-            case 'dist':
-                $preferDist = true;
-                break;
-            case 'auto':
-            default:
-                // noop
-                break;
-        }
-
-        if ($input->getOption('prefer-source') || $input->getOption('prefer-dist') || ($keepVcsRequiresPreferSource && $input->hasOption('keep-vcs') && $input->getOption('keep-vcs'))) {
-            $preferSource = $input->getOption('prefer-source') || ($keepVcsRequiresPreferSource && $input->hasOption('keep-vcs') && $input->getOption('keep-vcs'));
-            $preferDist = $input->getOption('prefer-dist');
-        }
-
-        return array($preferSource, $preferDist);
     }
 }

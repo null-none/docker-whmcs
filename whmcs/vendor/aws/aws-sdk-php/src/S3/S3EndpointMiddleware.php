@@ -110,8 +110,7 @@ class S3EndpointMiddleware
             && (
                 $request->getUri()->getScheme() === 'http'
                 || strpos($command['Bucket'], '.') === false
-            )
-            && filter_var($request->getUri()->getHost(), FILTER_VALIDATE_IP) === false;
+            );
     }
 
     private function endpointPatternDecider(

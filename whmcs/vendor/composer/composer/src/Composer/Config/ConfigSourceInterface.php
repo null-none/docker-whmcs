@@ -39,7 +39,7 @@ interface ConfigSourceInterface
      * Add a config setting
      *
      * @param string $name  Name
-     * @param string|array $value Value
+     * @param string $value Value
      */
     public function addConfigSetting($name, $value);
 
@@ -49,21 +49,6 @@ interface ConfigSourceInterface
      * @param string $name
      */
     public function removeConfigSetting($name);
-
-    /**
-     * Add a property
-     *
-     * @param string $name  Name
-     * @param string $value Value
-     */
-    public function addProperty($name, $value);
-
-    /**
-     * Remove a property
-     *
-     * @param string $name
-     */
-    public function removeProperty($name);
 
     /**
      * Add a package link

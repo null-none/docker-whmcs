@@ -2,8 +2,6 @@
 
 namespace Aws;
 
-use Psr\Http\Message\ResponseInterface;
-
 interface ResponseContainerInterface
 {
     /**

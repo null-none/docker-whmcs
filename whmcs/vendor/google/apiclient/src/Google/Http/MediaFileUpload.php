@@ -67,11 +67,9 @@ class Google_Http_MediaFileUpload
   private $httpResultCode;
 
   /**
-   * @param Google_Client $client
-   * @param RequestInterface $request
-   * @param string $mimeType
-   * @param string $data The bytes you want to upload.
-   * @param bool $resumable
+   * @param $mimeType string
+   * @param $data string The bytes you want to upload.
+   * @param $resumable bool
    * @param bool $chunkSize File will be uploaded in chunks of this many bytes.
    * only used if resumable=True
    */
@@ -114,8 +112,8 @@ class Google_Http_MediaFileUpload
 
   /**
    * Send the next part of the file to upload.
-   * @param string|bool $chunk Optional. The next set of bytes to send. If false will
-   * use $data passed at construct time.
+   * @param [$chunk] the next set of bytes to send. If false will used $data passed
+   * at construct time.
    */
   public function nextChunk($chunk = false)
   {
@@ -167,11 +165,8 @@ class Google_Http_MediaFileUpload
 
     if (308 == $this->httpResultCode) {
       // Track the amount uploaded.
-      $range = $response->getHeaderLine('range');
-      if ($range) {
-        $range_array = explode('-', $range);
-        $this->progress = $range_array[1] + 1;
-      }
+      $range = explode('-', $response->getHeaderLine('range'));
+      $this->progress = $range[1] + 1;
 
       // Allow for changing upload URLs.
       $location = $response->getHeaderLine('location');
@@ -319,7 +314,7 @@ class Google_Http_MediaFileUpload
     if (isset($body['error']['errors'])) {
       $message .= ': ';
       foreach ($body['error']['errors'] as $error) {
-        $message .= "{$error['domain']}, {$error['message']};";
+        $message .= "{$error[domain]}, {$error[message]};";
       }
       $message = rtrim($message, ';');
     }

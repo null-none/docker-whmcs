@@ -88,8 +88,7 @@ class TemplateHelper
         $escaped = $this->escape($raw);
         return preg_replace(
             "@([A-z]+?://([-\w\.]+[-\w])+(:\d+)?(/([\w/_\.#-]*(\?\S+)?[^\.\s])?)?)@",
-            "<a href=\"$1\" target=\"_blank\" rel=\"noreferrer noopener\">$1</a>",
-            $escaped
+            "<a href=\"$1\" target=\"_blank\">$1</a>", $escaped
         );
     }
 
@@ -104,7 +103,7 @@ class TemplateHelper
     {
         $parts = explode($delimiter, $s);
         foreach ($parts as &$part) {
-            $part = '<span class="delimiter">' . $part . '</span>';
+            $part = '<div class="delimiter">' . $part . '</div>';
         }
 
         return implode($delimiter, $parts);
@@ -167,7 +166,7 @@ class TemplateHelper
             // exclude verbose information (e.g. exception stack traces)
             if (class_exists('Symfony\Component\VarDumper\Caster\Caster')) {
                 $cloneVar = $this->getCloner()->cloneVar($value, Caster::EXCLUDE_VERBOSE);
-                // Symfony VarDumper 2.6 Caster class dont exist.
+            // Symfony VarDumper 2.6 Caster class dont exist.
             } else {
                 $cloneVar = $this->getCloner()->cloneVar($value);
             }
@@ -183,7 +182,7 @@ class TemplateHelper
             return $output;
         }
 
-        return htmlspecialchars(print_r($value, true));
+        return print_r($value, true);
     }
 
     /**
@@ -204,7 +203,7 @@ class TemplateHelper
 
         if ($numFrames > 0) {
             $html = '<ol class="linenums">';
-            foreach ($frame->getArgs() as $j => $frameArg) {
+            foreach($frame->getArgs() as $j => $frameArg) {
                 $html .= '<li>'. $this->dump($frameArg) .'</li>';
             }
             $html .= '</ol>';
@@ -266,7 +265,7 @@ class TemplateHelper
      * Sets a single template variable, by its name:
      *
      * @param string $variableName
-     * @param mixed  $variableValue
+     * @param mixd   $variableValue
      */
     public function setVariable($variableName, $variableValue)
     {

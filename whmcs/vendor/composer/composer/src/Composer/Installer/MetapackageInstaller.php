@@ -14,8 +14,6 @@ namespace Composer\Installer;
 
 use Composer\Repository\InstalledRepositoryInterface;
 use Composer\Package\PackageInterface;
-use Composer\Package\Version\VersionParser;
-use Composer\IO\IOInterface;
 
 /**
  * Metapackage installation manager.
@@ -24,13 +22,6 @@ use Composer\IO\IOInterface;
  */
 class MetapackageInstaller implements InstallerInterface
 {
-    private $io;
-
-    public function __construct(IOInterface $io)
-    {
-        $this->io = $io;
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -52,8 +43,6 @@ class MetapackageInstaller implements InstallerInterface
      */
     public function install(InstalledRepositoryInterface $repo, PackageInterface $package)
     {
-        $this->io->writeError("  - Installing <info>" . $package->getName() . "</info> (<comment>" . $package->getFullPrettyVersion() . "</comment>)");
-
         $repo->addPackage(clone $package);
     }
 
@@ -65,12 +54,6 @@ class MetapackageInstaller implements InstallerInterface
         if (!$repo->hasPackage($initial)) {
             throw new \InvalidArgumentException('Package is not installed: '.$initial);
         }
-
-        $name = $target->getName();
-        $from = $initial->getFullPrettyVersion();
-        $to = $target->getFullPrettyVersion();
-        $actionName = VersionParser::isUpgrade($initial->getVersion(), $target->getVersion()) ? 'Updating' : 'Downgrading';
-        $this->io->writeError("  - " . $actionName . " <info>" . $name . "</info> (<comment>" . $from . "</comment> => <comment>" . $to . "</comment>)");
 
         $repo->removePackage($initial);
         $repo->addPackage(clone $target);
@@ -84,8 +67,6 @@ class MetapackageInstaller implements InstallerInterface
         if (!$repo->hasPackage($package)) {
             throw new \InvalidArgumentException('Package is not installed: '.$package);
         }
-
-        $this->io->writeError("  - Removing <info>" . $package->getName() . "</info> (<comment>" . $package->getFullPrettyVersion() . "</comment>)");
 
         $repo->removePackage($package);
     }

@@ -31,7 +31,12 @@ class Comparator
         return $this->target;
     }
 
-    public function setTarget(string $target)
+    /**
+     * Sets the target value.
+     *
+     * @param string $target The target value
+     */
+    public function setTarget($target)
     {
         $this->target = $target;
     }
@@ -49,15 +54,17 @@ class Comparator
     /**
      * Sets the comparison operator.
      *
+     * @param string $operator A valid operator
+     *
      * @throws \InvalidArgumentException
      */
-    public function setOperator(string $operator)
+    public function setOperator($operator)
     {
-        if ('' === $operator) {
+        if (!$operator) {
             $operator = '==';
         }
 
-        if (!\in_array($operator, ['>', '<', '>=', '<=', '==', '!='])) {
+        if (!in_array($operator, array('>', '<', '>=', '<=', '==', '!='))) {
             throw new \InvalidArgumentException(sprintf('Invalid operator "%s".', $operator));
         }
 

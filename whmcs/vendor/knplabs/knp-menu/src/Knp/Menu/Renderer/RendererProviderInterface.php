@@ -9,20 +9,19 @@ interface RendererProviderInterface
      *
      * If null is given, a renderer marked as default is returned.
      *
-     * @param string|null $name
+     * @param string $name
      *
      * @return RendererInterface
-     *
      * @throws \InvalidArgumentException if the renderer does not exists
      */
-    public function get(?string $name = null): RendererInterface;
+    public function get($name = null);
 
     /**
      * Checks whether a renderer exists
      *
      * @param string $name
      *
-     * @return bool
+     * @return boolean
      */
-    public function has(string $name): bool;
+    public function has($name);
 }

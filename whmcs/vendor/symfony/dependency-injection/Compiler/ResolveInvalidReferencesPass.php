@@ -11,15 +11,10 @@
 
 namespace Symfony\Component\DependencyInjection\Compiler;
 
-use Symfony\Component\DependencyInjection\Argument\ArgumentInterface;
-use Symfony\Component\DependencyInjection\Argument\ServiceClosureArgument;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Exception\RuntimeException;
-use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\DependencyInjection\TypedReference;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Exception\RuntimeException;
 
 /**
  * Emulates the invalid behavior if the reference is not found within the
@@ -30,107 +25,93 @@ use Symfony\Component\DependencyInjection\TypedReference;
 class ResolveInvalidReferencesPass implements CompilerPassInterface
 {
     private $container;
-    private $signalingException;
-    private $currentId;
 
     /**
      * Process the ContainerBuilder to resolve invalid references.
+     *
+     * @param ContainerBuilder $container
      */
     public function process(ContainerBuilder $container)
     {
         $this->container = $container;
-        $this->signalingException = new RuntimeException('Invalid reference.');
-
-        try {
-            foreach ($container->getDefinitions() as $this->currentId => $definition) {
-                $this->processValue($definition);
+        foreach ($container->getDefinitions() as $definition) {
+            if ($definition->isSynthetic() || $definition->isAbstract()) {
+                continue;
             }
-        } finally {
-            $this->container = $this->signalingException = null;
+
+            $definition->setArguments(
+                $this->processArguments($definition->getArguments())
+            );
+
+            $calls = array();
+            foreach ($definition->getMethodCalls() as $call) {
+                try {
+                    $calls[] = array($call[0], $this->processArguments($call[1], true));
+                } catch (RuntimeException $e) {
+                    // this call is simply removed
+                }
+            }
+            $definition->setMethodCalls($calls);
+
+            $properties = array();
+            foreach ($definition->getProperties() as $name => $value) {
+                try {
+                    $value = $this->processArguments(array($value), true);
+                    $properties[$name] = reset($value);
+                } catch (RuntimeException $e) {
+                    // ignore property
+                }
+            }
+            $definition->setProperties($properties);
         }
     }
 
     /**
      * Processes arguments to determine invalid references.
      *
-     * @return mixed
+     * @param array $arguments    An array of Reference objects
+     * @param bool  $inMethodCall
+     * @param bool  $inCollection
      *
-     * @throws RuntimeException When an invalid reference is found
+     * @return array
+     *
+     * @throws RuntimeException When the config is invalid
      */
-    private function processValue($value, int $rootLevel = 0, int $level = 0)
+    private function processArguments(array $arguments, $inMethodCall = false, $inCollection = false)
     {
-        if ($value instanceof ServiceClosureArgument) {
-            $value->setValues($this->processValue($value->getValues(), 1, 1));
-        } elseif ($value instanceof ArgumentInterface) {
-            $value->setValues($this->processValue($value->getValues(), $rootLevel, 1 + $level));
-        } elseif ($value instanceof Definition) {
-            if ($value->isSynthetic() || $value->isAbstract()) {
-                return $value;
-            }
-            $value->setArguments($this->processValue($value->getArguments(), 0));
-            $value->setProperties($this->processValue($value->getProperties(), 1));
-            $value->setMethodCalls($this->processValue($value->getMethodCalls(), 2));
-        } elseif (\is_array($value)) {
-            $i = 0;
+        $isNumeric = array_keys($arguments) === range(0, count($arguments) - 1);
 
-            foreach ($value as $k => $v) {
-                try {
-                    if (false !== $i && $k !== $i++) {
-                        $i = false;
+        foreach ($arguments as $k => $argument) {
+            if (is_array($argument)) {
+                $arguments[$k] = $this->processArguments($argument, $inMethodCall, true);
+            } elseif ($argument instanceof Reference) {
+                $id = (string) $argument;
+
+                $invalidBehavior = $argument->getInvalidBehavior();
+                $exists = $this->container->has($id);
+
+                // resolve invalid behavior
+                if (!$exists && ContainerInterface::NULL_ON_INVALID_REFERENCE === $invalidBehavior) {
+                    $arguments[$k] = null;
+                } elseif (!$exists && ContainerInterface::IGNORE_ON_INVALID_REFERENCE === $invalidBehavior) {
+                    if ($inCollection) {
+                        unset($arguments[$k]);
+                        continue;
                     }
-                    if ($v !== $processedValue = $this->processValue($v, $rootLevel, 1 + $level)) {
-                        $value[$k] = $processedValue;
+                    if ($inMethodCall) {
+                        throw new RuntimeException('Method shouldn\'t be called.');
                     }
-                } catch (RuntimeException $e) {
-                    if ($rootLevel < $level || ($rootLevel && !$level)) {
-                        unset($value[$k]);
-                    } elseif ($rootLevel) {
-                        throw $e;
-                    } else {
-                        $value[$k] = null;
-                    }
+
+                    $arguments[$k] = null;
                 }
-            }
-
-            // Ensure numerically indexed arguments have sequential numeric keys.
-            if (false !== $i) {
-                $value = array_values($value);
-            }
-        } elseif ($value instanceof Reference) {
-            if ($this->container->has($id = (string) $value)) {
-                return $value;
-            }
-
-            $currentDefinition = $this->container->getDefinition($this->currentId);
-
-            // resolve decorated service behavior depending on decorator service
-            if ($currentDefinition->innerServiceId === $id && ContainerInterface::NULL_ON_INVALID_REFERENCE === $currentDefinition->decorationOnInvalid) {
-                return null;
-            }
-
-            $invalidBehavior = $value->getInvalidBehavior();
-
-            if (ContainerInterface::RUNTIME_EXCEPTION_ON_INVALID_REFERENCE === $invalidBehavior && $value instanceof TypedReference && !$this->container->has($id)) {
-                $e = new ServiceNotFoundException($id, $this->currentId);
-
-                // since the error message varies by $id and $this->currentId, so should the id of the dummy errored definition
-                $this->container->register($id = sprintf('.errored.%s.%s', $this->currentId, $id), $value->getType())
-                    ->addError($e->getMessage());
-
-                return new TypedReference($id, $value->getType(), $value->getInvalidBehavior());
-            }
-
-            // resolve invalid behavior
-            if (ContainerInterface::NULL_ON_INVALID_REFERENCE === $invalidBehavior) {
-                $value = null;
-            } elseif (ContainerInterface::IGNORE_ON_INVALID_REFERENCE === $invalidBehavior) {
-                if (0 < $level || $rootLevel) {
-                    throw $this->signalingException;
-                }
-                $value = null;
             }
         }
 
-        return $value;
+        // Ensure numerically indexed arguments have sequential numeric keys.
+        if ($isNumeric) {
+            $arguments = array_values($arguments);
+        }
+
+        return $arguments;
     }
 }

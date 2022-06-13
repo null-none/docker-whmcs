@@ -23,10 +23,10 @@ class FloatNodeDefinition extends NumericNodeDefinition
     /**
      * Instantiates a Node.
      *
-     * @return FloatNode
+     * @return FloatNode The node
      */
     protected function instantiateNode()
     {
-        return new FloatNode($this->name, $this->parent, $this->min, $this->max, $this->pathSeparator);
+        return new FloatNode($this->name, $this->parent, $this->min, $this->max);
     }
 }

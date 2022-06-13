@@ -19,37 +19,37 @@
  </directive>
  <directive id="CSS.MaxImgLength">
   <file name="HTMLPurifier/CSSDefinition.php">
-   <line>240</line>
+   <line>226</line>
   </file>
  </directive>
  <directive id="CSS.Proprietary">
   <file name="HTMLPurifier/CSSDefinition.php">
-   <line>365</line>
+   <line>323</line>
   </file>
  </directive>
  <directive id="CSS.AllowTricky">
   <file name="HTMLPurifier/CSSDefinition.php">
-   <line>369</line>
+   <line>327</line>
   </file>
  </directive>
  <directive id="CSS.Trusted">
   <file name="HTMLPurifier/CSSDefinition.php">
-   <line>373</line>
+   <line>331</line>
   </file>
  </directive>
  <directive id="CSS.AllowImportant">
   <file name="HTMLPurifier/CSSDefinition.php">
-   <line>377</line>
+   <line>335</line>
   </file>
  </directive>
  <directive id="CSS.AllowedProperties">
   <file name="HTMLPurifier/CSSDefinition.php">
-   <line>506</line>
+   <line>464</line>
   </file>
  </directive>
  <directive id="CSS.ForbiddenProperties">
   <file name="HTMLPurifier/CSSDefinition.php">
-   <line>522</line>
+   <line>480</line>
   </file>
  </directive>
  <directive id="Cache.DefinitionImpl">
@@ -410,7 +410,7 @@
  </directive>
  <directive id="Core.EnableIDNA">
   <file name="HTMLPurifier/AttrDef/URI/Host.php">
-   <line>109</line>
+   <line>105</line>
   </file>
  </directive>
  <directive id="Attr.DefaultTextDir">
@@ -537,11 +537,6 @@
  <directive id="Core.AggressivelyFixLt">
   <file name="HTMLPurifier/Lexer/DOMLex.php">
    <line>54</line>
-  </file>
- </directive>
- <directive id="Core.AllowParseManyTags">
-  <file name="HTMLPurifier/Lexer/DOMLex.php">
-   <line>72</line>
   </file>
  </directive>
  <directive id="Core.DirectLexLineNumberSyncInterval">

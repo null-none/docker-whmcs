@@ -32,8 +32,9 @@ class PluginInstaller extends LibraryInstaller
      *
      * @param IOInterface $io
      * @param Composer    $composer
+     * @param string      $type
      */
-    public function __construct(IOInterface $io, Composer $composer)
+    public function __construct(IOInterface $io, Composer $composer, $type = 'library')
     {
         parent::__construct($io, $composer, 'composer-plugin');
         $this->installationManager = $composer->getInstallationManager();
@@ -62,7 +63,7 @@ class PluginInstaller extends LibraryInstaller
             $this->composer->getPluginManager()->registerPackage($package, true);
         } catch (\Exception $e) {
             // Rollback installation
-            $this->io->writeError('Plugin installation failed ('.$e->getMessage().'), rolling back');
+            $this->io->writeError('Plugin installation failed, rolling back');
             parent::uninstall($repo, $package);
             throw $e;
         }

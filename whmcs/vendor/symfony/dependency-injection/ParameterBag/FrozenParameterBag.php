@@ -28,7 +28,7 @@ class FrozenParameterBag extends ParameterBag
      *
      * @param array $parameters An array of parameters
      */
-    public function __construct(array $parameters = [])
+    public function __construct(array $parameters = array())
     {
         $this->parameters = $parameters;
         $this->resolved = true;
@@ -53,7 +53,7 @@ class FrozenParameterBag extends ParameterBag
     /**
      * {@inheritdoc}
      */
-    public function set(string $name, $value)
+    public function set($name, $value)
     {
         throw new LogicException('Impossible to call set() on a frozen ParameterBag.');
     }
@@ -61,7 +61,7 @@ class FrozenParameterBag extends ParameterBag
     /**
      * {@inheritdoc}
      */
-    public function remove(string $name)
+    public function remove($name)
     {
         throw new LogicException('Impossible to call remove() on a frozen ParameterBag.');
     }

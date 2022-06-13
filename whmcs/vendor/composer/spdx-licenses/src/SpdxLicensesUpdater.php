@@ -23,7 +23,7 @@ class SpdxLicensesUpdater
      * @param string $file
      * @param string $url
      */
-    public function dumpLicenses($file = null, $url = 'https://raw.githubusercontent.com/spdx/license-list-data/master/json/licenses.json')
+    public function dumpLicenses($file = null, $url = 'https://spdx.org/licenses/index.html')
     {
         if (null === $file) {
             $file = SpdxLicenses::getResourcesDir() . '/' . SpdxLicenses::LICENSES_FILE;
@@ -47,7 +47,7 @@ class SpdxLicensesUpdater
      * @param string $file
      * @param string $url
      */
-    public function dumpExceptions($file = null, $url = 'https://raw.githubusercontent.com/spdx/license-list-data/master/json/exceptions.json')
+    public function dumpExceptions($file = null, $url = 'https://spdx.org/licenses/exceptions-index.html')
     {
         if (null === $file) {
             $file = SpdxLicenses::getResourcesDir() . '/' . SpdxLicenses::EXCEPTIONS_FILE;
@@ -76,12 +76,27 @@ class SpdxLicensesUpdater
     {
         $licenses = array();
 
-        $data = json_decode(file_get_contents($url), true);
+        $dom = new \DOMDocument();
+        @$dom->loadHTMLFile($url); /* use silence operator to ignore warnings about invalid dom content */
 
-        foreach ($data['licenses'] as $info) {
-            $licenses[$info['licenseId']] = array(
-                trim($info['name']), $info['isOsiApproved'], $info['isDeprecatedLicenseId']
-            );
+        $xPath = new \DOMXPath($dom);
+        $trs = $xPath->query('//table//tbody//tr');
+
+        /** @var \DOMElement $tr */
+        foreach ($trs as $tr) {
+            $tds = $tr->getElementsByTagName('td');
+
+            if ($tds->length !== 4) {
+                continue;
+            }
+
+            if ('License Text' === trim($tds->item(3)->nodeValue)) {
+                $fullname = trim($tds->item(0)->nodeValue);
+                $identifier = trim($tds->item(1)->nodeValue);
+                $osiApproved = ((isset($tds->item(2)->nodeValue) && $tds->item(2)->nodeValue === 'Y')) ? true : false;
+
+                $licenses += array($identifier => array($fullname, $osiApproved));
+            }
         }
 
         uksort($licenses, 'strcasecmp');
@@ -98,10 +113,26 @@ class SpdxLicensesUpdater
     {
         $exceptions = array();
 
-        $data = json_decode(file_get_contents($url), true);
+        $dom = new \DOMDocument();
+        @$dom->loadHTMLFile($url); /* use silence operator to ignore warnings about invalid dom content */
 
-        foreach ($data['exceptions'] as $info) {
-            $exceptions[$info['licenseExceptionId']] = array(trim($info['name']));
+        $xPath = new \DOMXPath($dom);
+        $trs = $xPath->query('//table//tbody//tr');
+
+        /** @var \DOMElement $tr */
+        foreach ($trs as $tr) {
+            $tds = $tr->getElementsByTagName('td');
+
+            if ($tds->length !== 3) {
+                continue;
+            }
+
+            if ('License Exception Text' === trim($tds->item(2)->nodeValue)) {
+                $fullname = trim($tds->item(0)->nodeValue);
+                $identifier = trim($tds->item(1)->nodeValue);
+
+                $exceptions += array($identifier => array($fullname));
+            }
         }
 
         uksort($exceptions, 'strcasecmp');

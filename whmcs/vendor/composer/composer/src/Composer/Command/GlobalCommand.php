@@ -13,7 +13,6 @@
 namespace Composer\Command;
 
 use Composer\Factory;
-use Composer\Util\Filesystem;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\StringInput;
@@ -33,8 +32,7 @@ class GlobalCommand extends BaseCommand
                 new InputArgument('command-name', InputArgument::REQUIRED, ''),
                 new InputArgument('args', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, ''),
             ))
-            ->setHelp(
-                <<<EOT
+            ->setHelp(<<<EOT
 Use this command as a wrapper to run other Composer commands
 within the global context of COMPOSER_HOME.
 
@@ -44,13 +42,9 @@ is to add the COMPOSER_HOME/vendor/bin dir to your PATH env var.
 COMPOSER_HOME is c:\Users\<user>\AppData\Roaming\Composer on Windows
 and /home/<user>/.composer on unix systems.
 
-If your system uses freedesktop.org standards, then it will first check
-XDG_CONFIG_HOME or default to /home/<user>/.config/composer
-
 Note: This path may vary depending on customizations to bin-dir in
 composer.json or the environmental variable COMPOSER_BIN_DIR.
 
-Read more at https://getcomposer.org/doc/03-cli.md#global
 EOT
             )
         ;
@@ -77,35 +71,12 @@ EOT
 
         // change to global dir
         $config = Factory::createConfig();
-        $home = $config->get('home');
-
-        if (!is_dir($home)) {
-            $fs = new Filesystem();
-            $fs->ensureDirectoryExists($home);
-            if (!is_dir($home)) {
-                throw new \RuntimeException('Could not create home directory');
-            }
-        }
-
-        try {
-            chdir($home);
-        } catch (\Exception $e) {
-            throw new \RuntimeException('Could not switch to home directory "'.$home.'"', 0, $e);
-        }
-        $this->getIO()->writeError('<info>Changed current directory to '.$home.'</info>');
+        chdir($config->get('home'));
+        $this->getIO()->writeError('<info>Changed current directory to '.$config->get('home').'</info>');
 
         // create new input without "global" command prefix
         $input = new StringInput(preg_replace('{\bg(?:l(?:o(?:b(?:a(?:l)?)?)?)?)?\b}', '', $input->__toString(), 1));
-        $this->getApplication()->resetComposer();
 
         return $this->getApplication()->run($input, $output);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function isProxyCommand()
-    {
-        return true;
     }
 }

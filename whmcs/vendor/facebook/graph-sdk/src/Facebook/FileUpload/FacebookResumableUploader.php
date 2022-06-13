@@ -121,16 +121,6 @@ class FacebookResumableUploader
                 throw $e;
             }
 
-            if (null !== $preException->getStartOffset() && null !== $preException->getEndOffset()) {
-                return new FacebookTransferChunk(
-                    $chunk->getFile(),
-                    $chunk->getUploadSessionId(),
-                    $chunk->getVideoId(),
-                    $preException->getStartOffset(),
-                    $preException->getEndOffset()
-                );
-            }
-
             // Return the same chunk entity so it can be retried.
             return $chunk;
         }

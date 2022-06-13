@@ -62,7 +62,7 @@ class BaseDependencyCommand extends BaseCommand
      * @param  InputInterface  $input
      * @param  OutputInterface $output
      * @param  bool            $inverted Whether to invert matching process (why-not vs why behaviour)
-     * @return int             Exit code of the operation.
+     * @return int|null        Exit code of the operation.
      */
     protected function doExecute(InputInterface $input, OutputInterface $output, $inverted = false)
     {
@@ -89,7 +89,7 @@ class BaseDependencyCommand extends BaseCommand
         );
 
         // Find packages that are or provide the requested package first
-        $packages = $pool->whatProvides(strtolower($needle));
+        $packages = $pool->whatProvides($needle);
         if (empty($packages)) {
             throw new \InvalidArgumentException(sprintf('Could not find package "%s" in your project', $needle));
         }
@@ -129,11 +129,8 @@ class BaseDependencyCommand extends BaseCommand
         $results = $repository->getDependents($needles, $constraint, $inverted, $recursive);
         if (empty($results)) {
             $extra = (null !== $constraint) ? sprintf(' in versions %smatching %s', $inverted ? 'not ' : '', $textConstraint) : '';
-            $this->getIO()->writeError(sprintf(
-                '<info>There is no installed package depending on "%s"%s</info>',
-                $needle,
-                $extra
-            ));
+            $this->getIO()->writeError(sprintf('<info>There is no installed package depending on "%s"%s</info>',
+                $needle, $extra));
         } elseif ($renderTree) {
             $this->initStyles($output);
             $root = $packages[0];
@@ -183,13 +180,8 @@ class BaseDependencyCommand extends BaseCommand
         // Render table
         $renderer = new Table($output);
         $renderer->setStyle('compact');
-        $rendererStyle = $renderer->getStyle();
-        if (method_exists($rendererStyle, 'setVerticalBorderChars')) {
-            $rendererStyle->setVerticalBorderChars('');
-        } else {
-            $rendererStyle->setVerticalBorderChar('');
-        }
-        $rendererStyle->setCellRowContentFormat('%s  ');
+        $renderer->getStyle()->setVerticalBorderChar('');
+        $renderer->getStyle()->setCellRowContentFormat('%s  ');
         $renderer->setRows($table)->render();
     }
 
@@ -225,7 +217,7 @@ class BaseDependencyCommand extends BaseCommand
     {
         $count = count($results);
         $idx = 0;
-        foreach ($results as $result) {
+        foreach ($results as $key => $result) {
             /**
              * @var PackageInterface $package
              * @var Link             $link

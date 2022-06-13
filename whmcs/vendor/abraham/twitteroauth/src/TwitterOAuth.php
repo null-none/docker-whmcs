@@ -29,8 +29,6 @@ class TwitterOAuth extends Config
     private $token;
     /** @var HmacSha1 OAuth 1 signature type used by Twitter */
     private $signatureMethod;
-    /** @var int Number of attempts we made for the request */
-    private $attempts = 0;
 
     /**
      * Constructor
@@ -46,10 +44,10 @@ class TwitterOAuth extends Config
         $this->signatureMethod = new HmacSha1();
         $this->consumer = new Consumer($consumerKey, $consumerSecret);
         if (!empty($oauthToken) && !empty($oauthTokenSecret)) {
-            $this->setOauthToken($oauthToken, $oauthTokenSecret);
+            $this->token = new Token($oauthToken, $oauthTokenSecret);
         }
         if (empty($oauthToken) && !empty($oauthTokenSecret)) {
-            $this->setBearer($oauthTokenSecret);
+            $this->bearer = $oauthTokenSecret;
         }
     }
 
@@ -60,16 +58,6 @@ class TwitterOAuth extends Config
     public function setOauthToken($oauthToken, $oauthTokenSecret)
     {
         $this->token = new Token($oauthToken, $oauthTokenSecret);
-        $this->bearer = null;
-    }
-
-    /**
-     * @param string $oauthTokenSecret
-     */
-    public function setBearer($oauthTokenSecret)
-    {
-        $this->bearer = $oauthTokenSecret;
-        $this->token = null;
     }
 
     /**
@@ -111,25 +99,6 @@ class TwitterOAuth extends Config
     {
         $this->response = new Response();
     }
-
-    /**
-     * Resets the attempts number.
-     */
-    private function resetAttemptsNumber()
-    {
-        $this->attempts = 0;
-    }
-
-    /**
-     * Delays the retries when they're activated.
-     */
-    private function sleepIfNeeded()
-    {
-        if ($this->maxRetries && $this->attempts) {
-            sleep($this->retriesDelay);
-        }
-    }
-
 
     /**
      * Make URLs for user browser navigation.
@@ -206,7 +175,7 @@ class TwitterOAuth extends Config
      */
     public function get($path, array $parameters = [])
     {
-        return $this->http('GET', self::API_HOST, $path, $parameters, false);
+        return $this->http('GET', self::API_HOST, $path, $parameters);
     }
 
     /**
@@ -214,13 +183,12 @@ class TwitterOAuth extends Config
      *
      * @param string $path
      * @param array  $parameters
-     * @param bool   $json
      *
      * @return array|object
      */
-    public function post($path, array $parameters = [], $json = false)
+    public function post($path, array $parameters = [])
     {
-        return $this->http('POST', self::API_HOST, $path, $parameters, $json);
+        return $this->http('POST', self::API_HOST, $path, $parameters);
     }
 
     /**
@@ -233,7 +201,7 @@ class TwitterOAuth extends Config
      */
     public function delete($path, array $parameters = [])
     {
-        return $this->http('DELETE', self::API_HOST, $path, $parameters, false);
+        return $this->http('DELETE', self::API_HOST, $path, $parameters);
     }
 
     /**
@@ -246,7 +214,7 @@ class TwitterOAuth extends Config
      */
     public function put($path, array $parameters = [])
     {
-        return $this->http('PUT', self::API_HOST, $path, $parameters, false);
+        return $this->http('PUT', self::API_HOST, $path, $parameters);
     }
 
     /**
@@ -268,21 +236,6 @@ class TwitterOAuth extends Config
     }
 
     /**
-     * Progression of media upload
-     *
-     * @param string $media_id
-     *
-     * @return array|object
-     */
-    public function mediaStatus($media_id)
-    {
-        return $this->http('GET', self::UPLOAD_HOST, 'media/upload', [
-            'command' => 'STATUS',
-            'media_id' => $media_id
-        ], false);
-    }
-
-    /**
      * Private method to upload media (not chunked) to upload.twitter.com.
      *
      * @param string $path
@@ -292,12 +245,10 @@ class TwitterOAuth extends Config
      */
     private function uploadMediaNotChunked($path, array $parameters)
     {
-        if (! is_readable($parameters['media']) ||
-            ($file = file_get_contents($parameters['media'])) === false) {
-            throw new \InvalidArgumentException('You must supply a readable file');
-        }
-        $parameters['media'] = base64_encode($file);
-        return $this->http('POST', self::UPLOAD_HOST, $path, $parameters, false);
+        $file = file_get_contents($parameters['media']);
+        $base = base64_encode($file);
+        $parameters['media'] = $base;
+        return $this->http('POST', self::UPLOAD_HOST, $path, $parameters);
     }
 
     /**
@@ -310,24 +261,25 @@ class TwitterOAuth extends Config
      */
     private function uploadMediaChunked($path, array $parameters)
     {
-        $init = $this->http('POST', self::UPLOAD_HOST, $path, $this->mediaInitParameters($parameters), false);
+        $init = $this->http('POST', self::UPLOAD_HOST, $path, $this->mediaInitParameters($parameters));
         // Append
         $segmentIndex = 0;
         $media = fopen($parameters['media'], 'rb');
-        while (!feof($media)) {
+        while (!feof($media))
+        {
             $this->http('POST', self::UPLOAD_HOST, 'media/upload', [
                 'command' => 'APPEND',
                 'media_id' => $init->media_id_string,
                 'segment_index' => $segmentIndex++,
                 'media_data' => base64_encode(fread($media, $this->chunkSize))
-            ], false);
+            ]);
         }
         fclose($media);
         // Finalize
         $finalize = $this->http('POST', self::UPLOAD_HOST, 'media/upload', [
             'command' => 'FINALIZE',
             'media_id' => $init->media_id_string
-        ], false);
+        ]);
         return $finalize;
     }
 
@@ -341,31 +293,18 @@ class TwitterOAuth extends Config
      */
     private function mediaInitParameters(array $parameters)
     {
-        $allowed_keys = ['media_type', 'additional_owners', 'media_category', 'shared'];
-        $base = [
+        $return = [
             'command' => 'INIT',
+            'media_type' => $parameters['media_type'],
             'total_bytes' => filesize($parameters['media'])
         ];
-        $allowed_parameters = array_intersect_key($parameters, array_flip($allowed_keys));
-        return array_merge($base, $allowed_parameters);
-    }
-
-    /**
-     * Cleanup any parameters that are known not to work.
-     *
-     * @param array  $parameters
-     *
-     * @return array
-     */
-    private function cleanUpParameters(array $parameters)
-    {
-        foreach ($parameters as $key => $value) {
-            // PHP coerces `true` to `"1"` which some Twitter APIs don't like.
-            if (is_bool($value)) {
-                $parameters[$key] = var_export($value, true);
-            }
+        if (isset($parameters['additional_owners'])) {
+            $return['additional_owners'] = $parameters['additional_owners'];
         }
-        return $parameters;
+        if (isset($parameters['media_category'])) {
+            $return['media_category'] = $parameters['media_category'];
+        }
+        return $return;
     }
 
     /**
@@ -373,56 +312,18 @@ class TwitterOAuth extends Config
      * @param string $host
      * @param string $path
      * @param array  $parameters
-     * @param bool   $json
      *
      * @return array|object
      */
-    private function http($method, $host, $path, array $parameters, $json)
+    private function http($method, $host, $path, array $parameters)
     {
         $this->resetLastResponse();
-        $this->resetAttemptsNumber();
         $url = sprintf('%s/%s/%s.json', $host, self::API_VERSION, $path);
         $this->response->setApiPath($path);
-        if (!$json) {
-            $parameters = $this->cleanUpParameters($parameters);
-        }
-        return $this->makeRequests($url, $method, $parameters, $json);
-    }
-
-    /**
-     *
-     * Make requests and retry them (if enabled) in case of Twitter's problems.
-     *
-     * @param string $method
-     * @param string $url
-     * @param string $method
-     * @param array  $parameters
-     * @param bool   $json
-     *
-     * @return array|object
-     */
-    private function makeRequests($url, $method, array $parameters, $json)
-    {
-        do {
-            $this->sleepIfNeeded();
-            $result = $this->oAuthRequest($url, $method, $parameters, $json);
-            $response = JsonDecoder::decode($result, $this->decodeJsonAsArray);
-            $this->response->setBody($response);
-            $this->attempts++;
-            // Retry up to our $maxRetries number if we get errors greater than 500 (over capacity etc)
-        } while ($this->requestsAvailable());
-
+        $result = $this->oAuthRequest($url, $method, $parameters);
+        $response = JsonDecoder::decode($result, $this->decodeJsonAsArray);
+        $this->response->setBody($response);
         return $response;
-    }
-
-    /**
-     * Checks if we have to retry request if API is down.
-     *
-     * @return bool
-     */
-    private function requestsAvailable()
-    {
-        return ($this->maxRetries && ($this->attempts <= $this->maxRetries) && $this->getLastHttpCode() >= 500);
     }
 
     /**
@@ -431,14 +332,13 @@ class TwitterOAuth extends Config
      * @param string $url
      * @param string $method
      * @param array  $parameters
-     * @param bool   $json
      *
      * @return string
      * @throws TwitterOAuthException
      */
-    private function oAuthRequest($url, $method, array $parameters, $json = false)
+    private function oAuthRequest($url, $method, array $parameters)
     {
-        $request = Request::fromConsumerAndToken($this->consumer, $this->token, $method, $url, $parameters, $json);
+        $request = Request::fromConsumerAndToken($this->consumer, $this->token, $method, $url, $parameters);
         if (array_key_exists('oauth_callback', $parameters)) {
             // Twitter doesn't like oauth_callback as a parameter.
             unset($parameters['oauth_callback']);
@@ -454,7 +354,7 @@ class TwitterOAuth extends Config
         } else {
             $authorization = 'Authorization: Bearer ' . $this->bearer;
         }
-        return $this->request($request->getNormalizedHttpUrl(), $method, $authorization, $parameters, $json);
+        return $this->request($request->getNormalizedHttpUrl(), $method, $authorization, $parameters);
     }
 
     /**
@@ -479,7 +379,7 @@ class TwitterOAuth extends Config
             $options[CURLOPT_CAINFO] = __DIR__ . DIRECTORY_SEPARATOR . 'cacert.pem';
         }
 
-        if ($this->gzipEncoding) {
+        if($this->gzipEncoding) {
             $options[CURLOPT_ENCODING] = 'gzip';
         }
 
@@ -501,14 +401,13 @@ class TwitterOAuth extends Config
      * @param string $method
      * @param string $authorization
      * @param array $postfields
-     * @param bool $json
      *
      * @return string
      * @throws TwitterOAuthException
      */
-    private function request($url, $method, $authorization, array $postfields, $json = false)
+    private function request($url, $method, $authorization, array $postfields)
     {
-        $options = $this->curlOptions();
+        $options = $this->curlOptions($url, $authorization);
         $options[CURLOPT_URL] = $url;
         $options[CURLOPT_HTTPHEADER] = ['Accept: application/json', $authorization, 'Expect:'];
 
@@ -517,12 +416,7 @@ class TwitterOAuth extends Config
                 break;
             case 'POST':
                 $options[CURLOPT_POST] = true;
-                if ($json) {
-                    $options[CURLOPT_HTTPHEADER][] = 'Content-type: application/json';
-                    $options[CURLOPT_POSTFIELDS] = json_encode($postfields);
-                } else {
-                    $options[CURLOPT_POSTFIELDS] = Util::buildHttpQuery($postfields);
-                }
+                $options[CURLOPT_POSTFIELDS] = Util::buildHttpQuery($postfields);
                 break;
             case 'DELETE':
                 $options[CURLOPT_CUSTOMREQUEST] = 'DELETE';
@@ -543,10 +437,7 @@ class TwitterOAuth extends Config
 
         // Throw exceptions on cURL errors.
         if (curl_errno($curlHandle) > 0) {
-            $error = curl_error($curlHandle);
-            $errorNo = curl_errno($curlHandle);
-            curl_close($curlHandle);
-            throw new TwitterOAuthException($error, $errorNo);
+            throw new TwitterOAuthException(curl_error($curlHandle), curl_errno($curlHandle));
         }
 
         $this->response->setHttpCode(curl_getinfo($curlHandle, CURLINFO_HTTP_CODE));

@@ -3,8 +3,9 @@
 namespace Illuminate\Database\Query;
 
 use Closure;
+use InvalidArgumentException;
 
-class JoinClause extends Builder
+class JoinClause
 {
     /**
      * The type of join being performed.
@@ -21,53 +22,30 @@ class JoinClause extends Builder
     public $table;
 
     /**
-     * The connection of the parent query builder.
+     * The "on" clauses for the join.
      *
-     * @var \Illuminate\Database\ConnectionInterface
+     * @var array
      */
-    protected $parentConnection;
+    public $clauses = [];
 
     /**
-     * The grammar of the parent query builder.
+     * The "on" bindings for the join.
      *
-     * @var \Illuminate\Database\Query\Grammars\Grammar
+     * @var array
      */
-    protected $parentGrammar;
-
-    /**
-     * The processor of the parent query builder.
-     *
-     * @var \Illuminate\Database\Query\Processors\Processor
-     */
-    protected $parentProcessor;
-
-    /**
-     * The class name of the parent query builder.
-     *
-     * @var string
-     */
-    protected $parentClass;
+    public $bindings = [];
 
     /**
      * Create a new join clause instance.
      *
-     * @param  \Illuminate\Database\Query\Builder  $parentQuery
      * @param  string  $type
      * @param  string  $table
      * @return void
      */
-    public function __construct(Builder $parentQuery, $type, $table)
+    public function __construct($type, $table)
     {
         $this->type = $type;
         $this->table = $table;
-        $this->parentClass = get_class($parentQuery);
-        $this->parentGrammar = $parentQuery->getGrammar();
-        $this->parentProcessor = $parentQuery->getProcessor();
-        $this->parentConnection = $parentQuery->getConnection();
-
-        parent::__construct(
-            $this->parentConnection, $this->parentGrammar, $this->parentProcessor
-        );
     }
 
     /**
@@ -80,23 +58,40 @@ class JoinClause extends Builder
      *
      * will produce the following SQL:
      *
-     * on `contacts`.`user_id` = `users`.`id` and `contacts`.`info_id` = `info`.`id`
+     * on `contacts`.`user_id` = `users`.`id`  and `contacts`.`info_id` = `info`.`id`
      *
      * @param  \Closure|string  $first
      * @param  string|null  $operator
      * @param  string|null  $second
      * @param  string  $boolean
+     * @param  bool  $where
      * @return $this
      *
      * @throws \InvalidArgumentException
      */
-    public function on($first, $operator = null, $second = null, $boolean = 'and')
+    public function on($first, $operator = null, $second = null, $boolean = 'and', $where = false)
     {
         if ($first instanceof Closure) {
-            return $this->whereNested($first, $boolean);
+            return $this->nest($first, $boolean);
         }
 
-        return $this->whereColumn($first, $operator, $second, $boolean);
+        if (func_num_args() < 3) {
+            throw new InvalidArgumentException('Not enough arguments for the on clause.');
+        }
+
+        if ($where) {
+            $this->bindings[] = $second;
+        }
+
+        if ($where && ($operator === 'in' || $operator === 'not in') && is_array($second)) {
+            $second = count($second);
+        }
+
+        $nested = false;
+
+        $this->clauses[] = compact('first', 'operator', 'second', 'boolean', 'where', 'nested');
+
+        return $this;
     }
 
     /**
@@ -113,34 +108,146 @@ class JoinClause extends Builder
     }
 
     /**
-     * Get a new instance of the join clause builder.
+     * Add an "on where" clause to the join.
      *
+     * @param  \Closure|string  $first
+     * @param  string|null  $operator
+     * @param  string|null  $second
+     * @param  string  $boolean
      * @return \Illuminate\Database\Query\JoinClause
      */
-    public function newQuery()
+    public function where($first, $operator = null, $second = null, $boolean = 'and')
     {
-        return new static($this->newParentQuery(), $this->type, $this->table);
+        return $this->on($first, $operator, $second, $boolean, true);
     }
 
     /**
-     * Create a new query instance for sub-query.
+     * Add an "or on where" clause to the join.
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @param  \Closure|string  $first
+     * @param  string|null  $operator
+     * @param  string|null  $second
+     * @return \Illuminate\Database\Query\JoinClause
      */
-    protected function forSubQuery()
+    public function orWhere($first, $operator = null, $second = null)
     {
-        return $this->newParentQuery()->newQuery();
+        return $this->on($first, $operator, $second, 'or', true);
     }
 
     /**
-     * Create a new parent query instance.
+     * Add an "on where is null" clause to the join.
      *
-     * @return \Illuminate\Database\Query\Builder
+     * @param  string  $column
+     * @param  string  $boolean
+     * @return \Illuminate\Database\Query\JoinClause
      */
-    protected function newParentQuery()
+    public function whereNull($column, $boolean = 'and')
     {
-        $class = $this->parentClass;
+        return $this->on($column, 'is', new Expression('null'), $boolean, false);
+    }
 
-        return new $class($this->parentConnection, $this->parentGrammar, $this->parentProcessor);
+    /**
+     * Add an "or on where is null" clause to the join.
+     *
+     * @param  string  $column
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function orWhereNull($column)
+    {
+        return $this->whereNull($column, 'or');
+    }
+
+    /**
+     * Add an "on where is not null" clause to the join.
+     *
+     * @param  string  $column
+     * @param  string  $boolean
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function whereNotNull($column, $boolean = 'and')
+    {
+        return $this->on($column, 'is', new Expression('not null'), $boolean, false);
+    }
+
+    /**
+     * Add an "or on where is not null" clause to the join.
+     *
+     * @param  string  $column
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function orWhereNotNull($column)
+    {
+        return $this->whereNotNull($column, 'or');
+    }
+
+    /**
+     * Add an "on where in (...)" clause to the join.
+     *
+     * @param  string  $column
+     * @param  array  $values
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function whereIn($column, array $values)
+    {
+        return $this->on($column, 'in', $values, 'and', true);
+    }
+
+    /**
+     * Add an "on where not in (...)" clause to the join.
+     *
+     * @param  string  $column
+     * @param  array  $values
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function whereNotIn($column, array $values)
+    {
+        return $this->on($column, 'not in', $values, 'and', true);
+    }
+
+    /**
+     * Add an "or on where in (...)" clause to the join.
+     *
+     * @param  string  $column
+     * @param  array  $values
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function orWhereIn($column, array $values)
+    {
+        return $this->on($column, 'in', $values, 'or', true);
+    }
+
+    /**
+     * Add an "or on where not in (...)" clause to the join.
+     *
+     * @param  string  $column
+     * @param  array  $values
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function orWhereNotIn($column, array $values)
+    {
+        return $this->on($column, 'not in', $values, 'or', true);
+    }
+
+    /**
+     * Add a nested where statement to the query.
+     *
+     * @param  \Closure  $callback
+     * @param  string   $boolean
+     * @return \Illuminate\Database\Query\JoinClause
+     */
+    public function nest(Closure $callback, $boolean = 'and')
+    {
+        $join = new static($this->type, $this->table);
+
+        $callback($join);
+
+        if (count($join->clauses)) {
+            $nested = true;
+
+            $this->clauses[] = compact('nested', 'join', 'boolean');
+            $this->bindings = array_merge($this->bindings, $join->bindings);
+        }
+
+        return $this;
     }
 }

@@ -154,8 +154,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 }
                 break;
             case 'RC2':
-                if ($length > 128) {
-                    $length = 128;
+                if ($length > 56) {
+                    $length = 56;
                 }
                 break;
             case 'RC4':
@@ -272,7 +272,6 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             'ctr' => Base::MODE_CTR,
             'ecb' => Base::MODE_ECB,
             'cbc' => Base::MODE_CBC,
-            'cfb' => Base::MODE_CFB8,
             'ncfb'=> Base::MODE_CFB,
             'nofb'=> Base::MODE_OFB,
             'stream' => Base::MODE_STREAM
@@ -1072,23 +1071,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
          * @var int
          * @access private
          */
-        private $block_length;
-
-        /**
-         * Cipher block mode
-         *
-         * @var bool
-         * @access private
-         */
-        private $block_mode;
-
-        /**
-         * Buffer handle
-         *
-         * @var resource
-         * @access private
-         */
-        private $bh;
+        private $block_length = '';
 
         /**
          * Called when applying the filter
@@ -1107,18 +1090,14 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
         public function filter($in, $out, &$consumed, $closing)
         {
             $newlen = 0;
+            $block_mode = phpseclib_mcrypt_module_is_block_mode($this->cipher->mcrypt_mode);
             while ($bucket = stream_bucket_make_writeable($in)) {
-                if ($this->block_mode) {
+                if ($block_mode) {
                     $bucket->data = $this->buffer . $bucket->data;
                     $extra = strlen($bucket->data) % $this->block_length;
-                    if (!$extra) {
-                        $this->buffer = '';
-                    } else {
+                    if ($extra) {
                         $this->buffer = substr($bucket->data, -$extra);
                         $bucket->data = substr($bucket->data, 0, -$extra);
-                    }
-                    if (!strlen($bucket->data)) {
-                        continue;
                     }
                 }
 
@@ -1131,19 +1110,7 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
                 stream_bucket_append($out, $bucket);
             }
 
-            if ($closing && strlen($this->buffer)) {
-                $temp = $this->buffer . str_repeat("\0", $this->block_length - strlen($this->buffer));
-                $data = $this->op ?
-                    $this->cipher->encrypt($temp) :
-                    $this->cipher->decrypt($temp);
-                $newlen+= strlen($data);
-                $bucket = stream_bucket_new($this->bh, $data);
-                $this->buffer = '';
-                $newlen = 0;
-                stream_bucket_append($out, $bucket);
-            }
-
-            return $this->block_mode && $newlen && $newlen < $this->block_length ? PSFS_FEED_ME : PSFS_PASS_ON;
+            return $block_mode && $newlen < $this->block_length ? PSFS_FEED_ME : PSFS_PASS_ON;
         }
 
         /**
@@ -1201,30 +1168,8 @@ if (!function_exists('phpseclib_mcrypt_list_algorithms')) {
             $this->op = $parts[0] == 'mcrypt';
             $this->cipher = $cipher;
             $this->block_length = phpseclib_mcrypt_enc_get_iv_size($cipher);
-            $this->block_mode = phpseclib_mcrypt_module_is_block_mode($mode);
-
-            if ($this->block_mode) {
-                $this->bh = fopen('php://memory', 'w+');
-            }
 
             return true;
-        }
-
-        /**
-         * Called when closing the filter
-         *
-         * This method is called upon filter shutdown (typically, this is also during stream shutdown), and is
-         * executed after the flush method is called. If any resources were allocated or initialized during
-         * onCreate() this would be the time to destroy or dispose of them.
-         *
-         * @link http://php.net/manual/en/php-user-filter.onclose.php
-         * @access public
-         */
-        public function onClose()
-        {
-            if ($this->bh) {
-                fclose($this->bh);
-            }
         }
     }
 

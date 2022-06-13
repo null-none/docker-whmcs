@@ -9,14 +9,14 @@ use WHMCS\Module\AbstractWidget;
 /**
  * Activity Widget.
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2021
- * @license https://www.whmcs.com/eula/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2018
+ * @license https://www.whmcs.com/license/ WHMCS Eula
  */
 class Activity extends AbstractWidget
 {
     protected $title = 'Activity';
     protected $description = 'Recent system activity.';
-    protected $weight = 120;
+    protected $weight = 100;
     protected $cache = true;
     protected $requiredPermission = 'View Activity Log';
 
@@ -35,8 +35,8 @@ class Activity extends AbstractWidget
             $date = Carbon::createFromFormat('Y-m-d H:i:s', $entry['date']);
 
             $description = $entry['description'];
-            if ($entry['userId']) {
-                $userLabel = ' - User ID: ' . $entry['userId'];
+            if ($entry['userid']) {
+                $userLabel = ' - User ID: ' . $entry['userid'];
                 if (!strpos($description, $userLabel)) {
                     $description .= $userLabel;
                 }

@@ -94,9 +94,6 @@ class RepositoryFactory
         if (!$config) {
             $config = Factory::createConfig($io);
         }
-        if ($io) {
-            $io->loadConfiguration($config);
-        }
         if (!$rm) {
             if (!$io) {
                 throw new \InvalidArgumentException('This function requires either an IOInterface or a RepositoryManager');
@@ -122,14 +119,10 @@ class RepositoryFactory
         $rm->setRepositoryClass('package', 'Composer\Repository\PackageRepository');
         $rm->setRepositoryClass('pear', 'Composer\Repository\PearRepository');
         $rm->setRepositoryClass('git', 'Composer\Repository\VcsRepository');
-        $rm->setRepositoryClass('git-bitbucket', 'Composer\Repository\VcsRepository');
-        $rm->setRepositoryClass('github', 'Composer\Repository\VcsRepository');
         $rm->setRepositoryClass('gitlab', 'Composer\Repository\VcsRepository');
         $rm->setRepositoryClass('svn', 'Composer\Repository\VcsRepository');
-        $rm->setRepositoryClass('fossil', 'Composer\Repository\VcsRepository');
         $rm->setRepositoryClass('perforce', 'Composer\Repository\VcsRepository');
         $rm->setRepositoryClass('hg', 'Composer\Repository\VcsRepository');
-        $rm->setRepositoryClass('hg-bitbucket', 'Composer\Repository\VcsRepository');
         $rm->setRepositoryClass('artifact', 'Composer\Repository\ArtifactRepository');
         $rm->setRepositoryClass('path', 'Composer\Repository\PathRepository');
 
@@ -153,25 +146,17 @@ class RepositoryFactory
             if (!isset($repo['type'])) {
                 throw new \UnexpectedValueException('Repository "'.$index.'" ('.json_encode($repo).') must have a type defined');
             }
-
-            $name = self::generateRepositoryName($index, $repo, $repos);
+            $name = is_int($index) && isset($repo['url']) ? preg_replace('{^https?://}i', '', $repo['url']) : $index;
+            while (isset($repos[$name])) {
+                $name .= '2';
+            }
             if ($repo['type'] === 'filesystem') {
                 $repos[$name] = new FilesystemRepository($repo['json']);
             } else {
-                $repos[$name] = $rm->createRepository($repo['type'], $repo, $index);
+                $repos[$name] = $rm->createRepository($repo['type'], $repo);
             }
         }
 
         return $repos;
-    }
-
-    public static function generateRepositoryName($index, array $repo, array $existingRepos)
-    {
-        $name = is_int($index) && isset($repo['url']) ? preg_replace('{^https?://}i', '', $repo['url']) : $index;
-        while (isset($existingRepos[$name])) {
-            $name .= '2';
-        }
-
-        return $name;
     }
 }

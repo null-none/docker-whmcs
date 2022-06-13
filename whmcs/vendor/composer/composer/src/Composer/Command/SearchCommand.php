@@ -38,18 +38,15 @@ class SearchCommand extends BaseCommand
     {
         $this
             ->setName('search')
-            ->setDescription('Searches for packages.')
+            ->setDescription('Search for packages')
             ->setDefinition(array(
                 new InputOption('only-name', 'N', InputOption::VALUE_NONE, 'Search only in name'),
-                new InputOption('type', 't', InputOption::VALUE_REQUIRED, 'Search for a specific package type'),
                 new InputArgument('tokens', InputArgument::IS_ARRAY | InputArgument::REQUIRED, 'tokens to search for'),
             ))
-            ->setHelp(
-                <<<EOT
+            ->setHelp(<<<EOT
 The search command searches for packages by its name
 <info>php composer.phar search symfony composer</info>
 
-Read more at https://getcomposer.org/doc/03-cli.md#search
 EOT
             )
         ;
@@ -61,7 +58,7 @@ EOT
         $platformRepo = new PlatformRepository;
         $io = $this->getIO();
         if (!($composer = $this->getComposer(false))) {
-            $composer = Factory::create($this->getIO(), array(), $input->hasParameterOption('--no-plugins'));
+            $composer = Factory::create($this->getIO(), array());
         }
         $localRepo = $composer->getRepositoryManager()->getLocalRepository();
         $installedRepo = new CompositeRepository(array($localRepo, $platformRepo));
@@ -71,15 +68,12 @@ EOT
         $composer->getEventDispatcher()->dispatch($commandEvent->getName(), $commandEvent);
 
         $onlyName = $input->getOption('only-name');
-        $type = $input->getOption('type') ?: null;
 
         $flags = $onlyName ? RepositoryInterface::SEARCH_NAME : RepositoryInterface::SEARCH_FULLTEXT;
-        $results = $repos->search(implode(' ', $input->getArgument('tokens')), $flags, $type);
+        $results = $repos->search(implode(' ', $input->getArgument('tokens')), $flags);
 
         foreach ($results as $result) {
             $io->write($result['name'] . (isset($result['description']) ? ' '. $result['description'] : ''));
         }
-
-        return 0;
     }
 }

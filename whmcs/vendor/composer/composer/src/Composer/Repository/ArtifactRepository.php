@@ -16,7 +16,6 @@ use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\Loader\LoaderInterface;
-use Composer\Util\Zip;
 
 /**
  * @author Serge Smertin <serg.smertin@gmail.com>
@@ -28,7 +27,6 @@ class ArtifactRepository extends ArrayRepository implements ConfigurableReposito
 
     protected $lookup;
     protected $repoConfig;
-    private $io;
 
     public function __construct(array $repoConfig, IOInterface $io)
     {
@@ -81,15 +79,69 @@ class ArtifactRepository extends ArrayRepository implements ConfigurableReposito
         }
     }
 
+    /**
+     * Find a file by name, returning the one that has the shortest path.
+     *
+     * @param \ZipArchive $zip
+     * @param $filename
+     * @return bool|int
+     */
+    private function locateFile(\ZipArchive $zip, $filename)
+    {
+        $indexOfShortestMatch = false;
+        $lengthOfShortestMatch = -1;
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $stat = $zip->statIndex($i);
+            if (strcmp(basename($stat['name']), $filename) === 0) {
+                $directoryName = dirname($stat['name']);
+                if ($directoryName == '.') {
+                    //if composer.json is in root directory
+                    //it has to be the one to use.
+                    return $i;
+                }
+
+                if (strpos($directoryName, '\\') !== false ||
+                   strpos($directoryName, '/') !== false) {
+                    //composer.json files below first directory are rejected
+                    continue;
+                }
+
+                $length = strlen($stat['name']);
+                if ($indexOfShortestMatch === false || $length < $lengthOfShortestMatch) {
+                    //Check it's not a directory.
+                    $contents = $zip->getFromIndex($i);
+                    if ($contents !== false) {
+                        $indexOfShortestMatch = $i;
+                        $lengthOfShortestMatch = $length;
+                    }
+                }
+            }
+        }
+
+        return $indexOfShortestMatch;
+    }
+
     private function getComposerInformation(\SplFileInfo $file)
     {
-        $json = Zip::getComposerJson($file->getPathname());
+        $zip = new \ZipArchive();
+        $zip->open($file->getPathname());
 
-        if (null === $json) {
+        if (0 == $zip->numFiles) {
             return false;
         }
 
-        $package = JsonFile::parseJson($json, $file->getPathname().'#composer.json');
+        $foundFileIndex = $this->locateFile($zip, 'composer.json');
+        if (false === $foundFileIndex) {
+            return false;
+        }
+
+        $configurationFileName = $zip->getNameIndex($foundFileIndex);
+
+        $composerFile = "zip://{$file->getPathname()}#$configurationFileName";
+        $json = file_get_contents($composerFile);
+
+        $package = JsonFile::parseJson($json, $composerFile);
         $package['dist'] = array(
             'type' => 'zip',
             'url' => strtr($file->getPathname(), '\\', '/'),

@@ -36,10 +36,9 @@ class BaseTypesHandler implements SubscribingHandlerInterface
             'params' => array()
         );
 
-        $navigator = $context->getNavigator();
         $ret = array();
         foreach ($object as $v) {
-            $ret[] = $navigator->accept($v, $newType, $context)->data;
+            $ret[] = $context->accept($v, $newType)->data;
         }
 
         return $visitor->getDocument()->createTextNode(implode(" ", $ret));
@@ -52,9 +51,8 @@ class BaseTypesHandler implements SubscribingHandlerInterface
             'params' => array()
         );
         $ret = array();
-        $navigator = $context->getNavigator();
         foreach (explode(" ", (string)$node) as $v) {
-            $ret[] = $navigator->accept($v, $newType, $context);
+            $ret[] = $context->accept($v, $newType);
         }
         return $ret;
     }

@@ -11,17 +11,16 @@
 
 namespace Symfony\Component\HttpFoundation\Tests\Session\Storage;
 
-use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 use Symfony\Component\HttpFoundation\Session\Attribute\AttributeBag;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBag;
-use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
 
 /**
  * Test class for MockArraySessionStorage.
  *
  * @author Drak <drak@zikula.org>
  */
-class MockArraySessionStorageTest extends TestCase
+class MockArraySessionStorageTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @var MockArraySessionStorage
@@ -40,15 +39,15 @@ class MockArraySessionStorageTest extends TestCase
 
     private $data;
 
-    protected function setUp(): void
+    protected function setUp()
     {
         $this->attributes = new AttributeBag();
         $this->flashes = new FlashBag();
 
-        $this->data = [
-            $this->attributes->getStorageKey() => ['foo' => 'bar'],
-            $this->flashes->getStorageKey() => ['notice' => 'hello'],
-        ];
+        $this->data = array(
+            $this->attributes->getStorageKey() => array('foo' => 'bar'),
+            $this->flashes->getStorageKey() => array('notice' => 'hello'),
+            );
 
         $this->storage = new MockArraySessionStorage();
         $this->storage->registerBag($this->flashes);
@@ -56,7 +55,7 @@ class MockArraySessionStorageTest extends TestCase
         $this->storage->setSessionData($this->data);
     }
 
-    protected function tearDown(): void
+    protected function tearDown()
     {
         $this->data = null;
         $this->flashes = null;
@@ -80,14 +79,14 @@ class MockArraySessionStorageTest extends TestCase
         $id = $this->storage->getId();
         $this->storage->regenerate();
         $this->assertNotEquals($id, $this->storage->getId());
-        $this->assertEquals(['foo' => 'bar'], $this->storage->getBag('attributes')->all());
-        $this->assertEquals(['notice' => 'hello'], $this->storage->getBag('flashes')->peekAll());
+        $this->assertEquals(array('foo' => 'bar'), $this->storage->getBag('attributes')->all());
+        $this->assertEquals(array('notice' => 'hello'), $this->storage->getBag('flashes')->peekAll());
 
         $id = $this->storage->getId();
         $this->storage->regenerate(true);
         $this->assertNotEquals($id, $this->storage->getId());
-        $this->assertEquals(['foo' => 'bar'], $this->storage->getBag('attributes')->all());
-        $this->assertEquals(['notice' => 'hello'], $this->storage->getBag('flashes')->peekAll());
+        $this->assertEquals(array('foo' => 'bar'), $this->storage->getBag('attributes')->all());
+        $this->assertEquals(array('notice' => 'hello'), $this->storage->getBag('flashes')->peekAll());
     }
 
     public function testGetId()
@@ -97,33 +96,11 @@ class MockArraySessionStorageTest extends TestCase
         $this->assertNotEquals('', $this->storage->getId());
     }
 
-    public function testClearClearsBags()
-    {
-        $this->storage->clear();
-
-        $this->assertSame([], $this->storage->getBag('attributes')->all());
-        $this->assertSame([], $this->storage->getBag('flashes')->peekAll());
-    }
-
-    public function testClearStartsSession()
-    {
-        $this->storage->clear();
-
-        $this->assertTrue($this->storage->isStarted());
-    }
-
-    public function testClearWithNoBagsStartsSession()
-    {
-        $storage = new MockArraySessionStorage();
-
-        $storage->clear();
-
-        $this->assertTrue($storage->isStarted());
-    }
-
+    /**
+     * @expectedException \RuntimeException
+     */
     public function testUnstartedSave()
     {
-        $this->expectException('RuntimeException');
         $this->storage->save();
     }
 }

@@ -47,7 +47,7 @@ class Windows extends System
      */
     protected function getDimensions()
     {
-        $output = $this->exec('mode CON', true);
+        $output = $this->exec('mode', true);
 
         if (!is_array($output)) {
             return [];
@@ -69,10 +69,6 @@ class Windows extends System
      */
     protected function systemHasAnsiSupport()
     {
-        return (function_exists('sapi_windows_vt100_support') && @sapi_windows_vt100_support(STDOUT))
-            || false !== getenv('ANSICON')
-            || 'ON' === getenv('ConEmuANSI')
-            || 'Hyper' === getenv('TERM_PROGRAM') 
-            || 'xterm' === getenv('TERM');
+        return (getenv('ANSICON') === true || getenv('ConEmuANSI') === 'ON');
     }
 }

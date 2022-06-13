@@ -30,16 +30,19 @@ interface ResourceCheckerInterface
      * Queries the ResourceChecker whether it can validate a given
      * resource or not.
      *
-     * @return bool
+     * @param ResourceInterface $metadata The resource to be checked for freshness
+     *
+     * @return bool True if the ResourceChecker can handle this resource type, false if not
      */
     public function supports(ResourceInterface $metadata);
 
     /**
      * Validates the resource.
      *
-     * @param int $timestamp The timestamp at which the cache associated with this resource was created
+     * @param ResourceInterface $resource  The resource to be validated
+     * @param int               $timestamp The timestamp at which the cache associated with this resource was created
      *
-     * @return bool
+     * @return bool True if the resource has not changed since the given timestamp, false otherwise
      */
-    public function isFresh(ResourceInterface $resource, int $timestamp);
+    public function isFresh(ResourceInterface $resource, $timestamp);
 }

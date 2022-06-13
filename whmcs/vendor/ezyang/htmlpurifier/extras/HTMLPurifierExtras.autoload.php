@@ -17,7 +17,10 @@ if (function_exists('spl_autoload_register')) {
         spl_autoload_register('__autoload');
     }
 } elseif (!function_exists('__autoload')) {
-    require dirname(__FILE__) . '/HTMLPurifierExtras.autoload-legacy.php';
+    function __autoload($class)
+    {
+        return HTMLPurifierExtras::autoload($class);
+    }
 }
 
 // vim: et sw=4 sts=4

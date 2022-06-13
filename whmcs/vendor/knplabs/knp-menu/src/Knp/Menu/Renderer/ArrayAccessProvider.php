@@ -23,20 +23,20 @@ class ArrayAccessProvider implements RendererProviderInterface
         $this->defaultRenderer = $defaultRenderer;
     }
 
-    public function get(string $name = null): RendererInterface
+    public function get($name = null)
     {
         if (null === $name) {
             $name = $this->defaultRenderer;
         }
 
         if (!isset($this->rendererIds[$name])) {
-            throw new \InvalidArgumentException(\sprintf('The renderer "%s" is not defined.', $name));
+            throw new \InvalidArgumentException(sprintf('The renderer "%s" is not defined.', $name));
         }
 
         return $this->registry[$this->rendererIds[$name]];
     }
 
-    public function has($name): bool
+    public function has($name)
     {
         return isset($this->rendererIds[$name]);
     }

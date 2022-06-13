@@ -11,32 +11,33 @@
 
 namespace Symfony\Component\Translation\Tests\Dumper;
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Translation\Dumper\YamlFileDumper;
 use Symfony\Component\Translation\MessageCatalogue;
+use Symfony\Component\Translation\Dumper\YamlFileDumper;
 
-class YamlFileDumperTest extends TestCase
+class YamlFileDumperTest extends \PHPUnit_Framework_TestCase
 {
     public function testTreeFormatCatalogue()
     {
         $catalogue = new MessageCatalogue('en');
-        $catalogue->add([
-            'foo.bar1' => 'value1',
-            'foo.bar2' => 'value2',
-        ]);
+        $catalogue->add(
+            array(
+                'foo.bar1' => 'value1',
+                'foo.bar2' => 'value2',
+            ));
 
         $dumper = new YamlFileDumper();
 
-        $this->assertStringEqualsFile(__DIR__.'/../fixtures/messages.yml', $dumper->formatCatalogue($catalogue, 'messages', ['as_tree' => true, 'inline' => 999]));
+        $this->assertStringEqualsFile(__DIR__.'/../fixtures/messages.yml', $dumper->formatCatalogue($catalogue, 'messages', array('as_tree' => true, 'inline' => 999)));
     }
 
     public function testLinearFormatCatalogue()
     {
         $catalogue = new MessageCatalogue('en');
-        $catalogue->add([
-            'foo.bar1' => 'value1',
-            'foo.bar2' => 'value2',
-        ]);
+        $catalogue->add(
+            array(
+                'foo.bar1' => 'value1',
+                'foo.bar2' => 'value2',
+            ));
 
         $dumper = new YamlFileDumper();
 

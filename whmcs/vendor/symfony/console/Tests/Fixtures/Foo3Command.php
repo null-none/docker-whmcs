@@ -14,7 +14,7 @@ class Foo3Command extends Command
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
         try {
             try {
@@ -23,9 +23,7 @@ class Foo3Command extends Command
                 throw new \Exception('Second exception <comment>comment</comment>', 0, $e);
             }
         } catch (\Exception $e) {
-            throw new \Exception('Third exception <fg=blue;bg=red>comment</>', 404, $e);
+            throw new \Exception('Third exception <fg=blue;bg=red>comment</>', 0, $e);
         }
-
-        return 0;
     }
 }

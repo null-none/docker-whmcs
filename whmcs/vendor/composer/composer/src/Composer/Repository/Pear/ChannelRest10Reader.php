@@ -39,7 +39,7 @@ class ChannelRest10Reader extends BaseChannelReader
     /**
      * Reads package descriptions using PEAR Rest 1.0 interface
      *
-     * @param string $baseUrl base Url interface
+     * @param $baseUrl  string base Url interface
      *
      * @return PackageInfo[]
      */
@@ -52,7 +52,7 @@ class ChannelRest10Reader extends BaseChannelReader
      * Read list of packages from
      *  {baseUrl}/p/packages.xml
      *
-     * @param string $baseUrl
+     * @param $baseUrl string
      * @return PackageInfo[]
      */
     private function readPackages($baseUrl)
@@ -75,8 +75,8 @@ class ChannelRest10Reader extends BaseChannelReader
      * Read package info from
      *  {baseUrl}/p/{package}/info.xml
      *
-     * @param string $baseUrl
-     * @param string $packageName
+     * @param $baseUrl      string
+     * @param $packageName  string
      * @return PackageInfo
      */
     private function readPackage($baseUrl, $packageName)
@@ -105,8 +105,8 @@ class ChannelRest10Reader extends BaseChannelReader
      * Read package releases from
      *  {baseUrl}/p/{package}/allreleases.xml
      *
-     * @param string $baseUrl
-     * @param string $packageName
+     * @param $baseUrl      string
+     * @param $packageName  string
      * @throws \Composer\Downloader\TransportException|\Exception
      * @return ReleaseInfo[]                                      hash array with keys as version numbers
      */
@@ -146,9 +146,9 @@ class ChannelRest10Reader extends BaseChannelReader
      * Read package dependencies from
      *  {baseUrl}/p/{package}/deps.{version}.txt
      *
-     * @param string $baseUrl
-     * @param string $packageName
-     * @param string $version
+     * @param $baseUrl      string
+     * @param $packageName  string
+     * @param $version      string
      * @return DependencyInfo[]
      */
     private function readPackageReleaseDependencies($baseUrl, $packageName, $version)
@@ -158,7 +158,8 @@ class ChannelRest10Reader extends BaseChannelReader
         $depthPath = '/r/' . strtolower($packageName) . '/deps.' . $version . '.txt';
         $content = $this->requestContent($baseUrl, $depthPath);
         $dependencyArray = unserialize($content);
+        $result = $dependencyReader->buildDependencyInfo($dependencyArray);
 
-        return $dependencyReader->buildDependencyInfo($dependencyArray);
+        return $result;
     }
 }

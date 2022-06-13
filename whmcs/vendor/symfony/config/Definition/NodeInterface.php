@@ -11,10 +11,6 @@
 
 namespace Symfony\Component\Config\Definition;
 
-use Symfony\Component\Config\Definition\Exception\ForbiddenOverwriteException;
-use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
-use Symfony\Component\Config\Definition\Exception\InvalidTypeException;
-
 /**
  * Common Interface among all nodes.
  *
@@ -28,48 +24,46 @@ interface NodeInterface
     /**
      * Returns the name of the node.
      *
-     * @return string
+     * @return string The name of the node
      */
     public function getName();
 
     /**
      * Returns the path of the node.
      *
-     * @return string
+     * @return string The node path
      */
     public function getPath();
 
     /**
      * Returns true when the node is required.
      *
-     * @return bool
+     * @return bool If the node is required
      */
     public function isRequired();
 
     /**
      * Returns true when the node has a default value.
      *
-     * @return bool
+     * @return bool If the node has a default value
      */
     public function hasDefaultValue();
 
     /**
      * Returns the default value of the node.
      *
-     * @return mixed
+     * @return mixed The default value
      *
      * @throws \RuntimeException if the node has no default value
      */
     public function getDefaultValue();
 
     /**
-     * Normalizes a value.
+     * Normalizes the supplied value.
      *
      * @param mixed $value The value to normalize
      *
-     * @return mixed
-     *
-     * @throws InvalidTypeException if the value type is invalid
+     * @return mixed The normalized value
      */
     public function normalize($value);
 
@@ -79,10 +73,7 @@ interface NodeInterface
      * @param mixed $leftSide
      * @param mixed $rightSide
      *
-     * @return mixed
-     *
-     * @throws ForbiddenOverwriteException if the configuration path cannot be overwritten
-     * @throws InvalidTypeException        if the value type is invalid
+     * @return mixed The merged values
      */
     public function merge($leftSide, $rightSide);
 
@@ -91,10 +82,7 @@ interface NodeInterface
      *
      * @param mixed $value The value to finalize
      *
-     * @return mixed
-     *
-     * @throws InvalidTypeException          if the value type is invalid
-     * @throws InvalidConfigurationException if the value is invalid configuration
+     * @return mixed The finalized value
      */
     public function finalize($value);
 }

@@ -10,30 +10,23 @@ use OAuth2\ResponseInterface;
  *  it is called to handle all grant types the application supports.
  *  It also validates the client's credentials
  *
- * @code
- *     $tokenController->handleTokenRequest(OAuth2\Request::createFromGlobals(), $response = new OAuth2\Response());
- *     $response->send();
- * @endcode
+ *  ex:
+ *  > $tokenController->handleTokenRequest(OAuth2\Request::createFromGlobals(), $response = new OAuth2\Response());
+ *  > $response->send();
+ *
  */
 interface TokenControllerInterface
 {
     /**
-     * Handle the token request
+     * handleTokenRequest
      *
-     * @param RequestInterface $request   - The current http request
-     * @param ResponseInterface $response - An instance of OAuth2\ResponseInterface to contain the response data
+     * @param $request
+     * OAuth2\RequestInterface - The current http request
+     * @param $response
+     * OAuth2\ResponseInterface - An instance of OAuth2\ResponseInterface to contain the response data
+     *
      */
     public function handleTokenRequest(RequestInterface $request, ResponseInterface $response);
 
-    /**
-     * Grant or deny a requested access token.
-     * This would be called from the "/token" endpoint as defined in the spec.
-     * You can call your endpoint whatever you want.
-     *
-     * @param RequestInterface  $request  - Request object to grant access token
-     * @param ResponseInterface $response - Response object
-     *
-     * @return mixed
-     */
     public function grantAccessToken(RequestInterface $request, ResponseInterface $response);
 }

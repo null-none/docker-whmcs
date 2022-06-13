@@ -3,7 +3,6 @@
 namespace Illuminate\Database\Query\Processors;
 
 use Exception;
-use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 
 class SqlServerProcessor extends Processor
@@ -13,8 +12,8 @@ class SqlServerProcessor extends Processor
      *
      * @param  \Illuminate\Database\Query\Builder  $query
      * @param  string  $sql
-     * @param  array  $values
-     * @param  string|null  $sequence
+     * @param  array   $values
+     * @param  string  $sequence
      * @return int
      */
     public function processInsertGetId(Builder $query, $sql, $values, $sequence = null)
@@ -37,22 +36,16 @@ class SqlServerProcessor extends Processor
      *
      * @param  \Illuminate\Database\Connection  $connection
      * @return int
-     *
-     * @throws \Exception
      */
-    protected function processInsertGetIdForOdbc(Connection $connection)
+    protected function processInsertGetIdForOdbc($connection)
     {
-        $result = $connection->selectFromWriteConnection(
-            'SELECT CAST(COALESCE(SCOPE_IDENTITY(), @@IDENTITY) AS int) AS insertid'
-        );
+        $result = $connection->select('SELECT CAST(COALESCE(SCOPE_IDENTITY(), @@IDENTITY) AS int) AS insertid');
 
         if (! $result) {
             throw new Exception('Unable to retrieve lastInsertID for ODBC.');
         }
 
-        $row = $result[0];
-
-        return is_object($row) ? $row->insertid : $row['insertid'];
+        return $result[0]->insertid;
     }
 
     /**
@@ -63,8 +56,12 @@ class SqlServerProcessor extends Processor
      */
     public function processColumnListing($results)
     {
-        return array_map(function ($result) {
-            return ((object) $result)->name;
-        }, $results);
+        $mapping = function ($r) {
+            $r = (object) $r;
+
+            return $r->name;
+        };
+
+        return array_map($mapping, $results);
     }
 }

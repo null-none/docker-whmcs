@@ -3,16 +3,8 @@ Contributing
 
 Contributions are **welcome** and will be fully **credited**.
 
-We accept contributions via Pull Requests on [Github](https://github.com/facebook/php-graph-sdk/pull/new).
+We accept contributions via Pull Requests on [Github](https://github.com/facebook/facebook-php-sdk-v4).
 
-The current stable major version is v5. The v6 is under active development.
-
-This means any new feature MUST target v6 (`master` branch).
-
-The v5 (`5.x` branch) is maintained only for bug fixes, node/edge updates or documentation improvements.
-
-## Code of Conduct
-The code of conduct is described in [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
 
 ## Pull Requests
 
@@ -23,7 +15,7 @@ The code of conduct is described in [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
 
 - **Add tests!** - Your patch won't be accepted if it doesn't have tests.
 
-- **Document any change in behaviour** - Make sure the README and the [documentation](https://github.com/facebook/php-graph-sdk/tree/master/docs) are kept up-to-date.
+- **Document any change in behaviour** - Make sure the README and the [documentation](https://github.com/facebook/facebook-php-sdk-v4/tree/master/docs) are kept up-to-date.
 
 - **Consider our release cycle** - As of version 5.0.0, we try to follow [SemVer](http://semver.org/). Randomly breaking public APIs is not an option.
 
@@ -37,11 +29,13 @@ The code of conduct is described in [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
 
 - **Ensure no coding standards violations** - Please [run PHP Code Sniffer](#running-php-code-sniffer) using the PSR-2 standard before submitting your pull request. A violation will cause the build to fail, so please make sure there are no violations. We can't accept a patch if the build fails.
 
+
 ## Running Tests
 
 ``` bash
 $ ./vendor/bin/phpunit
 ```
+
 
 ## Running PHP Code Sniffer
 

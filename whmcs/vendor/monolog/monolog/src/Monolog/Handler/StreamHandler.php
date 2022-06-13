@@ -1,4 +1,4 @@
-<?php declare(strict_types=1);
+<?php
 
 /*
  * This file is part of the Monolog package.
@@ -22,25 +22,24 @@ use Monolog\Logger;
  */
 class StreamHandler extends AbstractProcessingHandler
 {
-    /** @var resource|null */
     protected $stream;
     protected $url;
-    /** @var string|null */
     private $errorMessage;
     protected $filePermission;
     protected $useLocking;
     private $dirCreated;
 
     /**
-     * @param resource|string $stream         If a missing path can't be created, an UnexpectedValueException will be thrown on first write
-     * @param string|int      $level          The minimum logging level at which this handler will be triggered
-     * @param bool            $bubble         Whether the messages that are handled can bubble up the stack or not
+     * @param resource|string $stream
+     * @param int             $level          The minimum logging level at which this handler will be triggered
+     * @param Boolean         $bubble         Whether the messages that are handled can bubble up the stack or not
      * @param int|null        $filePermission Optional file permissions (default (0644) are only for owner read/write)
-     * @param bool            $useLocking     Try to lock log file before doing any writes
+     * @param Boolean         $useLocking     Try to lock log file before doing any writes
      *
+     * @throws \Exception                If a missing directory is not buildable
      * @throws \InvalidArgumentException If stream is not a resource or string
      */
-    public function __construct($stream, $level = Logger::DEBUG, bool $bubble = true, ?int $filePermission = null, bool $useLocking = false)
+    public function __construct($stream, $level = Logger::DEBUG, $bubble = true, $filePermission = null, $useLocking = false)
     {
         parent::__construct($level, $bubble);
         if (is_resource($stream)) {
@@ -58,47 +57,26 @@ class StreamHandler extends AbstractProcessingHandler
     /**
      * {@inheritdoc}
      */
-    public function close(): void
+    public function close()
     {
-        if ($this->url && is_resource($this->stream)) {
+        if (is_resource($this->stream)) {
             fclose($this->stream);
         }
         $this->stream = null;
-        $this->dirCreated = null;
-    }
-
-    /**
-     * Return the currently active stream if it is open
-     *
-     * @return resource|null
-     */
-    public function getStream()
-    {
-        return $this->stream;
-    }
-
-    /**
-     * Return the stream URL if it was configured with a URL and not an active resource
-     *
-     * @return string|null
-     */
-    public function getUrl(): ?string
-    {
-        return $this->url;
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function write(array $record): void
+    protected function write(array $record)
     {
         if (!is_resource($this->stream)) {
-            if (null === $this->url || '' === $this->url) {
+            if (!$this->url) {
                 throw new \LogicException('Missing stream url, the stream can not be opened. This may be caused by a premature call to close().');
             }
             $this->createDir();
             $this->errorMessage = null;
-            set_error_handler([$this, 'customErrorHandler']);
+            set_error_handler(array($this, 'customErrorHandler'));
             $this->stream = fopen($this->url, 'a');
             if ($this->filePermission !== null) {
                 @chmod($this->url, $this->filePermission);
@@ -106,7 +84,6 @@ class StreamHandler extends AbstractProcessingHandler
             restore_error_handler();
             if (!is_resource($this->stream)) {
                 $this->stream = null;
-
                 throw new \UnexpectedValueException(sprintf('The stream or file "%s" could not be opened: '.$this->errorMessage, $this->url));
             }
         }
@@ -116,31 +93,24 @@ class StreamHandler extends AbstractProcessingHandler
             flock($this->stream, LOCK_EX);
         }
 
-        $this->streamWrite($this->stream, $record);
+        fwrite($this->stream, (string) $record['formatted']);
 
         if ($this->useLocking) {
             flock($this->stream, LOCK_UN);
         }
     }
 
-    /**
-     * Write to stream
-     * @param resource $stream
-     * @param array    $record
-     */
-    protected function streamWrite($stream, array $record): void
-    {
-        fwrite($stream, (string) $record['formatted']);
-    }
-
-    private function customErrorHandler($code, $msg): bool
+    private function customErrorHandler($code, $msg)
     {
         $this->errorMessage = preg_replace('{^(fopen|mkdir)\(.*?\): }', '', $msg);
-
-        return true;
     }
 
-    private function getDirFromStream(string $stream): ?string
+    /**
+     * @param string $stream
+     *
+     * @return null|string
+     */
+    private function getDirFromStream($stream)
     {
         $pos = strpos($stream, '://');
         if ($pos === false) {
@@ -151,10 +121,10 @@ class StreamHandler extends AbstractProcessingHandler
             return dirname(substr($stream, 7));
         }
 
-        return null;
+        return;
     }
 
-    private function createDir(): void
+    private function createDir()
     {
         // Do not try to create dir if it has already been tried.
         if ($this->dirCreated) {
@@ -164,10 +134,10 @@ class StreamHandler extends AbstractProcessingHandler
         $dir = $this->getDirFromStream($this->url);
         if (null !== $dir && !is_dir($dir)) {
             $this->errorMessage = null;
-            set_error_handler([$this, 'customErrorHandler']);
+            set_error_handler(array($this, 'customErrorHandler'));
             $status = mkdir($dir, 0777, true);
             restore_error_handler();
-            if (false === $status && !is_dir($dir)) {
+            if (false === $status) {
                 throw new \UnexpectedValueException(sprintf('There is no existing directory at "%s" and its not buildable: '.$this->errorMessage, $dir));
             }
         }

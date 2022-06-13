@@ -11,12 +11,12 @@ class UriVoter implements VoterInterface
 {
     private $uri;
 
-    public function __construct(?string $uri = null)
+    public function __construct($uri = null)
     {
         $this->uri = $uri;
     }
 
-    public function matchItem(ItemInterface $item): ?bool
+    public function matchItem(ItemInterface $item)
     {
         if (null === $this->uri || null === $item->getUri()) {
             return null;

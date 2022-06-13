@@ -1,31 +1,3 @@
-## 3.1 (2019-12-01)
-
-* Allowed Symfony 5 components
-* Removed support for unsupported Symfony versions (4.0 and 4.1)
-* Allowed Twig 3
-
-## 3.0 (2019-09-02)
-
-* Raised PHP requirements
-* [BC break] Enforced strong types on all interfaces and classes
-* [BC break] Removed deprecated features. Specifically, MenuFactory and MenuItem are not accepting a `null` name anymore
-
-## 2.4 (2019-07-29)
-
-* Fixed Twig deprecations
-* Switched to namespaced Twig
-* Fixed sprintf use
-
-## 2.3 (2017-11-18)
-
-* Deprecated the Silex 1 KnpMenuServiceProvider. Use the `knplabs/knp-menu-silex` package instead.
-* Fixed RouteVoter to also match on non-string request arguments like integers as long as both string representations are identical.
-* Add Symfony 4 support
-
-## 2.2 (2016-09-22)
-
-* Added a new function to twig: `knp_menu_get_current_item`
-
 ## 2.1.1 (2016-01-08)
 
 * Made compatible with Symfony 3

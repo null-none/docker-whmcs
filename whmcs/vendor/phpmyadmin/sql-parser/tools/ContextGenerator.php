@@ -1,43 +1,15 @@
 <?php
 
-declare(strict_types=1);
-
 namespace PhpMyAdmin\SqlParser\Tools;
-
-use Exception;
-use function array_map;
-use function array_merge;
-use function array_slice;
-use function basename;
-use function count;
-use function dirname;
-use function file;
-use function file_put_contents;
-use function implode;
-use function is_dir;
-use function ksort;
-use function preg_match;
-use function round;
-use function rtrim;
-use function scandir;
-use function sort;
-use function sprintf;
-use function str_repeat;
-use function str_replace;
-use function str_split;
-use function strlen;
-use function strstr;
-use function strtoupper;
-use function substr;
-use function trim;
-use const FILE_IGNORE_NEW_LINES;
-use const FILE_SKIP_EMPTY_LINES;
-use const SORT_STRING;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
 /**
  * Used for context generation.
+ *
+ * @category   Contexts
+ *
+ * @license    https://www.gnu.org/licenses/gpl-2.0.txt GPL-2.0+
  */
 class ContextGenerator
 {
@@ -46,19 +18,19 @@ class ContextGenerator
      *
      * @var array
      */
-    public static $LABELS_FLAGS = [
+    public static $LABELS_FLAGS = array(
         '(R)' => 2, // reserved
         '(D)' => 8, // data type
         '(K)' => 16, // keyword
         '(F)' => 32, // function name
-    ];
+    );
 
     /**
      * Documentation links for each context.
      *
      * @var array
      */
-    public static $LINKS = [
+    public static $LINKS = array(
         'MySql50000' => 'https://dev.mysql.com/doc/refman/5.0/en/keywords.html',
         'MySql50100' => 'https://dev.mysql.com/doc/refman/5.1/en/keywords.html',
         'MySql50500' => 'https://dev.mysql.com/doc/refman/5.5/en/keywords.html',
@@ -69,7 +41,7 @@ class ContextGenerator
         'MariaDb100100' => 'https://mariadb.com/kb/en/the-mariadb-library/reserved-words/',
         'MariaDb100200' => 'https://mariadb.com/kb/en/the-mariadb-library/reserved-words/',
         'MariaDb100300' => 'https://mariadb.com/kb/en/the-mariadb-library/reserved-words/',
-    ];
+    );
 
     /**
      * The template of a context.
@@ -79,9 +51,12 @@ class ContextGenerator
      *     2 - class
      *     3 - link
      *     4 - keywords array
+     *
+     * @var string
      */
-    public const TEMPLATE =
+    const TEMPLATE =
         '<?php' . "\n" .
+        '' . "\n" .
         '/**' . "\n" .
         ' * Context for %1$s.' . "\n" .
         ' *' . "\n" .
@@ -89,7 +64,6 @@ class ContextGenerator
         ' *' . "\n" .
         ' * @see %3$s' . "\n" .
         ' */' . "\n" .
-        'declare(strict_types=1);' . "\n" .
         '' . "\n" .
         'namespace PhpMyAdmin\\SqlParser\\Contexts;' . "\n" .
         '' . "\n" .
@@ -116,9 +90,9 @@ class ContextGenerator
         '     *' . "\n" .
         '     * @var array' . "\n" .
         '     */' . "\n" .
-        '    public static $KEYWORDS = [' . "\n" .
+        '    public static $KEYWORDS = array(' . "\n" .
         '%4$s' .
-        '    ];' . "\n" .
+        '    );' . "\n" .
         '}' . "\n";
 
     /**
@@ -150,14 +124,14 @@ class ContextGenerator
      */
     public static function readWords(array $files)
     {
-        $words = [];
+        $words = array();
         foreach ($files as $file) {
             $words = array_merge($words, file($file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES));
         }
 
-        $types = [];
+        $types = array();
 
-        for ($i = 0, $count = count($words); $i !== $count; ++$i) {
+        for ($i = 0, $count = count($words); $i != $count; ++$i) {
             $type = 1;
             $value = trim($words[$i]);
 
@@ -181,24 +155,22 @@ class ContextGenerator
             }
 
             $value = strtoupper($value);
-            if (! isset($types[$value])) {
+            if (!isset($types[$value])) {
                 $types[$value] = $type;
             } else {
                 $types[$value] |= $type;
             }
         }
 
-        $ret = [];
+        $ret = array();
         foreach ($types as $word => $type) {
             $len = strlen($word);
-            if (! isset($ret[$type])) {
-                $ret[$type] = [];
+            if (!isset($ret[$type])) {
+                $ret[$type] = array();
             }
-
-            if (! isset($ret[$type][$len])) {
-                $ret[$type][$len] = [];
+            if (!isset($ret[$type][$len])) {
+                $ret[$type][$len] = array();
             }
-
             $ret[$type][$len][] = $word;
         }
 
@@ -214,7 +186,7 @@ class ContextGenerator
      *
      * @return string
      */
-    public static function printWords($words, $spaces = 8, $line = 140)
+    public static function printWords($words, $spaces = 8, $line = 80)
     {
         $typesCount = count($words);
         $ret = '';
@@ -226,18 +198,17 @@ class ContextGenerator
                 $i = 0;
 
                 foreach ($wordsByLen as $word) {
-                    if ($i === 0) {
+                    if ($i == 0) {
                         $ret .= str_repeat(' ', $spaces);
                     }
-
                     $ret .= sprintf('\'%s\' => %s, ', $word, $type);
-                    if (++$i === $count || ++$i > $count) {
+                    if (++$i == $count) {
                         $ret .= "\n";
                         $i = 0;
                     }
                 }
 
-                if ($i !== 0) {
+                if ($i != 0) {
                     $ret .= "\n";
                 }
             }
@@ -265,7 +236,7 @@ class ContextGenerator
         }
 
         return sprintf(
-            self::TEMPLATE,
+            static::TEMPLATE,
             $options['name'],
             $options['class'],
             $options['link'],
@@ -283,7 +254,7 @@ class ContextGenerator
     public static function formatName($name)
     {
         /* Split name and version */
-        $parts = [];
+        $parts = array();
         if (preg_match('/([^[0-9]*)([0-9]*)/', $name, $parts) === false) {
             return $name;
         }
@@ -301,16 +272,14 @@ class ContextGenerator
 
         /* Parse version to array */
         $ver_str = $parts[2];
-        if (strlen($ver_str) % 2 === 1) {
+        if (strlen($ver_str) % 2 == 1) {
             $ver_str = '0' . $ver_str;
         }
-
         $version = array_map('intval', str_split($ver_str, 2));
         /* Remove trailing zero */
         if ($version[count($version) - 1] === 0) {
             $version = array_slice($version, 0, count($version) - 1);
         }
-
         /* Create name */
         return $base . ' ' . implode('.', $version);
     }
@@ -365,18 +334,18 @@ class ContextGenerator
         file_put_contents(
             $output . '/' . $class . '.php',
             static::generate(
-                [
+                array(
                     'name' => $formattedName,
                     'class' => $class,
                     'link' => static::$LINKS[$name],
                     'keywords' => static::readWords(
-                        [
+                        array(
                             $directory . '_common.txt',
                             $directory . '_functions' . $file,
                             $directory . $file,
-                        ]
+                        )
                     ),
-                ]
+                )
             )
         );
     }
@@ -412,6 +381,7 @@ class ContextGenerator
 //
 // Input data must be in the `data` folder.
 // The output will be generated in the same `data` folder.
+//
 if (count($argv) >= 3) {
     // Extracting directories' name from command line and trimming unnecessary
     // slashes at the end.
@@ -419,10 +389,10 @@ if (count($argv) >= 3) {
     $output = rtrim($argv[2], '/');
 
     // Checking if all directories are valid.
-    if (! is_dir($input)) {
-        throw new Exception('The input directory does not exist.');
-    } elseif (! is_dir($output)) {
-        throw new Exception('The output directory does not exist.');
+    if (!is_dir($input)) {
+        throw new \Exception('The input directory does not exist.');
+    } elseif (!is_dir($output)) {
+        throw new \Exception('The output directory does not exist.');
     }
 
     // Finally, building the tests.

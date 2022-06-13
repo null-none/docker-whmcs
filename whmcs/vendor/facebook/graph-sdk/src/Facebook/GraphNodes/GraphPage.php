@@ -144,14 +144,4 @@ class GraphPage extends GraphNode
     {
         return $this->getField('perms');
     }
-
-    /**
-     * Returns the `fan_count` (Number of people who likes to page) as int if present.
-     *
-     * @return int|null
-     */
-    public function getFanCount()
-    {
-        return $this->getField('fan_count');
-    }
 }

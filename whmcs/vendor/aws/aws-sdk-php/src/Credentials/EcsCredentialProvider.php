@@ -14,13 +14,9 @@ class EcsCredentialProvider
 {
     const SERVER_URI = 'http://169.254.170.2';
     const ENV_URI = "AWS_CONTAINER_CREDENTIALS_RELATIVE_URI";
-    const ENV_TIMEOUT = 'AWS_METADATA_SERVICE_TIMEOUT';
 
     /** @var callable */
     private $client;
-
-    /** @var float|mixed */
-    private $timeout;
 
     /**
      *  The constructor accepts following options:
@@ -31,7 +27,7 @@ class EcsCredentialProvider
      */
     public function __construct(array $config = [])
     {
-        $this->timeout = (float) getenv(self::ENV_TIMEOUT) ?: (isset($config['timeout']) ? $config['timeout'] : 1.0);
+        $this->timeout = isset($config['timeout']) ? $config['timeout'] : 1.0;
         $this->client = isset($config['client'])
             ? $config['client']
             : \Aws\default_http_handler();

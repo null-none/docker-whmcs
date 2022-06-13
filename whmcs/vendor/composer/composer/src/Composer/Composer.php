@@ -20,7 +20,6 @@ use Composer\Plugin\PluginManager;
 use Composer\Downloader\DownloadManager;
 use Composer\EventDispatcher\EventDispatcher;
 use Composer\Autoload\AutoloadGenerator;
-use Composer\Package\Archiver\ArchiveManager;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -29,57 +28,9 @@ use Composer\Package\Archiver\ArchiveManager;
  */
 class Composer
 {
-    /*
-     * Examples of the following constants in the various configurations they can be in
-     *
-     * releases (phar):
-     * const VERSION = '1.8.2';
-     * const BRANCH_ALIAS_VERSION = '';
-     * const RELEASE_DATE = '2019-01-29 15:00:53';
-     * const SOURCE_VERSION = '';
-     *
-     * snapshot builds (phar):
-     * const VERSION = 'd3873a05650e168251067d9648845c220c50e2d7';
-     * const BRANCH_ALIAS_VERSION = '1.9-dev';
-     * const RELEASE_DATE = '2019-02-20 07:43:56';
-     * const SOURCE_VERSION = '';
-     *
-     * source (git clone):
-     * const VERSION = '1.10.6';
-     * const BRANCH_ALIAS_VERSION = '';
-     * const RELEASE_DATE = '2020-05-06 10:28:10';
-     * const SOURCE_VERSION = '1.8-dev+source';
-     */
-    const VERSION = '1.10.6';
+    const VERSION = '1.0.3';
     const BRANCH_ALIAS_VERSION = '';
-    const RELEASE_DATE = '2020-05-06 10:28:10';
-    const SOURCE_VERSION = '1.10-dev+source';
-
-    /**
-     * Version number of the internal composer-runtime-api package
-     *
-     * This is used to version features available to projects at runtime
-     * like the platform-check file, the Composer\InstalledVersions class
-     * and possibly others in the future.
-     *
-     * @var string
-     */
-    const RUNTIME_API_VERSION = '1.0.0';
-
-    public static function getVersion()
-    {
-        // no replacement done, this must be a source checkout
-        if (self::VERSION === '@package_version'.'@') {
-            return self::SOURCE_VERSION;
-        }
-
-        // we have a branch alias and version is a commit id, this must be a snapshot build
-        if (self::BRANCH_ALIAS_VERSION !== '' && preg_match('{^[a-f0-9]{40}$}', self::VERSION)) {
-            return self::BRANCH_ALIAS_VERSION.'+'.self::VERSION;
-        }
-
-        return self::VERSION;
-    }
+    const RELEASE_DATE = '2016-04-29 16:30:15';
 
     /**
      * @var Package\RootPackageInterface
@@ -125,11 +76,6 @@ class Composer
      * @var Autoload\AutoloadGenerator
      */
     private $autoloadGenerator;
-
-    /**
-     * @var ArchiveManager
-     */
-    private $archiveManager;
 
     /**
      * @param  Package\RootPackageInterface $package
@@ -210,22 +156,6 @@ class Composer
     public function getDownloadManager()
     {
         return $this->downloadManager;
-    }
-
-    /**
-     * @param ArchiveManager $manager
-     */
-    public function setArchiveManager(ArchiveManager $manager)
-    {
-        $this->archiveManager = $manager;
-    }
-
-    /**
-     * @return ArchiveManager
-     */
-    public function getArchiveManager()
-    {
-        return $this->archiveManager;
     }
 
     /**

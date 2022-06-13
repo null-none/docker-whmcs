@@ -1,8 +1,14 @@
 <div class="frames-description <?php echo $has_frames_tabs ? 'frames-description-application' : '' ?>">
   <?php if ($has_frames_tabs): ?>
-    <a href="#" id="application-frames-tab" class="frames-tab <?php echo $active_frames_tab == 'application' ? 'frames-tab-active' : '' ?>">
+    <?php if ($active_frames_tab == 'application'): ?>
+      <a href="#" id="application-frames-tab" class="frames-tab frames-tab-active">
         Application frames (<?php echo $frames->countIsApplication() ?>)
-    </a>
+      </a>
+    <?php else: ?>
+      <span href="#" id="application-frames-tab" class="frames-tab">
+        Application frames (<?php echo $frames->countIsApplication() ?>)
+      </span>
+    <?php endif; ?>
     <a href="#" id="all-frames-tab" class="frames-tab <?php echo $active_frames_tab == 'all' ? 'frames-tab-active' : '' ?>">
       All frames (<?php echo count($frames) ?>)
     </a>

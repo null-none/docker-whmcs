@@ -34,11 +34,6 @@ class CreateCustomerProfileFromTransactionRequest extends ANetApiRequestType
     private $defaultShippingAddress = null;
 
     /**
-     * @property string $profileType
-     */
-    private $profileType = null;
-
-    /**
      * Gets as transId
      *
      * @return string
@@ -145,28 +140,6 @@ class CreateCustomerProfileFromTransactionRequest extends ANetApiRequestType
     public function setDefaultShippingAddress($defaultShippingAddress)
     {
         $this->defaultShippingAddress = $defaultShippingAddress;
-        return $this;
-    }
-
-    /**
-     * Gets as profileType
-     *
-     * @return string
-     */
-    public function getProfileType()
-    {
-        return $this->profileType;
-    }
-
-    /**
-     * Sets a new profileType
-     *
-     * @param string $profileType
-     * @return self
-     */
-    public function setProfileType($profileType)
-    {
-        $this->profileType = $profileType;
         return $this;
     }
 

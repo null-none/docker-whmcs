@@ -5,7 +5,6 @@ namespace OAuth2\ClientAssertionType;
 use OAuth2\Storage\ClientCredentialsInterface;
 use OAuth2\RequestInterface;
 use OAuth2\ResponseInterface;
-use LogicException;
 
 /**
  * Validate a client via Http Basic authentication
@@ -20,16 +19,14 @@ class HttpBasic implements ClientAssertionTypeInterface
     protected $config;
 
     /**
-     * Config array $config should look as follows:
-     * @code
-     *     $config = array(
-     *         'allow_credentials_in_request_body' => true, // whether to look for credentials in the POST body in addition to the Authorize HTTP Header
-     *         'allow_public_clients'  => true              // if true, "public clients" (clients without a secret) may be authenticated
-     *     );
-     * @endcode
-     *
-     * @param ClientCredentialsInterface $storage Storage
-     * @param array                      $config  Configuration options for the server
+     * @param OAuth2\Storage\ClientCredentialsInterface $clientStorage REQUIRED Storage class for retrieving client credentials information
+     * @param array                                     $config        OPTIONAL Configuration options for the server
+     *                                                                 <code>
+     *                                                                 $config = array(
+     *                                                                 'allow_credentials_in_request_body' => true, // whether to look for credentials in the POST body in addition to the Authorize HTTP Header
+     *                                                                 'allow_public_clients'  => true              // if true, "public clients" (clients without a secret) may be authenticated
+     *                                                                 );
+     *                                                                 </code>
      */
     public function __construct(ClientCredentialsInterface $storage, array $config = array())
     {
@@ -40,14 +37,6 @@ class HttpBasic implements ClientAssertionTypeInterface
         ), $config);
     }
 
-    /**
-     * Validate the OAuth request
-     *
-     * @param RequestInterface $request
-     * @param ResponseInterface $response
-     * @return bool|mixed
-     * @throws LogicException
-     */
     public function validateRequest(RequestInterface $request, ResponseInterface $response)
     {
         if (!$clientData = $this->getClientCredentials($request, $response)) {
@@ -55,7 +44,7 @@ class HttpBasic implements ClientAssertionTypeInterface
         }
 
         if (!isset($clientData['client_id'])) {
-            throw new LogicException('the clientData array must have "client_id" set');
+            throw new \LogicException('the clientData array must have "client_id" set');
         }
 
         if (!isset($clientData['client_secret']) || $clientData['client_secret'] == '') {
@@ -81,11 +70,6 @@ class HttpBasic implements ClientAssertionTypeInterface
         return true;
     }
 
-    /**
-     * Get the client id
-     *
-     * @return mixed
-     */
     public function getClientId()
     {
         return $this->clientData['client_id'];
@@ -98,14 +82,13 @@ class HttpBasic implements ClientAssertionTypeInterface
      * According to the spec (draft 20), the client_id can be provided in
      * the Basic Authorization header (recommended) or via GET/POST.
      *
-     * @param RequestInterface  $request
-     * @param ResponseInterface $response
-     * @return array|null A list containing the client identifier and password, for example:
+     * @return
+     * A list containing the client identifier and password, for example
      * @code
-     *     return array(
-     *         "client_id"     => CLIENT_ID,        // REQUIRED the client id
-     *         "client_secret" => CLIENT_SECRET,    // OPTIONAL the client secret (may be omitted for public clients)
-     *     );
+     * return array(
+     *     "client_id"     => CLIENT_ID,        // REQUIRED the client id
+     *     "client_secret" => CLIENT_SECRET,    // OPTIONAL the client secret (may be omitted for public clients)
+     * );
      * @endcode
      *
      * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
@@ -125,6 +108,7 @@ class HttpBasic implements ClientAssertionTypeInterface
                  * client_secret can be null if the client's password is an empty string
                  * @see http://tools.ietf.org/html/rfc6749#section-2.3.1
                  */
+
                 return array('client_id' => $request->request('client_id'), 'client_secret' => $request->request('client_secret'));
             }
         }

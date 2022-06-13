@@ -144,11 +144,6 @@ class TransactionResponseType
     private $profile = null;
 
     /**
-     * @property string $networkTransId
-     */
-    private $networkTransId = null;
-
-    /**
      * Gets as responseCode
      *
      * @return string
@@ -829,28 +824,6 @@ class TransactionResponseType
     public function setProfile(\net\authorize\api\contract\v1\CustomerProfileIdType $profile)
     {
         $this->profile = $profile;
-        return $this;
-    }
-
-    /**
-     * Gets as networkTransId
-     *
-     * @return string
-     */
-    public function getNetworkTransId()
-    {
-        return $this->networkTransId;
-    }
-
-    /**
-     * Sets a new networkTransId
-     *
-     * @param string $networkTransId
-     * @return self
-     */
-    public function setNetworkTransId($networkTransId)
-    {
-        $this->networkTransId = $networkTransId;
         return $this;
     }
 

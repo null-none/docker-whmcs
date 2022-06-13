@@ -377,11 +377,6 @@ class AliasPackage extends BasePackage implements CompletePackageInterface
         return $this->aliasOf->getSupport();
     }
 
-    public function getFunding()
-    {
-        return $this->aliasOf->getFunding();
-    }
-
     public function getNotificationUrl()
     {
         return $this->aliasOf->getNotificationUrl();
@@ -405,15 +400,5 @@ class AliasPackage extends BasePackage implements CompletePackageInterface
     public function __toString()
     {
         return parent::__toString().' (alias of '.$this->aliasOf->getVersion().')';
-    }
-
-    public function setDistUrl($url)
-    {
-        return $this->aliasOf->setDistUrl($url);
-    }
-
-    public function setDistType($type)
-    {
-        return $this->aliasOf->setDistType($type);
     }
 }

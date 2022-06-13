@@ -2,9 +2,9 @@
 
 namespace Illuminate\Database\Console\Seeds;
 
-use Illuminate\Console\GeneratorCommand;
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Composer;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Console\GeneratorCommand;
 
 class SeederMakeCommand extends GeneratorCommand
 {
@@ -55,9 +55,9 @@ class SeederMakeCommand extends GeneratorCommand
      *
      * @return void
      */
-    public function handle()
+    public function fire()
     {
-        parent::handle();
+        parent::fire();
 
         $this->composer->dumpAutoloads();
     }
@@ -69,20 +69,7 @@ class SeederMakeCommand extends GeneratorCommand
      */
     protected function getStub()
     {
-        return $this->resolveStubPath('/stubs/seeder.stub');
-    }
-
-    /**
-     * Resolve the fully-qualified path to the stub.
-     *
-     * @param  string  $stub
-     * @return string
-     */
-    protected function resolveStubPath($stub)
-    {
-        return file_exists($customPath = $this->laravel->basePath(trim($stub, '/')))
-            ? $customPath
-            : __DIR__.$stub;
+        return __DIR__.'/stubs/seeder.stub';
     }
 
     /**
@@ -97,12 +84,12 @@ class SeederMakeCommand extends GeneratorCommand
     }
 
     /**
-     * Parse the class name and format according to the root namespace.
+     * Parse the name and format according to the root namespace.
      *
      * @param  string  $name
      * @return string
      */
-    protected function qualifyClass($name)
+    protected function parseName($name)
     {
         return $name;
     }

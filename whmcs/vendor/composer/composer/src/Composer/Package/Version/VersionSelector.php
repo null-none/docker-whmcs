@@ -15,8 +15,6 @@ namespace Composer\Package\Version;
 use Composer\DependencyResolver\Pool;
 use Composer\Package\BasePackage;
 use Composer\Package\PackageInterface;
-use Composer\Plugin\PluginInterface;
-use Composer\Composer;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Semver\Constraint\Constraint;
@@ -55,14 +53,10 @@ class VersionSelector
 
         if ($targetPhpVersion) {
             $phpConstraint = new Constraint('==', $this->getParser()->normalize($targetPhpVersion));
-            $composerRuntimeConstraint = new Constraint('==', $this->getParser()->normalize(Composer::RUNTIME_API_VERSION));
-            $composerPluginConstraint = new Constraint('==', $this->getParser()->normalize(PluginInterface::PLUGIN_API_VERSION));
-            $candidates = array_filter($candidates, function ($pkg) use ($phpConstraint, $composerPluginConstraint, $composerRuntimeConstraint) {
+            $candidates = array_filter($candidates, function ($pkg) use ($phpConstraint) {
                 $reqs = $pkg->getRequires();
 
-                return (!isset($reqs['php']) || $reqs['php']->getConstraint()->matches($phpConstraint))
-                    && (!isset($reqs['composer-plugin-api']) || $reqs['composer-plugin-api']->getConstraint()->matches($composerPluginConstraint))
-                    && (!isset($reqs['composer-runtime-api']) || $reqs['composer-runtime-api']->getConstraint()->matches($composerRuntimeConstraint));
+                return !isset($reqs['php']) || $reqs['php']->getConstraint()->matches($phpConstraint);
             });
         }
 
@@ -77,21 +71,11 @@ class VersionSelector
             $candidatePriority = $candidate->getStabilityPriority();
             $currentPriority = $package->getStabilityPriority();
 
-            // candidate is less stable than our preferred stability,
-            // and current package is more stable than candidate, skip it
+            // candidate is less stable than our preferred stability, and we have a package that is more stable than it, so we skip it
             if ($minPriority < $candidatePriority && $currentPriority < $candidatePriority) {
                 continue;
             }
-
-            // candidate is less stable than our preferred stability,
-            // and current package is less stable than candidate, select candidate
-            if ($minPriority < $candidatePriority && $candidatePriority < $currentPriority) {
-                $package = $candidate;
-                continue;
-            }
-
-            // candidate is more stable than our preferred stability,
-            // and current package is less stable than preferred stability, select candidate
+            // candidate is more stable than our preferred stability, and current package is less stable than preferred stability, then we select the candidate always
             if ($minPriority >= $candidatePriority && $minPriority < $currentPriority) {
                 $package = $candidate;
                 continue;

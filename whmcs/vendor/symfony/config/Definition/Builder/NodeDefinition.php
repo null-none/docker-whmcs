@@ -11,9 +11,8 @@
 
 namespace Symfony\Component\Config\Definition\Builder;
 
-use Symfony\Component\Config\Definition\BaseNode;
-use Symfony\Component\Config\Definition\Exception\InvalidDefinitionException;
 use Symfony\Component\Config\Definition\NodeInterface;
+use Symfony\Component\Config\Definition\Exception\InvalidDefinitionException;
 
 /**
  * This class provides a fluent interface for defining a node.
@@ -28,17 +27,25 @@ abstract class NodeDefinition implements NodeParentInterface
     protected $defaultValue;
     protected $default = false;
     protected $required = false;
-    protected $deprecation = [];
     protected $merge;
     protected $allowEmptyValue = true;
     protected $nullEquivalent;
     protected $trueEquivalent = true;
     protected $falseEquivalent = false;
-    protected $pathSeparator = BaseNode::DEFAULT_PATH_SEPARATOR;
-    protected $parent;
-    protected $attributes = [];
 
-    public function __construct(?string $name, NodeParentInterface $parent = null)
+    /**
+     * @var NodeParentInterface|null
+     */
+    protected $parent;
+    protected $attributes = array();
+
+    /**
+     * Constructor.
+     *
+     * @param string                   $name   The name of the node
+     * @param NodeParentInterface|null $parent The parent
+     */
+    public function __construct($name, NodeParentInterface $parent = null)
     {
         $this->parent = $parent;
         $this->name = $name;
@@ -46,6 +53,8 @@ abstract class NodeDefinition implements NodeParentInterface
 
     /**
      * Sets the parent node.
+     *
+     * @param NodeParentInterface $parent The parent
      *
      * @return $this
      */
@@ -59,9 +68,11 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Sets info message.
      *
+     * @param string $info The info text
+     *
      * @return $this
      */
-    public function info(string $info)
+    public function info($info)
     {
         return $this->attribute('info', $info);
     }
@@ -81,11 +92,12 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Sets an attribute on the node.
      *
-     * @param mixed $value
+     * @param string $key
+     * @param mixed  $value
      *
      * @return $this
      */
-    public function attribute(string $key, $value)
+    public function attribute($key, $value)
     {
         $this->attributes[$key] = $value;
 
@@ -95,7 +107,7 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Returns the parent node.
      *
-     * @return NodeParentInterface|NodeBuilder|NodeDefinition|ArrayNodeDefinition|VariableNodeDefinition|null
+     * @return NodeParentInterface|NodeBuilder|NodeDefinition|ArrayNodeDefinition|VariableNodeDefinition|null The builder of the parent node
      */
     public function end()
     {
@@ -105,9 +117,11 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Creates the node.
      *
+     * @param bool $forceRootNode Whether to force this node as the root node
+     *
      * @return NodeInterface
      */
-    public function getNode(bool $forceRootNode = false)
+    public function getNode($forceRootNode = false)
     {
         if ($forceRootNode) {
             $this->parent = null;
@@ -122,9 +136,7 @@ abstract class NodeDefinition implements NodeParentInterface
         }
 
         $node = $this->createNode();
-        if ($node instanceof BaseNode) {
-            $node->setAttributes($this->attributes);
-        }
+        $node->setAttributes($this->attributes);
 
         return $node;
     }
@@ -152,42 +164,6 @@ abstract class NodeDefinition implements NodeParentInterface
     public function isRequired()
     {
         $this->required = true;
-
-        return $this;
-    }
-
-    /**
-     * Sets the node as deprecated.
-     *
-     * @param string $package The name of the composer package that is triggering the deprecation
-     * @param string $version The version of the package that introduced the deprecation
-     * @param string $message the deprecation message to use
-     *
-     * You can use %node% and %path% placeholders in your message to display,
-     * respectively, the node name and its complete path
-     *
-     * @return $this
-     */
-    public function setDeprecated(/* string $package, string $version, string $message = 'The child node "%node%" at path "%path%" is deprecated.' */)
-    {
-        $args = \func_get_args();
-
-        if (\func_num_args() < 2) {
-            trigger_deprecation('symfony/config', '5.1', 'The signature of method "%s()" requires 3 arguments: "string $package, string $version, string $message", not defining them is deprecated.', __METHOD__);
-
-            $message = $args[0] ?? 'The child node "%node%" at path "%path%" is deprecated.';
-            $package = $version = '';
-        } else {
-            $package = (string) $args[0];
-            $version = (string) $args[1];
-            $message = (string) ($args[2] ?? 'The child node "%node%" at path "%path%" is deprecated.');
-        }
-
-        $this->deprecation = [
-            'package' => $package,
-            'version' => $version,
-            'message' => $message,
-        ];
 
         return $this;
     }
@@ -303,9 +279,11 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Sets whether the node can be overwritten.
      *
+     * @param bool $deny Whether the overwriting is forbidden or not
+     *
      * @return $this
      */
-    public function cannotBeOverwritten(bool $deny = true)
+    public function cannotBeOverwritten($deny = true)
     {
         $this->merge()->denyOverwrite($deny);
 
@@ -357,27 +335,9 @@ abstract class NodeDefinition implements NodeParentInterface
     /**
      * Instantiate and configure the node according to this definition.
      *
-     * @return NodeInterface
+     * @return NodeInterface $node The node instance
      *
      * @throws InvalidDefinitionException When the definition is invalid
      */
     abstract protected function createNode();
-
-    /**
-     * Set PathSeparator to use.
-     *
-     * @return $this
-     */
-    public function setPathSeparator(string $separator)
-    {
-        if ($this instanceof ParentNodeDefinitionInterface) {
-            foreach ($this->getChildNodeDefinitions() as $child) {
-                $child->setPathSeparator($separator);
-            }
-        }
-
-        $this->pathSeparator = $separator;
-
-        return $this;
-    }
 }

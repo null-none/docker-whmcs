@@ -42,8 +42,7 @@ class GitExcludeFilter extends BaseExcludeFilter
                 $this->parseLines(
                     file($sourcePath.'/.gitattributes'),
                     array($this, 'parseGitAttributesLine')
-                )
-            );
+            ));
         }
     }
 
@@ -64,7 +63,7 @@ class GitExcludeFilter extends BaseExcludeFilter
      *
      * @param string $line A line from .gitattributes
      *
-     * @return array|null An exclude pattern for filter()
+     * @return array An exclude pattern for filter()
      */
     public function parseGitAttributesLine($line)
     {

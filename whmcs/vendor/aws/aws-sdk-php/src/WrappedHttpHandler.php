@@ -171,11 +171,7 @@ class WrappedHttpHandler
             $parts = ['response' => null];
         } else {
             try {
-                $parts = call_user_func(
-                    $this->errorParser,
-                    $err['response'],
-                    $command
-                );
+                $parts = call_user_func($this->errorParser, $err['response']);
                 $serviceError .= " {$parts['code']} ({$parts['type']}): "
                     . "{$parts['message']} - " . $err['response']->getBody();
             } catch (ParserException $e) {

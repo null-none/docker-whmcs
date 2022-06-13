@@ -174,9 +174,9 @@ class Input extends InputAbstract
             return '';
         }
 
-        $acceptable = array_map([$this, 'acceptableItemFormatted'], $this->acceptable);
+        $this->acceptable = array_map([$this, 'acceptableItemFormatted'], $this->acceptable);
 
-        return '[' . implode('/', $acceptable) . ']';
+        return '[' . implode('/', $this->acceptable) . ']';
     }
 
     /**
@@ -219,7 +219,7 @@ class Input extends InputAbstract
      */
     protected function levelPlayingField($var)
     {
-        $levelers = ['trim', 'mb_strtolower'];
+        $levelers = ['trim', 'strtolower'];
 
         foreach ($levelers as $leveler) {
             if (is_array($var)) {

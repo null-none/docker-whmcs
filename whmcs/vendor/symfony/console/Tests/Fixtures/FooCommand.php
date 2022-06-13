@@ -14,7 +14,7 @@ class FooCommand extends Command
         $this
             ->setName('foo:bar')
             ->setDescription('The foo:bar command')
-            ->setAliases(['afoobar'])
+            ->setAliases(array('afoobar'))
         ;
     }
 
@@ -23,13 +23,11 @@ class FooCommand extends Command
         $output->writeln('interact called');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->input = $input;
         $this->output = $output;
 
         $output->writeln('called');
-
-        return 0;
     }
 }

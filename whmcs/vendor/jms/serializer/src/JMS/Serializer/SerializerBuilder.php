@@ -1,5 +1,21 @@
 <?php
 
+/*
+ * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 namespace JMS\Serializer;
 
 use Doctrine\Common\Annotations\AnnotationReader;
@@ -28,11 +44,9 @@ use JMS\Serializer\Handler\HandlerRegistry;
 use JMS\Serializer\Handler\PhpCollectionHandler;
 use JMS\Serializer\Handler\PropelCollectionHandler;
 use JMS\Serializer\Handler\StdClassHandler;
-use JMS\Serializer\Naming\AdvancedNamingStrategyInterface;
 use JMS\Serializer\Naming\CamelCaseNamingStrategy;
 use JMS\Serializer\Naming\PropertyNamingStrategyInterface;
 use JMS\Serializer\Naming\SerializedNameAnnotationStrategy;
-use Metadata\Cache\CacheInterface;
 use Metadata\Cache\FileCache;
 use Metadata\MetadataFactory;
 use PhpCollection\Map;
@@ -74,11 +88,6 @@ class SerializerBuilder
      * @var AccessorStrategyInterface
      */
     private $accessorStrategy;
-
-    /**
-     * @var CacheInterface
-     */
-    private $metadataCache;
 
     public static function create()
     {
@@ -192,13 +201,6 @@ class SerializerBuilder
     public function setPropertyNamingStrategy(PropertyNamingStrategyInterface $propertyNamingStrategy)
     {
         $this->propertyNamingStrategy = $propertyNamingStrategy;
-
-        return $this;
-    }
-
-    public function setAdvancedNamingStrategy(AdvancedNamingStrategyInterface $advancedNamingStrategy)
-    {
-        $this->propertyNamingStrategy = $advancedNamingStrategy;
 
         return $this;
     }
@@ -412,17 +414,6 @@ class SerializerBuilder
         return $this;
     }
 
-    /**
-     * @param CacheInterface $cache
-     *
-     * @return self
-     */
-    public function setMetadataCache(CacheInterface $cache)
-    {
-        $this->metadataCache = $cache;
-        return $this;
-    }
-
     public function build()
     {
         $annotationReader = $this->annotationReader;
@@ -441,9 +432,7 @@ class SerializerBuilder
 
         $metadataFactory->setIncludeInterfaces($this->includeInterfaceMetadata);
 
-        if ($this->metadataCache !== null) {
-            $metadataFactory->setCache($this->metadataCache);
-        } elseif (null !== $this->cacheDir) {
+        if (null !== $this->cacheDir) {
             $this->createDir($this->cacheDir . '/metadata');
             $metadataFactory->setCache(new FileCache($this->cacheDir . '/metadata'));
         }

@@ -67,8 +67,6 @@ use Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise getSlotTypesAsync(array $args = [])
  * @method \Aws\Result getUtterancesView(array $args = [])
  * @method \GuzzleHttp\Promise\Promise getUtterancesViewAsync(array $args = [])
- * @method \Aws\Result listTagsForResource(array $args = [])
- * @method \GuzzleHttp\Promise\Promise listTagsForResourceAsync(array $args = [])
  * @method \Aws\Result putBot(array $args = [])
  * @method \GuzzleHttp\Promise\Promise putBotAsync(array $args = [])
  * @method \Aws\Result putBotAlias(array $args = [])
@@ -79,9 +77,5 @@ use Aws\AwsClient;
  * @method \GuzzleHttp\Promise\Promise putSlotTypeAsync(array $args = [])
  * @method \Aws\Result startImport(array $args = [])
  * @method \GuzzleHttp\Promise\Promise startImportAsync(array $args = [])
- * @method \Aws\Result tagResource(array $args = [])
- * @method \GuzzleHttp\Promise\Promise tagResourceAsync(array $args = [])
- * @method \Aws\Result untagResource(array $args = [])
- * @method \GuzzleHttp\Promise\Promise untagResourceAsync(array $args = [])
  */
 class LexModelBuildingServiceClient extends AwsClient {}

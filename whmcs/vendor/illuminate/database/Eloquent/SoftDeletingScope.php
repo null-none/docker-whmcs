@@ -9,7 +9,7 @@ class SoftDeletingScope implements Scope
      *
      * @var array
      */
-    protected $extensions = ['Restore', 'WithTrashed', 'WithoutTrashed', 'OnlyTrashed'];
+    protected $extensions = ['ForceDelete', 'Restore', 'WithTrashed', 'OnlyTrashed'];
 
     /**
      * Apply the scope to a given Eloquent query builder.
@@ -54,9 +54,22 @@ class SoftDeletingScope implements Scope
     {
         if (count((array) $builder->getQuery()->joins) > 0) {
             return $builder->getModel()->getQualifiedDeletedAtColumn();
+        } else {
+            return $builder->getModel()->getDeletedAtColumn();
         }
+    }
 
-        return $builder->getModel()->getDeletedAtColumn();
+    /**
+     * Add the force delete extension to the builder.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @return void
+     */
+    protected function addForceDelete(Builder $builder)
+    {
+        $builder->macro('forceDelete', function (Builder $builder) {
+            return $builder->getQuery()->delete();
+        });
     }
 
     /**
@@ -82,31 +95,8 @@ class SoftDeletingScope implements Scope
      */
     protected function addWithTrashed(Builder $builder)
     {
-        $builder->macro('withTrashed', function (Builder $builder, $withTrashed = true) {
-            if (! $withTrashed) {
-                return $builder->withoutTrashed();
-            }
-
+        $builder->macro('withTrashed', function (Builder $builder) {
             return $builder->withoutGlobalScope($this);
-        });
-    }
-
-    /**
-     * Add the without-trashed extension to the builder.
-     *
-     * @param  \Illuminate\Database\Eloquent\Builder  $builder
-     * @return void
-     */
-    protected function addWithoutTrashed(Builder $builder)
-    {
-        $builder->macro('withoutTrashed', function (Builder $builder) {
-            $model = $builder->getModel();
-
-            $builder->withoutGlobalScope($this)->whereNull(
-                $model->getQualifiedDeletedAtColumn()
-            );
-
-            return $builder;
         });
     }
 

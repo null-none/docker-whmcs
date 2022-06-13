@@ -11,11 +11,10 @@
 
 namespace Symfony\Component\Translation\Tests\Loader;
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Config\Resource\FileResource;
 use Symfony\Component\Translation\Loader\IniFileLoader;
+use Symfony\Component\Config\Resource\FileResource;
 
-class IniFileLoaderTest extends TestCase
+class IniFileLoaderTest extends \PHPUnit_Framework_TestCase
 {
     public function testLoad()
     {
@@ -23,9 +22,9 @@ class IniFileLoaderTest extends TestCase
         $resource = __DIR__.'/../fixtures/resources.ini';
         $catalogue = $loader->load($resource, 'en', 'domain1');
 
-        $this->assertEquals(['foo' => 'bar'], $catalogue->all('domain1'));
+        $this->assertEquals(array('foo' => 'bar'), $catalogue->all('domain1'));
         $this->assertEquals('en', $catalogue->getLocale());
-        $this->assertEquals([new FileResource($resource)], $catalogue->getResources());
+        $this->assertEquals(array(new FileResource($resource)), $catalogue->getResources());
     }
 
     public function testLoadDoesNothingIfEmpty()
@@ -34,14 +33,16 @@ class IniFileLoaderTest extends TestCase
         $resource = __DIR__.'/../fixtures/empty.ini';
         $catalogue = $loader->load($resource, 'en', 'domain1');
 
-        $this->assertEquals([], $catalogue->all('domain1'));
+        $this->assertEquals(array(), $catalogue->all('domain1'));
         $this->assertEquals('en', $catalogue->getLocale());
-        $this->assertEquals([new FileResource($resource)], $catalogue->getResources());
+        $this->assertEquals(array(new FileResource($resource)), $catalogue->getResources());
     }
 
+    /**
+     * @expectedException \Symfony\Component\Translation\Exception\NotFoundResourceException
+     */
     public function testLoadNonExistingResource()
     {
-        $this->expectException('Symfony\Component\Translation\Exception\NotFoundResourceException');
         $loader = new IniFileLoader();
         $resource = __DIR__.'/../fixtures/non-existing.ini';
         $loader->load($resource, 'en', 'domain1');

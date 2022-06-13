@@ -1,5 +1,21 @@
 <?php
 
+/*
+ * Copyright 2016 Johannes M. Schmitt <schmittjoh@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 namespace JMS\Serializer\Metadata;
 
 use JMS\Serializer\Exception\RuntimeException;
@@ -36,29 +52,7 @@ class PropertyMetadata extends BasePropertyMetadata
     public $maxDepth = null;
     public $excludeIf = null;
 
-    private $closureAccessor;
-
     private static $typeParser;
-
-    public function __construct($class, $name)
-    {
-        parent::__construct($class, $name);
-        $this->initAccessor();
-    }
-
-    private function initAccessor()
-    {
-        $classRef = $this->reflection->getDeclaringClass();
-        if ($classRef->isInternal() || $classRef->getProperty($this->name)->isStatic()) {
-            $this->closureAccessor = function ($o) {
-                return $this->reflection->getValue($o);
-            };
-        } else {
-            $this->closureAccessor = \Closure::bind(function ($o, $name) {
-                return $o->$name;
-            }, null, $this->reflection->class);
-        }
-    }
 
     public function setAccessor($type, $getter = null, $setter = null)
     {
@@ -93,11 +87,6 @@ class PropertyMetadata extends BasePropertyMetadata
     public function getValue($obj)
     {
         if (null === $this->getter) {
-            if (null !== $this->closureAccessor) {
-                $accessor = $this->closureAccessor;
-                return $accessor($obj, $this->name);
-            }
-
             return parent::getValue($obj);
         }
 
@@ -156,14 +145,6 @@ class PropertyMetadata extends BasePropertyMetadata
 
     public function unserialize($str)
     {
-        $parentStr = $this->unserializeProperties($str);
-        parent::unserialize($parentStr);
-
-        $this->initAccessor();
-    }
-
-    protected function unserializeProperties($str)
-    {
         $unserialized = unserialize($str);
         list(
             $this->sinceVersion,
@@ -202,6 +183,6 @@ class PropertyMetadata extends BasePropertyMetadata
             $this->skipWhenEmpty = $unserialized['skipWhenEmpty'];
         }
 
-        return $parentStr;
+        parent::unserialize($parentStr);
     }
 }

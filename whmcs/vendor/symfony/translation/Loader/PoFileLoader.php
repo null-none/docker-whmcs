@@ -12,7 +12,7 @@
 namespace Symfony\Component\Translation\Loader;
 
 /**
- * @copyright Copyright (c) 2010, Union of RAD https://github.com/UnionOfRAD/lithium
+ * @copyright Copyright (c) 2010, Union of RAD http://union-of-rad.org (http://lithify.me/)
  * @copyright Copyright (c) 2012, Clemens Tolboom
  */
 class PoFileLoader extends FileLoader
@@ -20,7 +20,7 @@ class PoFileLoader extends FileLoader
     /**
      * Parses portable object (PO) format.
      *
-     * From https://www.gnu.org/software/gettext/manual/gettext.html#PO-Files
+     * From http://www.gnu.org/software/gettext/manual/gettext.html#PO-Files
      * we should be able to parse files having:
      *
      * white-space
@@ -64,53 +64,53 @@ class PoFileLoader extends FileLoader
     {
         $stream = fopen($resource, 'r');
 
-        $defaults = [
-            'ids' => [],
+        $defaults = array(
+            'ids' => array(),
             'translated' => null,
-        ];
+        );
 
-        $messages = [];
+        $messages = array();
         $item = $defaults;
-        $flags = [];
+        $flags = array();
 
         while ($line = fgets($stream)) {
             $line = trim($line);
 
-            if ('' === $line) {
+            if ($line === '') {
                 // Whitespace indicated current item is done
-                if (!\in_array('fuzzy', $flags)) {
+                if (!in_array('fuzzy', $flags)) {
                     $this->addMessage($messages, $item);
                 }
                 $item = $defaults;
-                $flags = [];
-            } elseif ('#,' === substr($line, 0, 2)) {
+                $flags = array();
+            } elseif (substr($line, 0, 2) === '#,') {
                 $flags = array_map('trim', explode(',', substr($line, 2)));
-            } elseif ('msgid "' === substr($line, 0, 7)) {
+            } elseif (substr($line, 0, 7) === 'msgid "') {
                 // We start a new msg so save previous
                 // TODO: this fails when comments or contexts are added
                 $this->addMessage($messages, $item);
                 $item = $defaults;
                 $item['ids']['singular'] = substr($line, 7, -1);
-            } elseif ('msgstr "' === substr($line, 0, 8)) {
+            } elseif (substr($line, 0, 8) === 'msgstr "') {
                 $item['translated'] = substr($line, 8, -1);
-            } elseif ('"' === $line[0]) {
+            } elseif ($line[0] === '"') {
                 $continues = isset($item['translated']) ? 'translated' : 'ids';
 
-                if (\is_array($item[$continues])) {
+                if (is_array($item[$continues])) {
                     end($item[$continues]);
                     $item[$continues][key($item[$continues])] .= substr($line, 1, -1);
                 } else {
                     $item[$continues] .= substr($line, 1, -1);
                 }
-            } elseif ('msgid_plural "' === substr($line, 0, 14)) {
+            } elseif (substr($line, 0, 14) === 'msgid_plural "') {
                 $item['ids']['plural'] = substr($line, 14, -1);
-            } elseif ('msgstr[' === substr($line, 0, 7)) {
+            } elseif (substr($line, 0, 7) === 'msgstr[') {
                 $size = strpos($line, ']');
                 $item['translated'][(int) substr($line, 7, 1)] = substr($line, $size + 3, -1);
             }
         }
         // save last item
-        if (!\in_array('fuzzy', $flags)) {
+        if (!in_array('fuzzy', $flags)) {
             $this->addMessage($messages, $item);
         }
         fclose($stream);
@@ -123,27 +123,29 @@ class PoFileLoader extends FileLoader
      *
      * A .po file could contain by error missing plural indexes. We need to
      * fix these before saving them.
+     *
+     * @param array $messages
+     * @param array $item
      */
     private function addMessage(array &$messages, array $item)
     {
-        if (!empty($item['ids']['singular'])) {
-            $id = stripcslashes($item['ids']['singular']);
+        if (is_array($item['translated'])) {
+            $messages[stripcslashes($item['ids']['singular'])] = stripcslashes($item['translated'][0]);
             if (isset($item['ids']['plural'])) {
-                $id .= '|'.stripcslashes($item['ids']['plural']);
+                $plurals = $item['translated'];
+                // PO are by definition indexed so sort by index.
+                ksort($plurals);
+                // Make sure every index is filled.
+                end($plurals);
+                $count = key($plurals);
+                // Fill missing spots with '-'.
+                $empties = array_fill(0, $count + 1, '-');
+                $plurals += $empties;
+                ksort($plurals);
+                $messages[stripcslashes($item['ids']['plural'])] = stripcslashes(implode('|', $plurals));
             }
-
-            $translated = (array) $item['translated'];
-            // PO are by definition indexed so sort by index.
-            ksort($translated);
-            // Make sure every index is filled.
-            end($translated);
-            $count = key($translated);
-            // Fill missing spots with '-'.
-            $empties = array_fill(0, $count + 1, '-');
-            $translated += $empties;
-            ksort($translated);
-
-            $messages[$id] = stripcslashes(implode('|', $translated));
+        } elseif (!empty($item['ids']['singular'])) {
+            $messages[stripcslashes($item['ids']['singular'])] = stripcslashes($item['translated']);
         }
     }
 }

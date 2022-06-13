@@ -5,7 +5,7 @@ namespace net\authorize\api\contract\v1;
 /**
  * Class representing PaymentType
  *
- * 
+ *
  * XSD Type: paymentType
  */
 class PaymentType
@@ -46,11 +46,6 @@ class PaymentType
      * @property \net\authorize\api\contract\v1\PaymentEmvType $emv
      */
     private $emv = null;
-
-    /**
-     * @property string $dataSource
-     */
-    private $dataSource = null;
 
     /**
      * Gets as creditCard
@@ -203,28 +198,6 @@ class PaymentType
     public function setEmv(\net\authorize\api\contract\v1\PaymentEmvType $emv)
     {
         $this->emv = $emv;
-        return $this;
-    }
-
-    /**
-     * Gets as dataSource
-     *
-     * @return string
-     */
-    public function getDataSource()
-    {
-        return $this->dataSource;
-    }
-
-    /**
-     * Sets a new dataSource
-     *
-     * @param string $dataSource
-     * @return self
-     */
-    public function setDataSource($dataSource)
-    {
-        $this->dataSource = $dataSource;
         return $this;
     }
 

@@ -11,6 +11,9 @@
 
 namespace Symfony\Component\Console\Input;
 
+use Symfony\Component\Console\Descriptor\TextDescriptor;
+use Symfony\Component\Console\Descriptor\XmlDescriptor;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Exception\InvalidArgumentException;
 use Symfony\Component\Console\Exception\LogicException;
 
@@ -19,10 +22,10 @@ use Symfony\Component\Console\Exception\LogicException;
  *
  * Usage:
  *
- *     $definition = new InputDefinition([
- *         new InputArgument('name', InputArgument::REQUIRED),
- *         new InputOption('foo', 'f', InputOption::VALUE_REQUIRED),
- *     ]);
+ *     $definition = new InputDefinition(array(
+ *       new InputArgument('name', InputArgument::REQUIRED),
+ *       new InputOption('foo', 'f', InputOption::VALUE_REQUIRED),
+ *     ));
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
@@ -36,20 +39,24 @@ class InputDefinition
     private $shortcuts;
 
     /**
+     * Constructor.
+     *
      * @param array $definition An array of InputArgument and InputOption instance
      */
-    public function __construct(array $definition = [])
+    public function __construct(array $definition = array())
     {
         $this->setDefinition($definition);
     }
 
     /**
      * Sets the definition of the input.
+     *
+     * @param array $definition The definition array
      */
     public function setDefinition(array $definition)
     {
-        $arguments = [];
-        $options = [];
+        $arguments = array();
+        $options = array();
         foreach ($definition as $item) {
             if ($item instanceof InputOption) {
                 $options[] = $item;
@@ -67,9 +74,9 @@ class InputDefinition
      *
      * @param InputArgument[] $arguments An array of InputArgument objects
      */
-    public function setArguments(array $arguments = [])
+    public function setArguments($arguments = array())
     {
-        $this->arguments = [];
+        $this->arguments = array();
         $this->requiredCount = 0;
         $this->hasOptional = false;
         $this->hasAnArrayArgument = false;
@@ -81,7 +88,7 @@ class InputDefinition
      *
      * @param InputArgument[] $arguments An array of InputArgument objects
      */
-    public function addArguments(?array $arguments = [])
+    public function addArguments($arguments = array())
     {
         if (null !== $arguments) {
             foreach ($arguments as $argument) {
@@ -91,6 +98,10 @@ class InputDefinition
     }
 
     /**
+     * Adds an InputArgument object.
+     *
+     * @param InputArgument $argument An InputArgument object
+     *
      * @throws LogicException When incorrect argument is given
      */
     public function addArgument(InputArgument $argument)
@@ -135,7 +146,7 @@ class InputDefinition
             throw new InvalidArgumentException(sprintf('The "%s" argument does not exist.', $name));
         }
 
-        $arguments = \is_int($name) ? array_values($this->arguments) : $this->arguments;
+        $arguments = is_int($name) ? array_values($this->arguments) : $this->arguments;
 
         return $arguments[$name];
     }
@@ -149,7 +160,7 @@ class InputDefinition
      */
     public function hasArgument($name)
     {
-        $arguments = \is_int($name) ? array_values($this->arguments) : $this->arguments;
+        $arguments = is_int($name) ? array_values($this->arguments) : $this->arguments;
 
         return isset($arguments[$name]);
     }
@@ -171,7 +182,7 @@ class InputDefinition
      */
     public function getArgumentCount()
     {
-        return $this->hasAnArrayArgument ? PHP_INT_MAX : \count($this->arguments);
+        return $this->hasAnArrayArgument ? PHP_INT_MAX : count($this->arguments);
     }
 
     /**
@@ -191,7 +202,7 @@ class InputDefinition
      */
     public function getArgumentDefaults()
     {
-        $values = [];
+        $values = array();
         foreach ($this->arguments as $argument) {
             $values[$argument->getName()] = $argument->getDefault();
         }
@@ -204,10 +215,10 @@ class InputDefinition
      *
      * @param InputOption[] $options An array of InputOption objects
      */
-    public function setOptions(array $options = [])
+    public function setOptions($options = array())
     {
-        $this->options = [];
-        $this->shortcuts = [];
+        $this->options = array();
+        $this->shortcuts = array();
         $this->addOptions($options);
     }
 
@@ -216,7 +227,7 @@ class InputDefinition
      *
      * @param InputOption[] $options An array of InputOption objects
      */
-    public function addOptions(array $options = [])
+    public function addOptions($options = array())
     {
         foreach ($options as $option) {
             $this->addOption($option);
@@ -224,6 +235,10 @@ class InputDefinition
     }
 
     /**
+     * Adds an InputOption object.
+     *
+     * @param InputOption $option An InputOption object
+     *
      * @throws LogicException When option given already exist
      */
     public function addOption(InputOption $option)
@@ -251,11 +266,13 @@ class InputDefinition
     /**
      * Returns an InputOption by name.
      *
+     * @param string $name The InputOption name
+     *
      * @return InputOption A InputOption object
      *
      * @throws InvalidArgumentException When option given doesn't exist
      */
-    public function getOption(string $name)
+    public function getOption($name)
     {
         if (!$this->hasOption($name)) {
             throw new InvalidArgumentException(sprintf('The "--%s" option does not exist.', $name));
@@ -267,12 +284,11 @@ class InputDefinition
     /**
      * Returns true if an InputOption object exists by name.
      *
-     * This method can't be used to check if the user included the option when
-     * executing the command (use getOption() instead).
+     * @param string $name The InputOption name
      *
      * @return bool true if the InputOption object exists, false otherwise
      */
-    public function hasOption(string $name)
+    public function hasOption($name)
     {
         return isset($this->options[$name]);
     }
@@ -290,9 +306,11 @@ class InputDefinition
     /**
      * Returns true if an InputOption object exists by shortcut.
      *
+     * @param string $name The InputOption shortcut
+     *
      * @return bool true if the InputOption object exists, false otherwise
      */
-    public function hasShortcut(string $name)
+    public function hasShortcut($name)
     {
         return isset($this->shortcuts[$name]);
     }
@@ -300,9 +318,11 @@ class InputDefinition
     /**
      * Gets an InputOption by shortcut.
      *
+     * @param string $shortcut the Shortcut name
+     *
      * @return InputOption An InputOption object
      */
-    public function getOptionForShortcut(string $shortcut)
+    public function getOptionForShortcut($shortcut)
     {
         return $this->getOption($this->shortcutToName($shortcut));
     }
@@ -314,7 +334,7 @@ class InputDefinition
      */
     public function getOptionDefaults()
     {
-        $values = [];
+        $values = array();
         foreach ($this->options as $option) {
             $values[$option->getName()] = $option->getDefault();
         }
@@ -325,11 +345,13 @@ class InputDefinition
     /**
      * Returns the InputOption name given a shortcut.
      *
-     * @throws InvalidArgumentException When option given does not exist
+     * @param string $shortcut The shortcut
      *
-     * @internal
+     * @return string The InputOption name
+     *
+     * @throws InvalidArgumentException When option given does not exist
      */
-    public function shortcutToName(string $shortcut): string
+    private function shortcutToName($shortcut)
     {
         if (!isset($this->shortcuts[$shortcut])) {
             throw new InvalidArgumentException(sprintf('The "-%s" option does not exist.', $shortcut));
@@ -341,11 +363,13 @@ class InputDefinition
     /**
      * Gets the synopsis.
      *
+     * @param bool $short Whether to return the short version (with options folded) or not
+     *
      * @return string The synopsis
      */
-    public function getSynopsis(bool $short = false)
+    public function getSynopsis($short = false)
     {
-        $elements = [];
+        $elements = array();
 
         if ($short && $this->getOptions()) {
             $elements[] = '[options]';
@@ -366,25 +390,68 @@ class InputDefinition
             }
         }
 
-        if (\count($elements) && $this->getArguments()) {
+        if (count($elements) && $this->getArguments()) {
             $elements[] = '[--]';
         }
 
-        $tail = '';
         foreach ($this->getArguments() as $argument) {
             $element = '<'.$argument->getName().'>';
-            if ($argument->isArray()) {
-                $element .= '...';
+            if (!$argument->isRequired()) {
+                $element = '['.$element.']';
+            } elseif ($argument->isArray()) {
+                $element = $element.' ('.$element.')';
             }
 
-            if (!$argument->isRequired()) {
-                $element = '['.$element;
-                $tail .= ']';
+            if ($argument->isArray()) {
+                $element .= '...';
             }
 
             $elements[] = $element;
         }
 
-        return implode(' ', $elements).$tail;
+        return implode(' ', $elements);
+    }
+
+    /**
+     * Returns a textual representation of the InputDefinition.
+     *
+     * @return string A string representing the InputDefinition
+     *
+     * @deprecated since version 2.3, to be removed in 3.0.
+     */
+    public function asText()
+    {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0.', E_USER_DEPRECATED);
+
+        $descriptor = new TextDescriptor();
+        $output = new BufferedOutput(BufferedOutput::VERBOSITY_NORMAL, true);
+        $descriptor->describe($output, $this, array('raw_output' => true));
+
+        return $output->fetch();
+    }
+
+    /**
+     * Returns an XML representation of the InputDefinition.
+     *
+     * @param bool $asDom Whether to return a DOM or an XML string
+     *
+     * @return string|\DOMDocument An XML string representing the InputDefinition
+     *
+     * @deprecated since version 2.3, to be removed in 3.0.
+     */
+    public function asXml($asDom = false)
+    {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0.', E_USER_DEPRECATED);
+
+        $descriptor = new XmlDescriptor();
+
+        if ($asDom) {
+            return $descriptor->getInputDefinitionDocument($this);
+        }
+
+        $output = new BufferedOutput();
+        $descriptor->describe($output, $this);
+
+        return $output->fetch();
     }
 }
