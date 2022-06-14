@@ -27,7 +27,7 @@ UPDATE tblaccounts SET gateway='paypal' WHERE gateway='paypalinvoices';
 UPDATE tblorders SET paymentmethod='paypal' WHERE paymentmethod='paypalinvoices';
 DELETE FROM tblpaymentgateways WHERE gateway='paypal' AND setting='style' ;
 DELETE FROM tblpaymentgateways WHERE gateway='paypalinvoices';
-INSERT INTO `tblpaymentgateways` (`gateway`, `type`, `setting`, `name`, `description`) VALUES ('paypal', 'yesno', 'forcesubscriptions', 'Force Subscriptions', 'Tick this box to hide the one time payment button when a subscription can be created');
+INSERT INTO `tblpaymentgateways` (`gateway`, `type`, `setting`, `name`, `description`) VALUES ('paypal', 'yesno', 'forcesubscriptions', 'Force Subscriptions', 'Check to hide the one time payment button when a subscription can be created');
 ALTER TABLE `tbltickets` ADD `replyingadmin` INT( 1 ) NOT NULL , ADD `replyingtime` DATETIME NOT NULL ;
 INSERT INTO `tblconfiguration` (`setting` ,`value` )VALUES ('SequentialInvoiceNumbering', '');
 INSERT INTO `tblconfiguration` (`setting` ,`value` )VALUES ('SequentialInvoiceNumberFormat', '{NUMBER}');

@@ -4,13 +4,15 @@
 
 <link type="text/css" rel="stylesheet" href="{$BASE_PATH_CSS}/ion.rangeSlider.css" property="stylesheet" />
 <link type="text/css" rel="stylesheet" href="{$BASE_PATH_CSS}/ion.rangeSlider.skinHTML5.css" property="stylesheet" />
-<link href="{$WEB_ROOT}/templates/{$template}/store/css/style.css" rel="stylesheet">
+<link href="{assetPath file='store.css'}" rel="stylesheet">
 
 <div class="landing-page codeguard">
 
     <div class="hero">
         <div class="container">
-            <img src="{$WEB_ROOT}/assets/img/marketconnect/codeguard/logo.png">
+            <div class="logo-container">
+                <img src="{$WEB_ROOT}/assets/img/marketconnect/codeguard/logo.png">
+            </div>
             <h2 class="strong-green">{lang key="store.codeGuard.headline"}</h2>
             <h3>{lang key="store.codeGuard.tagline"}</h3>
         </div>
@@ -20,7 +22,7 @@
         <div class="container">
             <div class="navbar-header">
                 <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#nav-landing-page" aria-expanded="false">
-                    <span class="sr-only">{lang key="store.toggleNav"}</span>
+                    <span class="sr-only">{lang key="toggleNav"}</span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
@@ -88,7 +90,7 @@
                     </div>
                     <div class="col-md-9">
                         {if !$loggedin && $currencies}
-                            <form method="post" action="{routePath('store-codeguard-index')}" class="pull-right">
+                            <form method="post" action="{routePath('store-product-group', $routePathSlug)}" class="pull-right">
                                 <select name="currency" class="form-control currency-selector" onchange="submit()">
                                     <option>{lang key="changeCurrency"} ({$activeCurrency.prefix} {$activeCurrency.code})</option>
                                     {foreach $currencies as $currency}
@@ -106,7 +108,7 @@
                                 <div id="pricingAmount" class="price">--</div>
                                 <div id="pricingCycle"></div>
                             </div>
-                            <form action="{routePath('store-order')}" method="post" class="pull-right">
+                            <form action="{routePath('cart-order')}" method="post" class="pull-right">
                                 <input id="selectedProductId" type="hidden" name="pid" value="">
                                 <button type="submit" class="btn btn-default order-btn" id="product-order-button">
                                     {lang key='ordernowbutton'}
@@ -305,7 +307,7 @@
         jQuery("#selectedProductId").val(allProducts[i].pid);
         jQuery("#productDescription").html(allProducts[i].desc);
         jQuery("#pricingAmount").html(allProducts[i].price);
-        jQuery("#pricingCycle").html(allProducts[i].cycle);        
+        jQuery("#pricingCycle").html(allProducts[i].cycle);
     }
 
     jQuery("#codeGuardPlanSelector").ionRangeSlider(rangeSliderValues);

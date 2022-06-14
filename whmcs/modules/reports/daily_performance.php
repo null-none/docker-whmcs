@@ -46,7 +46,7 @@ $reportvalues['orders_active'] = Capsule::table('tblorders')
     )
     ->groupBy($dateFormat)
     ->orderBy('date')
-    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'));
+    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'))->all();
 
 $reportvalues['invoices_new'] = Capsule::table('tblinvoices')
     ->whereBetween(
@@ -58,7 +58,7 @@ $reportvalues['invoices_new'] = Capsule::table('tblinvoices')
     )
     ->groupBy($dateFormat)
     ->orderBy('date')
-    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'));
+    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'))->all();
 
 $reportvalues['invoices_paid'] = Capsule::table('tblinvoices')
     ->whereBetween(
@@ -70,7 +70,7 @@ $reportvalues['invoices_paid'] = Capsule::table('tblinvoices')
     )
     ->groupBy(Capsule::raw('date_format(`datepaid`, "%e")'))
     ->orderBy('date')
-    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`datepaid`, "%e") as day'));
+    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`datepaid`, "%e") as day'))->all();
 
 $reportvalues['tickets_new'] = Capsule::table('tbltickets')
     ->whereBetween(
@@ -82,7 +82,7 @@ $reportvalues['tickets_new'] = Capsule::table('tbltickets')
     )
     ->groupBy($dateFormat)
     ->orderBy('date')
-    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'));
+    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'))->all();
 
 $reportvalues['tickets_staff_replies'] = Capsule::table('tblticketreplies')
     ->whereBetween(
@@ -95,7 +95,7 @@ $reportvalues['tickets_staff_replies'] = Capsule::table('tblticketreplies')
     ->where('admin', '!=', '')
     ->groupBy($dateFormat)
     ->orderBy('date')
-    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'));
+    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'))->all();
 
 $reportvalues['cancellations_new'] = Capsule::table('tblcancelrequests')
     ->whereBetween(
@@ -107,7 +107,7 @@ $reportvalues['cancellations_new'] = Capsule::table('tblcancelrequests')
     )
     ->groupBy($dateFormat)
     ->orderBy('date')
-    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'));
+    ->pluck(Capsule::raw('count(id) as total'), Capsule::raw('date_format(`date`, "%e") as day'))->all();
 
 for ($day = 1; $day <= $dateFilter->endOfMonth()->day; $day++) {
     $date = Carbon::create($year, $month, $day);

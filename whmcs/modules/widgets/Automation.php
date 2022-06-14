@@ -8,14 +8,14 @@ use WHMCS\Module\AbstractWidget;
 /**
  * Automation Widget.
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2018
- * @license https://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2021
+ * @license https://www.whmcs.com/eula/ WHMCS Eula
  */
 class Automation extends AbstractWidget
 {
     protected $title = 'Automation Overview';
     protected $description = 'An overview of system automation.';
-    protected $weight = 20;
+    protected $weight = 50;
     protected $cache = true;
     protected $requiredPermission = 'Configure Automation Settings';
 
@@ -84,7 +84,7 @@ class Automation extends AbstractWidget
 
         return <<<EOF
 <div class="row">
-    <div class="col-sm-6">
+    <div class="col-xs-6 col-sm-4 col-md-6">
         <div class="mini-chart">
             <a href="automationstatus.php?metric=CreateInvoices">
                 <span class="peity-line" data-peity='{ "fill": "rgba(64, 186, 189, 0.2)", "stroke": "rgba(64, 186, 189, 0.7)", "strokeWidth": 2, "width": 120}'>{$invoicesCreatedString}</span>
@@ -95,7 +95,7 @@ class Automation extends AbstractWidget
         </h4>
         <p class="item-figure color-blue">{$invoicesCreatedToday}</p>
     </div>
-    <div class="col-sm-6">
+    <div class="col-xs-6 col-sm-4 col-md-6">
         <div class="mini-chart">
             <a href="automationstatus.php?metric=ProcessCreditCardPayments">
                 <span class="peity-line" data-peity='{ "fill": "rgba(132, 217, 145, 0.2)", "stroke": "rgba(132, 217, 145, 0.7)", "strokeWidth": 2, "width": 120}'>{$ccCapturesString}</span>
@@ -106,7 +106,7 @@ class Automation extends AbstractWidget
         </h4>
         <p class="item-figure color-green">{$ccCapturesToday}</p>
     </div>
-    <div class="col-sm-6">
+    <div class="col-xs-6 col-sm-4 col-md-6">
         <div class="mini-chart">
             <a href="automationstatus.php?metric=AutoSuspensions">
                 <span class="peity-line" data-peity='{ "fill": "rgba(248, 161, 63, 0.2)", "stroke": "rgba(248, 161, 63, 0.7)", "strokeWidth": 2, "width": 120}'>{$overdueSuspensionsString}</span>
@@ -117,7 +117,7 @@ class Automation extends AbstractWidget
         </h4>
         <p class="item-figure color-orange">{$overdueSuspensionsToday}</p>
     </div>
-    <div class="col-sm-6">
+    <div class="col-xs-6 col-sm-4 col-md-6">
         <div class="mini-chart">
             <a href="automationstatus.php?metric=CloseInactiveTickets">
                 <span class="peity-line" data-peity='{ "fill": "rgba(234, 83, 149, 0.2)", "stroke": "rgba(234, 83, 149, 0.7)", "strokeWidth": 2, "width": 120}'>{$closedTicketsString}</span>
@@ -128,7 +128,7 @@ class Automation extends AbstractWidget
         </h4>
         <p class="item-figure color-pink">{$closedTicketsToday}</p>
     </div>
-    <div class="col-sm-6">
+    <div class="col-xs-6 col-sm-4 col-md-6">
         <div class="mini-chart">
             <a href="automationstatus.php?metric=InvoiceReminders">
                 <span class="peity-line" data-peity='{ "fill": "rgba(30, 30, 30, 0.2)", "stroke": "rgba(30, 30, 30, 0.4)", "strokeWidth": 2, "width": 120}'>{$overdueRemindersString}</span>
@@ -139,7 +139,7 @@ class Automation extends AbstractWidget
         </h4>
         <p class="item-figure color-grey">{$overdueRemindersToday}</p>
     </div>
-    <div class="col-sm-6">
+    <div class="col-xs-6 col-sm-4 col-md-6">
         <div class="mini-chart">
             <a href="automationstatus.php?metric=CancellationRequests">
                 <span class="peity-line" data-peity='{ "fill": "rgba(144, 31, 197, 0.2)", "stroke": "rgba(144, 31, 197, 0.7)", "strokeWidth": 2, "width": 120}'>{$cancellationsString}</span>
@@ -150,7 +150,7 @@ class Automation extends AbstractWidget
         </h4>
         <p class="item-figure color-purple">{$cancellationsToday}</p>
     </div>
-    <div class="col-sm-12 text-footer">
+    <div class="col-xs-12 text-footer">
         <i class="fas fa-check-circle fa-fw"></i>
         Last Automation Run: {$lastInvokationTime}
     </div>

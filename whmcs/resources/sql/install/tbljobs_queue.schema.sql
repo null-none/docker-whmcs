@@ -14,7 +14,9 @@ CREATE TABLE `tbljobs_queue` (
   `method_name` varchar(255) NOT NULL DEFAULT '',
   `input_parameters` text NOT NULL,
   `available_at` datetime NOT NULL,
+  `started_at` datetime DEFAULT NULL,
   `digest_hash` varchar(255) NOT NULL DEFAULT '',
+  `async` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`)

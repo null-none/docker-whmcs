@@ -17,12 +17,12 @@
         </div>
 
         {if $emailVerificationEnabled && $emailVerificationPending}
-            <div class="email-verification alert-warning" role="alert">
+            <div class="verification-banner email-verification alert-warning" role="alert">
                 <i class="fas fa-exclamation-triangle"></i>
                 &nbsp;
                 {$_ADMINLANG.global.emailAddressNotVerified}
                 <div class="pull-right">
-                    <button id="btnResendVerificationEmail" class="btn btn-default btn-sm">
+                    <button id="btnResendVerificationEmail" class="btn btn-default btn-sm" data-clientid="{$clientsdetails.userid}" data-successmsg="{$_ADMINLANG.global.emailSent}" data-errormsg="{$_ADMINLANG.global.erroroccurred}">
                         {$_ADMINLANG.global.resendEmail}
                     </button>
                 </div>
@@ -46,7 +46,7 @@
                     <tr><td width="110">{$_ADMINLANG.fields.firstname}</td><td>{$clientsdetails.firstname}</td></tr>
                     <tr class="altrow"><td>{$_ADMINLANG.fields.lastname}</td><td>{$clientsdetails.lastname}</td></tr>
                     <tr><td>{$_ADMINLANG.fields.companyname}</td><td>{$clientsdetails.companyname}</td></tr>
-                    <tr class="altrow"><td>{$_ADMINLANG.fields.email}</td><td>{$clientsdetails.email}{if $emailVerificationEnabled} {if $emailVerified}<span class="label label-success">{$_ADMINLANG.clients.emailVerified}</span>{else}<span class="label label-danger">{$_ADMINLANG.clients.emailUnverified}</span>{/if}{/if}</td></tr>
+                    <tr class="altrow"><td>{$_ADMINLANG.fields.email}</td><td>{$clientsdetails.email}</td></tr>
                     <tr><td>{$_ADMINLANG.fields.address1}</td><td>{$clientsdetails.address1}</td></tr>
                     <tr class="altrow"><td>{$_ADMINLANG.fields.address2}</td><td>{$clientsdetails.address2}</td></tr>
                     <tr><td>{$_ADMINLANG.fields.city}</td><td>{$clientsdetails.city}</td></tr>
@@ -62,8 +62,12 @@
                     {/if}
                 </table>
                 <ul>
-                    <li><a id="summary-reset-password" href="clientssummary.php?userid={$clientsdetails.userid}&resetpw=true&token={$csrfToken}"><img src="images/icons/resetpw.png" border="0" align="absmiddle" /> {$_ADMINLANG.clients.resetsendpassword}</a></li>
-                    <li><a id="summary-login-as-client" href="../dologin.php?username={$clientsdetails.email|urlencode}&language={$adminLanguage}"><img src="images/icons/clientlogin.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.loginasclient}</a></li>
+                    <li>
+                        <a id="summary-login-as-owner" class="summary-login-as-owner" data-new-window="0" href="#"><img src="images/icons/clientlogin.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.loginasowner}</a>
+                        <a id="summary-login-as-owner-new-window" class="summary-login-as-owner" data-new-window="1" href="#" title="{lang key='global.openInNewWindow'}">
+                            <i class="fas fa-window-restore"></i>
+                        </a>
+                    </li>
                 </ul>
             </div>
 
@@ -132,9 +136,15 @@
                     </tr>
                 </table>
                 <ul>
-                    <li><a href="invoices.php?action=createinvoice&userid={$clientsdetails.userid}&token={$csrfToken}"><img src="images/icons/invoicesedit.png" border="0" align="absmiddle" /> {$_ADMINLANG.invoices.create}</a></li>
-                    <li><a href="#" data-toggle="modal" data-target="#modalAddFunds"><img src="images/icons/addfunds.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.createaddfunds}</a></li>
-                    <li><a href="#" data-toggle="modal" data-target="#modalGenerateInvoices"><img src="images/icons/ticketspredefined.png" border="0" align="absmiddle" /> {$_ADMINLANG.invoices.geninvoices}</a></li>
+                    {if in_array('Create Invoice', $admin_perms)}
+                        <li><a href="invoices.php?action=createinvoice&userid={$clientsdetails.userid}&token={$csrfToken}"><img src="images/icons/invoicesedit.png" border="0" align="absmiddle" /> {$_ADMINLANG.invoices.create}</a></li>
+                    {/if}
+                    {if in_array('Create Add Funds Invoice', $admin_perms)}
+                        <li><a href="#" data-toggle="modal" data-target="#modalAddFunds"><img src="images/icons/addfunds.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.createaddfunds}</a></li>
+                    {/if}
+                    {if in_array('Generate Due Invoices', $admin_perms)}
+                        <li><a href="#" data-toggle="modal" data-target="#modalGenerateInvoices"><img src="images/icons/ticketspredefined.png" border="0" align="absmiddle" /> {$_ADMINLANG.invoices.geninvoices}</a></li>
+                    {/if}
                     <li><a href="clientsbillableitems.php?userid={$clientsdetails.userid}&action=manage"><img src="images/icons/billableitems.png" border="0" align="absmiddle" /> {$_ADMINLANG.billableitems.additem}</a></li>
                     <li><a href="#" id="manageCredits" onClick="window.open('clientscredits.php?userid={$clientsdetails.userid}','','width=800,height=350,scrollbars=yes');return false"><img src="images/icons/income.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.managecredits}</a></li>
                     <li><a href="quotes.php?action=manage&userid={$clientsdetails.userid}"><img src="images/icons/quotes.png" border="0" align="absmiddle" /> {$_ADMINLANG.quotes.createnew}</a></li>
@@ -150,7 +160,7 @@
                     <tr class="altrow"><td>{$_ADMINLANG.clientsummary.clientfor}</td><td>{$clientfor}</td></tr>
                     <tr><td width="110">{$_ADMINLANG.clientsummary.lastlogin}</td><td>{$lastlogin}</td></tr>
                     {if $emailVerificationEnabled}
-                    <tr class="altrow"><td>{$_ADMINLANG.fields.emailverified}</td><td>{if $emailVerified}{$_ADMINLANG.global.yes}{else}{$_ADMINLANG.global.no}{/if}</td></tr>
+                    <tr class="altrow"><td>{$_ADMINLANG.fields.owner} {$_ADMINLANG.fields.emailverified}</td><td>{if $emailVerified}{$_ADMINLANG.global.yes}{else}{$_ADMINLANG.global.no}{/if}</td></tr>
                     {/if}
                 </table>
             </div>
@@ -192,7 +202,11 @@
                     <form method="post" action="clientssummary.php?userid={$clientsdetails.userid}&action=uploadfile" enctype="multipart/form-data">
                         <table class="clientssummarystats" cellspacing="0" cellpadding="2">
                             <tr><td width="40">{$_ADMINLANG.clientsummary.filetitle}</td><td class="fieldarea"><input type="text" name="title" style="width:90%" /></td></tr>
-                            <tr><td>{$_ADMINLANG.clientsummary.filename}</td><td class="fieldarea"><input type="file" name="uploadfile" style="width:90%" /></td></tr>
+                            <tr><td>{$_ADMINLANG.clientsummary.filename}</td><td class="fieldarea"><input type="file" name="uploadfile" style="width:90%" />
+                                    <p class="text-muted">
+                                        <small>{lang key="system.maxFileSize" fileSize="$uploadMaxFileSize"}</small>
+                                    </p>
+                                </td></tr>
                             <tr><td></td><td class="fieldarea"><input type="checkbox" name="adminonly" value="1" /> {$_ADMINLANG.clientsummary.fileadminonly} &nbsp;&nbsp;&nbsp;&nbsp; <input type="submit" value="{$_ADMINLANG.global.submit}" /></td></tr>
                         </table>
                     </form>
@@ -203,7 +217,13 @@
                 <div class="title">{$_ADMINLANG.clientsummary.emailsheading}</div>
                 <table class="clientssummarystats" cellspacing="0" cellpadding="2">
                     {foreach key=num from=$lastfivemail item=email}
-                        <tr class="{cycle values=",altrow"}"><td align="center">{$email.date} - <a href="#" onClick="window.open('clientsemails.php?&displaymessage=true&id={$email.id}','','width=650,height=400,scrollbars=yes');return false">{$email.subject}</a></td></tr>
+                        <tr class="{cycle values=",altrow"}">
+                            <td align="center">
+                                {$email.date} - <a href="clientsemails.php?&displaymessage=true&id={$email.id}" class="open-modal" data-modal-title="{lang key='emails.viewemailmessage'|escape}">
+                                    {$email.subject}
+                                </a>
+                            </td>
+                        </tr>
                     {foreachelse}
                         <tr><td align="center">{$_ADMINLANG.clientsummary.noemails}</td></tr>
                     {/foreach}
@@ -222,10 +242,14 @@
                     <li><a href="reports.php?report=client_statement&userid={$clientsdetails.userid}"><img src="images/icons/reports.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.accountstatement}</a></li>
                     <li><a href="supporttickets.php?action=open&userid={$clientsdetails.userid}"><img src="images/icons/ticketsopen.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.newticket}</a></li>
                     <li><a href="supporttickets.php?view=any&client={$clientsdetails.userid}"><img src="images/icons/ticketsother.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.viewtickets}</a></li>
-                    <li><a href="{if $affiliateid}affiliates.php?action=edit&id={$affiliateid}{else}clientssummary.php?userid={$clientsdetails.userid}&activateaffiliate=true&token={$csrfToken}{/if}"><img src="images/icons/affiliates.png" border="0" align="absmiddle" /> {if $affiliateid}{$_ADMINLANG.clientsummary.viewaffiliate}{else}{$_ADMINLANG.clientsummary.activateaffiliate}{/if}</a></li>
-                    <li><a href="#" onClick="window.open('clientsmerge.php?userid={$clientsdetails.userid}','movewindow','width=500,height=280,top=100,left=100,scrollbars=1');return false"><img src="images/icons/clients.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.mergeclients}</a></li>
+                    <li id="affiliateLink"><a href="{if $affiliateid}affiliates.php?action=edit&id={$affiliateid}{else}clientssummary.php?userid={$clientsdetails.userid}&activateaffiliate=true&token={$csrfToken}{/if}"><img src="images/icons/affiliates.png" border="0" align="absmiddle" /> {if $affiliateid}{$_ADMINLANG.clientsummary.viewaffiliate}{else}{$_ADMINLANG.clientsummary.activateaffiliate}{/if}</a></li>
+                    <li>
+                        <a href="clientsmerge.php?userid={$clientsdetails.userid}" class="open-modal" data-modal-title="{lang key='clients.mergeclient'}" data-btn-submit-id="btnMerge" data-btn-submit-label="{lang key='invoices.merge'}">
+                            <img src="images/icons/clients.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.mergeclients}
+                        </a>
+                    </li>
                     <li><a href="#" onClick="closeClient();return false" style="color:#000000;"><img src="images/icons/delete.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.closeclient}</a></li>
-                    <li><a href="#" onClick="deleteClient();return false" style="color:#CC0000;"><img src="images/icons/delete.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.deleteclient}</a></li>
+                    <li><a id="btnDeleteClient" href="#" style="color:#CC0000;"><img src="images/icons/delete.png" border="0" align="absmiddle" /> {$_ADMINLANG.clientsummary.deleteclient}</a></li>
                     <li>
                         <a href="reports.php?report=client&userid={$clientsdetails.userid}">
                             <img src="images/icons/csvexports.png" border="0" align="absmiddle" />
@@ -262,7 +286,7 @@
         </button>
     </p>
     <div id="statusfilter">
-        <form>
+        <form id="frmStatusFilter">
             <div class="checkall">
                 <label class="checkbox-inline"><input type="checkbox" id="statusfiltercheckall" checked="checked"/> {$_ADMINLANG.global.checkall}</label>
             </div>
@@ -272,7 +296,7 @@
                 </tr>
     {foreach from=$itemstatuses key=itemstatus item=statuslang}
                 <tr>
-                    <td><label class="checkbox-inline" style="display:block;"><input type="checkbox" name="statusfilter[]" value="{$itemstatus}" onclick="uncheckCheckAllStatusFilter()" checked="checked" /> {$statuslang}</label></td>
+                    <td><label class="checkbox-inline" style="display:block;"><input type="checkbox" name="statusfilter[]" value="{$itemstatus}"{if in_array($itemstatus, $statusFilterChecked)} checked="checked"{/if} /> {$statuslang}</label></td>
                 </tr>
     {/foreach}
                 <tr>
@@ -280,112 +304,154 @@
                 </tr>
             </table>
             <div class="applybtn">
-                <input type="button" value="{$_ADMINLANG.global.apply}" class="btn btn-xs btn-small btn-primary" onclick="applyStatusFilter();toggleStatusFilter();return false;" />
+                <button type="button" class="btn btn-xs btn-small btn-primary" id="btnApplyFilter">
+                    {$_ADMINLANG.global.apply}
+                </button>
             </div>
         </form>
     </div>
 
     <form method="post" action="{$smarty.server.PHP_SELF}?userid={$clientsdetails.userid}&action=massaction">
-
+        {if in_array('List Services', $admin_perms)}
         <table width="100%" class="form">
             <tr><td colspan="2" class="fieldarea" style="text-align:center;"><strong>{$_ADMINLANG.services.title}</strong></td></tr>
             <tr><td align="center">
-
-                <div class="tablebg">
-                    <table class="datatable filterable" width="100%" border="0" cellspacing="1" cellpadding="3">
+                <table id="summaryServices"
+                       class="table table-themed display data-driven filterable"
+                       data-ajax-url="{routePath('admin-table-client-services', $clientsdetails.userid)}"
+                       data-dom='<"listtable"t><"row"<"text-left col-sm-4"l><"#summaryServicesInfo.text-center col-sm-4"i><"text-right col-sm-4"p>>'
+                       data-ordering="true"
+                       data-info="true"
+                       data-searching="true"
+                       data-paging="true"
+                       data-length-change="true"
+                       data-auto-width="true"
+                       data-order='[[7, "asc"], [1, "desc"]]'
+                       data-defer-render="true"
+                       data-defer-loading="[{$filteredServices}, {$totalServices}]"
+                       data-server-side="true"
+                       data-page-length="{$servicePageLength}"
+                >
+                    <thead>
                         <tr>
-                            <th width="20"><input type="checkbox" id="prodsall" /></th>
-                            <th>{$_ADMINLANG.fields.id}</th>
-                            <th>{$_ADMINLANG.fields.product}</th>
-                            <th>{$_ADMINLANG.fields.amount}</th>
-                            <th>{$_ADMINLANG.fields.billingcycle}</th>
-                            <th>{$_ADMINLANG.fields.signupdate}</th>
-                            <th>{$_ADMINLANG.fields.nextduedate}</th>
-                            <th>{$_ADMINLANG.fields.status}</th>
-                            <th width="20"></th>
+                            <th data-name="checkbox" data-class-name="text-center" data-searchable="false" data-orderable="false" data-width="20"><input type="checkbox" id="prodsall" /></th>
+                            <th data-name="id">{$_ADMINLANG.fields.id}</th>
+                            <th data-name="name">{$_ADMINLANG.fields.product}</th>
+                            <th data-name="amount">{$_ADMINLANG.fields.amount}</th>
+                            <th data-name="billingcycle">{$_ADMINLANG.fields.billingcycle}</th>
+                            <th data-name="regdate">{$_ADMINLANG.fields.signupdate}</th>
+                            <th data-name="nextduedate">{$_ADMINLANG.fields.nextduedate}</th>
+                            <th data-name="domainstatus" data-class-name="status">{$_ADMINLANG.fields.status}</th>
+                            <th data-name="actions" data-class-name="edit text-center" data-searchable="false" data-orderable="false" data-width="20"></th>
                         </tr>
+                    </thead>
+                    <tbody>
                         {foreach key=num from=$productsummary item=product}
-                            <tr>
+                            <tr id="service{$product.id}">
                                 <td><input type="checkbox" name="selproducts[]" value="{$product.id}" class="checkprods" /></td>
                                 <td><a href="clientsservices.php?userid={$clientsdetails.userid}&id={$product.id}">{$product.idshort}</a></td>
-                                <td style="padding-left:5px;padding-right:5px">{$product.dpackage} - <a href="http://{$product.domain}" target="_blank">{$product.domain}</a></td>
+                                <td style="padding-left:5px;padding-right:5px">{$product.dpackage} - <a href="{$product.domainLink}" target="_blank">{$product.domain}</a></td>
                                 <td>{$product.amount}</td>
                                 <td>{$product.dbillingcycle}</td>
                                 <td>{$product.regdate}</td>
                                 <td>{$product.nextduedate}</td>
-                                <td class="status" data-filter-value="{$product.domainoriginalstatus}">{$product.domainstatus}</td>
+                                <td data-filter-value="{$product.domainoriginalstatus}">{$product.domainstatus}</td>
                                 <td><a href="clientsservices.php?userid={$clientsdetails.userid}&id={$product.id}"><img src="images/edit.gif" width="16" height="16" border="0" alt="Edit"></a></td>
                             </tr>
-                        {foreachelse}
-                            <tr>
-                                <td colspan="9">{$_ADMINLANG.global.norecordsfound}</td>
-                            </tr>
                         {/foreach}
-                    </table>
-                </div>
-
+                    </tbody>
+                </table>
             </td></tr>
         </table>
-
+        {/if}
+        {if in_array('List Addons', $admin_perms)}
         <table width="100%" class="form">
             <tr><td colspan="2" class="fieldarea" style="text-align:center;"><strong>{$_ADMINLANG.addons.title}</strong></td></tr>
             <tr><td align="center">
-
-                <div class="tablebg">
-                    <table class="datatable filterable" width="100%" border="0" cellspacing="1" cellpadding="3">
+                <table id="summaryAddons"
+                       class="table table-themed display data-driven filterable"
+                       data-ajax-url="{routePath('admin-table-client-addons', $clientsdetails.userid)}"
+                       data-dom='<"listtable"t><"row"<"text-left col-sm-4"l><"#summaryAddonsInfo.text-center col-sm-4"i><"text-right col-sm-4"p>>'
+                       data-ordering="true"
+                       data-info="true"
+                       data-searching="true"
+                       data-paging="true"
+                       data-length-change="true"
+                       data-auto-width="true"
+                       data-order='[[ 7, "asc" ], [ 1, "desc"]]'
+                       data-defer-render="true"
+                       data-defer-loading="[{$filteredAddons}, {$totalAddons}]"
+                       data-server-side="true"
+                       data-page-length="{$addonPageLength}"
+                >
+                    <thead>
                         <tr>
-                            <th width="20"><input type="checkbox" id="addonsall" /></th>
-                            <th>ID</th>
-                            <th>{$_ADMINLANG.addons.name}</th>
-                            <th>{$_ADMINLANG.fields.amount}</th>
-                            <th>{$_ADMINLANG.fields.billingcycle}</th>
-                            <th>{$_ADMINLANG.fields.signupdate}</th>
-                            <th>{$_ADMINLANG.fields.nextduedate}</th>
-                            <th>{$_ADMINLANG.fields.status}</th>
-                            <th width="20"></th>
+                            <th data-name="checkbox" data-class="text-center" data-orderable="false" data-width="20"><input type="checkbox" id="addonsall" /></th>
+                            <th data-name="id">{$_ADMINLANG.fields.id}</th>
+                            <th data-name="name">{$_ADMINLANG.addons.name}</th>
+                            <th data-name="recurring">{$_ADMINLANG.fields.amount}</th>
+                            <th data-name="billingcycle">{$_ADMINLANG.fields.billingcycle}</th>
+                            <th data-name="regdate">{$_ADMINLANG.fields.signupdate}</th>
+                            <th data-name="nextduedate">{$_ADMINLANG.fields.nextduedate}</th>
+                            <th data-name="status" data-class-name="status">{$_ADMINLANG.fields.status}</th>
+                            <th data-name="actions" data-class-name="edit text-center" data-orderable="false" data-width="20"></th>
                         </tr>
+                    </thead>
+                    <tbody>
                         {foreach key=num from=$addonsummary item=addon}
-                            <tr>
+                            <tr id="addon{$addon.id}">
                                 <td><input type="checkbox" name="seladdons[]" value="{$addon.id}" class="checkaddons" /></td>
                                 <td><a href="clientsservices.php?userid={$clientsdetails.userid}&id={$addon.serviceid}&aid={$addon.id}">{$addon.idshort}</a></td>
-                                <td style="padding-left:5px;padding-right:5px">{$addon.addonname}<br>{$addon.dpackage} - <a href="http://{$addon.domain}" target="_blank">{$addon.domain}</a></td>
+                                <td style="padding-left:5px;padding-right:5px">{$addon.addonname}<br>{$addon.dpackage} - <a href="{$addon.domainLink}" target="_blank">{$addon.domain}</a></td>
                                 <td>{$addon.amount}</td>
                                 <td>{$addon.dbillingcycle}</td>
                                 <td>{$addon.regdate}</td>
                                 <td>{$addon.nextduedate}</td>
-                                <td class="status" data-filter-value="{$addon.originalstatus}">{$addon.status}</td>
+                                <td data-filter-value="{$addon.originalstatus}">{$addon.status}</td>
                                 <td><a href="clientsservices.php?userid={$clientsdetails.userid}&id={$addon.serviceid}&aid={$addon.id}"><img src="images/edit.gif" width="16" height="16" border="0" alt="Edit"></a></td>
                             </tr>
-                        {foreachelse}
-                            <tr>
-                                <td colspan="9">{$_ADMINLANG.global.norecordsfound}</td>
-                            </tr>
                         {/foreach}
-                    </table>
-                </div>
-
+                    </tbody>
+                </table>
             </td></tr>
         </table>
-
+        {/if}
+        {if in_array('List Domains', $admin_perms)}
         <table width="100%" class="form">
             <tr><td colspan="2" class="fieldarea" style="text-align:center;"><strong>{$_ADMINLANG.domains.title}</strong></td></tr>
             <tr><td align="center">
-
-                <div class="tablebg">
-                    <table class="datatable filterable" width="100%" border="0" cellspacing="1" cellpadding="3">
+                <table id="summaryDomains"
+                       class="table table-themed display data-driven filterable"
+                       data-ajax-url="{routePath('admin-table-client-domains', $clientsdetails.userid)}"
+                       data-dom='<"listtable"t><"row"<"text-left col-sm-4"l><"#summaryDomainsInfo.text-center col-sm-4"i><"text-right col-sm-4"p>>'
+                       data-ordering="true"
+                       data-info="true"
+                       data-searching="true"
+                       data-paging="true"
+                       data-length-change="true"
+                       data-auto-width="true"
+                       data-order='[[ 7, "asc" ], [ 1, "desc"]]'
+                       data-defer-render="true"
+                       data-defer-loading="[{$filteredDomains}, {$totalDomains}]"
+                       data-server-side="true"
+                       data-page-length="{$domainPageLength}"
+                >
+                    <thead>
                         <tr>
-                            <th width="20"><input type="checkbox" id="domainsall" /></th>
-                            <th>{$_ADMINLANG.fields.id}</th>
-                            <th>{$_ADMINLANG.fields.domain}</th>
-                            <th>{$_ADMINLANG.fields.registrar}</th>
-                            <th>{$_ADMINLANG.fields.regdate}</th>
-                            <th>{$_ADMINLANG.fields.nextduedate}</th>
-                            <th>{$_ADMINLANG.fields.expirydate}</th>
-                            <th>{$_ADMINLANG.fields.status}</th>
-                            <th width="20"></th>
+                            <th data-name="checkbox" data-class="text-center" data-orderable="false" data-width="20"><input type="checkbox" id="domainsall" /></th>
+                            <th data-name="id">{$_ADMINLANG.fields.id}</th>
+                            <th data-name="domain">{$_ADMINLANG.fields.domain}</th>
+                            <th data-name="registrar">{$_ADMINLANG.fields.registrar}</th>
+                            <th data-name="registrationdate">{$_ADMINLANG.fields.regdate}</th>
+                            <th data-name="nextduedate">{$_ADMINLANG.fields.nextduedate}</th>
+                            <th data-name="expirydate">{$_ADMINLANG.fields.expirydate}</th>
+                            <th data-name="status" data-class-name="status">{$_ADMINLANG.fields.status}</th>
+                            <th data-name="actions" data-class-name="edit text-center" data-orderable="false" data-width="20"></th>
                         </tr>
+                    </thead>
+                    <tbody>
                         {foreach key=num from=$domainsummary item=domain}
-                            <tr>
+                            <tr id="domain{$domain.id}">
                                 <td><input type="checkbox" name="seldomains[]" value="{$domain.id}" class="checkdomains" /></td>
                                 <td><a href="clientsdomains.php?userid={$clientsdetails.userid}&domainid={$domain.id}">{$domain.idshort}</a></td>
                                 <td style="padding-left:5px;padding-right:5px"><a href="http://{$domain.domain}" target="_blank">{$domain.domain}</a></td>
@@ -396,35 +462,47 @@
                                 <td class="status" data-filter-value="{$domain.originalstatus}">{$domain.status}</td>
                                 <td><a href="clientsdomains.php?userid={$clientsdetails.userid}&domainid={$domain.id}"><img src="images/edit.gif" width="16" height="16" border="0" alt="Edit"></a></td>
                             </tr>
-                        {foreachelse}
-                            <tr>
-                                <td colspan="9">{$_ADMINLANG.global.norecordsfound}</td>
-                            </tr>
                         {/foreach}
-                    </table>
-                </div>
-
+                    </tbody>
+                </table>
             </td></tr>
         </table>
-
+        {/if}
+        {if in_array('Manage Quotes', $admin_perms)}
         <table width="100%" class="form">
             <tr><td colspan="2" class="fieldarea" style="text-align:center;"><strong>{$_ADMINLANG.clientsummary.currentquotes}</strong></td></tr>
             <tr><td align="center">
-
-                <div class="tablebg">
-                    <table class="datatable" width="100%" border="0" cellspacing="1" cellpadding="3">
+                <table id="summaryQuotes"
+                       class="table table-themed display data-driven"
+                       data-ajax-url="{routePath('admin-table-client-quotes', $clientsdetails.userid)}"
+                       data-dom='<"listtable"t><"row"<"text-left col-sm-4"l><"#summaryQuotesInfo.text-center col-sm-4"i><"text-right col-sm-4"p>>'
+                       data-ordering="true"
+                       data-info="true"
+                       data-paging="true"
+                       data-length-change="true"
+                       data-searching="false"
+                       data-auto-width="true"
+                       data-order='[[ 5, "asc" ], [ 0, "desc"]]'
+                       data-defer-render="true"
+                       data-defer-loading="{$totalQuotes}"
+                       data-server-side="true"
+                       data-page-length="{$quotePageLength}"
+                    >
+                        <thead>
                         <tr>
-                            <th>{$_ADMINLANG.fields.id}</th>
-                            <th>{$_ADMINLANG.fields.subject}</th>
-                            <th>{$_ADMINLANG.fields.date}</th>
-                            <th>{$_ADMINLANG.fields.total}</th>
-                            <th>{$_ADMINLANG.fields.validuntil}</th>
-                            <th>{$_ADMINLANG.fields.status}</th>
-                            <th width="20"></th>
+                            <th data-name="id">{$_ADMINLANG.fields.id}</th>
+                            <th data-name="subject">{$_ADMINLANG.fields.subject}</th>
+                            <th data-name="datecreated">{$_ADMINLANG.fields.date}</th>
+                            <th data-name="total">{$_ADMINLANG.fields.total}</th>
+                            <th data-name="validuntil">{$_ADMINLANG.fields.validuntil}</th>
+                            <th data-name="stage">{$_ADMINLANG.fields.status}</th>
+                            <th data-name="actions" data-class-name="edit text-center" data-orderable="false" data-width="20"></th>
                         </tr>
+                        </thead>
+                        <tbody>
                         {foreach key=num from=$quotes item=quote}
-                            <tr>
-                                <td>{$quote.id}</td>
+                            <tr id="quote{$quote.id}">
+                                <td><a href="quotes.php?action=manage&id={$quote.id}">{$quote.id}</a></td>
                                 <td style="padding-left:5px;padding-right:5px">{$quote.subject}</td>
                                 <td>{$quote.datecreated}</td>
                                 <td>{$quote.total}</td>
@@ -432,16 +510,12 @@
                                 <td>{$quote.stage}</td>
                                 <td><a href="quotes.php?action=manage&id={$quote.id}"><img src="images/edit.gif" width="16" height="16" border="0" alt="Edit"></a></td>
                             </tr>
-                        {foreachelse}
-                            <tr>
-                                <td colspan="7">{$_ADMINLANG.global.norecordsfound}</td>
-                            </tr>
                         {/foreach}
-                    </table>
-                </div>
-
+                        </tbody>
+            </table>
             </td></tr>
         </table>
+        {/if}
 
         <div class="bulk-action-btns">
             {$_ADMINLANG.global.withselected}:
@@ -469,7 +543,7 @@
                         {$_ADMINLANG.global.apply}
                     </button>
                 </div>
-                <div class="col-lg-9 col-lg-pull-3 col-xs-12">
+                <div class="col-lg-9 col-lg-pull-3 col-xs-12 form-inline">
                     <span class="heading visible-lg-inline-block">{$_ADMINLANG.global.bulkActions}</span>
                     <select name="status" class="form-control select-inline">
                         <option value="">- {$_ADMINLANG.support.setStatus} -</option>
@@ -482,13 +556,24 @@
                         <option value="Fraud">{$_ADMINLANG.status.fraud}</option>
                     </select>
                     {$paymentmethoddropdown|replace:$_ADMINLANG.global.nochange:$_ADMINLANG.clientsummary.setPaymentMethod}
-                    <span>
-                        <label class="checkbox-inline">
-                            <input type="checkbox" name="overideautosuspend" id="overridesuspend" />
-                            {$_ADMINLANG.services.nosuspenduntil}
-                            <input type="text" name="overidesuspenduntil" class="input-inline form-control date-picker-single future" data-drops="up" data-original-value="" value="" />
-                        </label>
-                    </span>
+                    <div class="form-group">
+                        <div class="form-inline">
+                            <div class="form-group">
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" name="overideautosuspend" id="overridesuspend" />
+                                    {$_ADMINLANG.services.nosuspenduntil}
+                                </label>
+                            </div>
+                            <div class="form-group">
+                                <div class="form-group date-picker-prepend-icon">
+                                    <label for="overridesuspend" class="field-icon">
+                                        <i class="fal fa-calendar-alt"></i>
+                                    </label>
+                                    <input type="text" name="overidesuspenduntil" class="form-control date-picker-single future" data-drops="up" data-original-value="" value="" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -514,7 +599,13 @@
                             {$_ADMINLANG.fields.nextduedate}
                         </td>
                         <td class="fieldarea">
-                            <input type="text" id="nextDueDate" name="nextduedate" class="input-inline form-control date-picker-single future" data-drops="up" data-original-value="" value="" /> &nbsp;&nbsp; <input type="checkbox" name="proratabill" id="proratabill" /> {$_ADMINLANG.clientsummary.createproratainvoice}
+                            <div class="form-group date-picker-prepend-icon">
+                                <label for="inputDateCreated" class="field-icon">
+                                    <i class="fal fa-calendar-alt"></i>
+                                </label>
+                                <input type="text" id="nextDueDate" name="nextduedate" class="input-inline form-control date-picker-single future" data-drops="up" data-original-value="" value="" />
+                                &nbsp;&nbsp; <input type="checkbox" name="proratabill" id="proratabill" /> {$_ADMINLANG.clientsummary.createproratainvoice}
+                            </div>
                         </td>
                         <td width="15%" class="fieldlabel">
                             {$_ADMINLANG.fields.billingcycle}
@@ -554,3 +645,15 @@
     </form>
 
 </div>
+
+<form method="post" action="{routePath('admin-client-login', $clientsdetails.id)}" id="frmLoginAsOwner"></form>
+
+<script>
+    $(document).ready(function() {
+        $('.summary-login-as-owner').click(function(e) {
+            e.preventDefault();
+            var newWindow = jQuery(this).data('new-window');
+            submitForm('frmLoginAsOwner', newWindow);
+        });
+    });
+</script>

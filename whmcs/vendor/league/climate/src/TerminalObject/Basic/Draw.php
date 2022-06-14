@@ -11,7 +11,7 @@ class Draw extends BasicTerminalObject
     public function __construct($art)
     {
         // Add the default art directory
-        $this->addDir(__DIR__ . '/../../ASCII');
+        $this->addDir(__DIR__ . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . 'ASCII');
 
         $this->art = $art;
     }
@@ -23,7 +23,7 @@ class Draw extends BasicTerminalObject
      */
     public function result()
     {
-        $file = $this->artFile($this->art) ?: $this->artFile($this->default_art);
+        $file = $this->artFile($this->art);
 
         return $this->parse($file);
     }

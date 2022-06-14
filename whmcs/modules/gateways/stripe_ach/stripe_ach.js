@@ -72,7 +72,7 @@ function stripe_ach_reset_input_to_new()
     jQuery('input[name="paymethod"][value="new"]').iCheck('check');
 
     setTimeout(function() {
-        jQuery('.gateway-errors').hide().addClass('hidden');
+        jQuery('.gateway-errors').slideUp();
     }, 4000);
 }
 
@@ -82,9 +82,7 @@ function handler_open() {
         linkHandler = Plaid.create(
         {
             env: plaidEnvironment,
-            clientName: companyName,
-            key: plaidPublicKey,
-            product: ['auth'],
+            token: plaidLinkToken,
             selectAccount: true,
             onSuccess: function(public_token, metadata) {
                 WHMCS.http.jqClient.jsonPost({
@@ -110,25 +108,31 @@ function handler_open() {
                     },
                     warning: function(error) {
                         displayError.html(error);
-                        if (displayError.hasClass('hidden')) {
-                            displayError.removeClass('hidden').show();
+                        if (displayError.not(':visible')) {
+                            displayError.slideDown();
                         }
                         scrollToGatewayInputError();
                     },
                     fail: function(error) {
                         displayError.html(error);
-                        if (displayError.hasClass('hidden')) {
-                            displayError.removeClass('hidden').show();
+                        if (displayError.not(':visible')) {
+                            displayError.slideDown();
                         }
                         scrollToGatewayInputError();
                     }
                 });
             },
             onExit: function(err, metadata) {
+                if (err === null) {
+                    if (metadata && metadata.status === 'requires_credentials' && !metadata.link_session_id) {
+                        err = 'Incorrect Plaid credentials provided. Please contact support.';
+                    }
+                }
+
                 if (err != null) {
                     displayError.html(err);
-                    if (displayError.hasClass('hidden')) {
-                        displayError.removeClass('hidden').show();
+                    if (displayError.not(':visible')) {
+                        displayError.slideDown();
                     }
                     scrollToGatewayInputError();
                 }

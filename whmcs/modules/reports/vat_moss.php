@@ -109,7 +109,8 @@ if ($queryStartDate && $queryEndDate) {
     $taxRates = Capsule::table('tbltax')
         ->where('state', '')
         ->where('country', '!=', '')
-        ->pluck('taxrate', 'country');
+        ->pluck('taxrate', 'country')
+        ->all();
 
     // Build query to calculate data for report.
     $results = Capsule::table('tblinvoices')

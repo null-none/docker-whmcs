@@ -18,6 +18,7 @@
     max-width: 100%;
 }
 
+.form-group .date-picker-prepend-icon,
 .form-group.date-picker-prepend-icon {
     top: 0;
     left: 0;

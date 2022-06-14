@@ -28,6 +28,11 @@ class ArrayRepository extends BaseRepository
 {
     /** @var PackageInterface[] */
     protected $packages;
+    
+    /** 
+      * @var PackageInterface[] indexed by package unique name and used to cache hasPackage calls
+      */
+    protected $packageMap;
 
     public function __construct(array $packages = array())
     {
@@ -89,7 +94,7 @@ class ArrayRepository extends BaseRepository
     /**
      * {@inheritDoc}
      */
-    public function search($query, $mode = 0)
+    public function search($query, $mode = 0, $type = null)
     {
         $regex = '{(?:'.implode('|', preg_split('{\s+}', $query)).')}i';
 
@@ -102,9 +107,13 @@ class ArrayRepository extends BaseRepository
             if (preg_match($regex, $name)
                 || ($mode === self::SEARCH_FULLTEXT && $package instanceof CompletePackageInterface && preg_match($regex, implode(' ', (array) $package->getKeywords()) . ' ' . $package->getDescription()))
             ) {
+                if (null !== $type && $package->getType() !== $type) {
+                    continue;
+                }
+
                 $matches[$name] = array(
                     'name' => $package->getPrettyName(),
-                    'description' => $package->getDescription(),
+                    'description' => $package instanceof CompletePackageInterface ? $package->getDescription() : null,
                 );
             }
         }
@@ -117,15 +126,14 @@ class ArrayRepository extends BaseRepository
      */
     public function hasPackage(PackageInterface $package)
     {
-        $packageId = $package->getUniqueName();
-
-        foreach ($this->getPackages() as $repoPackage) {
-            if ($packageId === $repoPackage->getUniqueName()) {
-                return true;
+        if ($this->packageMap === null) {
+            $this->packageMap = array();
+            foreach ($this->getPackages() as $repoPackage) {
+                $this->packageMap[$repoPackage->getUniqueName()] = $repoPackage;
             }
         }
 
-        return false;
+        return isset($this->packageMap[$package->getUniqueName()]);
     }
 
     /**
@@ -147,6 +155,9 @@ class ArrayRepository extends BaseRepository
                 $this->addPackage($aliasedPackage);
             }
         }
+
+        // invalidate package map cache
+        $this->packageMap = null;
     }
 
     protected function createAliasPackage(PackageInterface $package, $alias, $prettyAlias)
@@ -166,6 +177,9 @@ class ArrayRepository extends BaseRepository
         foreach ($this->getPackages() as $key => $repoPackage) {
             if ($packageId === $repoPackage->getUniqueName()) {
                 array_splice($this->packages, $key, 1);
+
+                // invalidate package map cache
+                $this->packageMap = null;
 
                 return;
             }

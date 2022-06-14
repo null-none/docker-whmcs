@@ -57,7 +57,7 @@ HTML;
 if ($calculate) {
     $dateRange = Carbon::parseDateRangeValue($range);
     $queryStartDate = $dateRange['from']->toDateTimeString();
-    $queryEndDate = $dateRange['to']->toDateString();
+    $queryEndDate = $dateRange['to']->toDateTimeString();
 
     $result = Capsule::table('tblinvoices')
         ->select(
@@ -125,7 +125,8 @@ $results = Capsule::table('tblinvoices')
     ->where('tblclients.currency', '=', $currencyID)
     ->whereNull('tblinvoiceitems.id')
     ->orderBy('date', 'asc')
-    ->get();
+    ->get()
+    ->all();
 
 foreach ($results as $result) {
     $id = $result->id;
@@ -143,10 +144,10 @@ foreach ($results as $result) {
         "{$client}",
         "{$date}",
         "{$datepaid}",
-        "{$subtotal}",
-        "{$tax}",
-        "{$credit}",
-        "{$total}",
+        format_as_currency($subtotal),
+        format_as_currency($tax),
+        format_as_currency($credit),
+        format_as_currency($total),
     ];
 }
 

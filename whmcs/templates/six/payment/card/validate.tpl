@@ -39,7 +39,7 @@
             }
             if (!submit) {
                 submitButton.prop('disabled', false).removeClass('disabled')
-                    .find('span').toggleClass('hidden');
+                    .find('span').toggle();
                 e.preventDefault();
             }
         }
@@ -77,7 +77,12 @@
         jQuery(document).ready(function() {
             jQuery('.paymethod-info input[name="ccinfo"]').on('ifChecked', function() {
                 if (jQuery(this).val() === 'new') {
-                    window.location = window.location + '&new=1';
+                    var route = '{$newCardRoute}';
+                    var delimiter = '?';
+                    if (route.indexOf('?') !== -1) {
+                        delimiter = '&';
+                    }
+                    window.location = route + delimiter + 'ccinfo=new';
                     return true;
                 }
             });

@@ -12,6 +12,8 @@ CREATE TABLE `tblaffiliatesaccounts` (
   `affiliateid` int(10) NOT NULL,
   `relid` int(10) NOT NULL,
   `lastpaid` date NOT NULL DEFAULT '0000-00-00',
+  `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),
   KEY `affiliateid` (`affiliateid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

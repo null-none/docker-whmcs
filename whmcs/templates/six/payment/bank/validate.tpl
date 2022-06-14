@@ -10,6 +10,8 @@
                 submit = true,
                 accountNumber = jQuery('#inputBankAcctNum');
 
+            submitButton.prop('disabled', true).addClass('disabled').find('span').toggle();
+
             paymentForm.find('.form-group').removeClass('has-error');
             paymentForm.find('.field-error-msg').hide();
 
@@ -36,7 +38,7 @@
             }
             if (!submit) {
                 submitButton.prop('disabled', false).removeClass('disabled')
-                    .find('span').toggleClass('hidden');
+                    .find('span').toggle();
                 e.preventDefault();
             }
         }
@@ -72,7 +74,12 @@
         jQuery(document).ready(function() {
             jQuery('.paymethod-info input[name="paymethod"]').on('ifChecked', function() {
                 if (jQuery(this).val() === 'new') {
-                    window.location = window.location + '&new=1';
+                    if (window.location.toString().match(/\?/)) {
+                        window.location = window.location + '&ccinfo=new';
+                    } else {
+                        window.location = window.location + '?ccinfo=new';
+                    }
+
                     return true;
                 }
             });

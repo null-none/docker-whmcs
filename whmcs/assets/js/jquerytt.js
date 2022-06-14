@@ -11,7 +11,7 @@
  *  Version: 1.0
  */
  
-(function($){ $.fn.tooltip = function(options){
+(function($){ $.fn.invoiceTooltip = function(options){
 
     var defaults = {
         cssClass: "",     //CSS class or classes to style the tooltip

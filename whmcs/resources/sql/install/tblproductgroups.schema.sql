@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS `tblproductgroups`;
 CREATE TABLE `tblproductgroups` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `name` text COLLATE utf8_unicode_ci NOT NULL,
+  `slug` varchar(128) NOT NULL DEFAULT '',
   `headline` text COLLATE utf8_unicode_ci,
   `tagline` text COLLATE utf8_unicode_ci,
   `orderfrmtpl` text COLLATE utf8_unicode_ci NOT NULL,

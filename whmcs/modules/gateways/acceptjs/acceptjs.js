@@ -36,7 +36,7 @@ jQuery(document).ready(function(){
             }
         });
 
-        newOrExisting.on('ifChecked change', function() {
+        jQuery(document).on('ifChecked', 'input[name="ccinfo"]', function() {
             frm.off('submit', validateAcceptJs);
             if (selectedPaymentMethod === 'acceptjs') {
                 var newOrExistingValue = jQuery('input[name="ccinfo"]:checked').val();
@@ -49,7 +49,7 @@ jQuery(document).ready(function(){
         if (jQuery('input[name="type"]:checked').data('gateway') === 'acceptjs') {
             enable_acceptjs_card_input();
         }
-        jQuery('input[name="type"]').on('change', function(){
+        jQuery('input[name="type"]').on('ifChecked change', function(){
             if (jQuery(this).data('gateway') === 'acceptjs') {
                 enable_acceptjs_card_input();
             } else {
@@ -63,7 +63,7 @@ jQuery(document).ready(function(){
         } else {
             paymentForm.find('#inputCardCvv').parents('div.form-group').hide('fast');
         }
-        jQuery('input[name="ccinfo"]').on('change', function(){
+        jQuery('input[name="ccinfo"]').on('ifChecked change', function(){
             if (jQuery(this).val() === 'new') {
                 enable_payment_acceptjs();
             } else {
@@ -95,6 +95,15 @@ jQuery(document).ready(function(){
 });
 
 function validateAcceptJs(event) {
+    if (
+        typeof recaptchaValidationComplete !== 'undefined'
+        && typeof recaptchaType !== 'undefined'
+        && recaptchaType === 'invisible'
+        && recaptchaValidationComplete === false
+    ) {
+        event.preventDefault();
+        return;
+    }
     var paymentMethod = jQuery('input[name="paymentmethod"]:checked'),
         frm = jQuery('#frmCheckout'),
         newOrExisting = jQuery('input[name="ccinfo"]');
@@ -147,11 +156,11 @@ function acceptJsResponseHandler(response) {
         for (var i = 0; i < response.messages.message.length; i++) {
             errors += response.messages.message[i].text + "\n";
         }
-        frm.find('.gateway-errors').text(errors).removeClass('hidden');
+        frm.find('.gateway-errors').text(errors).slideDown();
         scrollToGatewayInputError();
         frm.find('#btnCompleteOrder').removeAttr('disabled').removeClass('disabled');
     } else {
-        frm.find('.gateway-errors').text('').addClass('hidden');
+        frm.find('.gateway-errors').text('').slideUp();
         // Insert the token ID into the form so it gets submitted to the server:
         frm.append(jQuery('<input type="hidden" name="dataDescriptor">').val(response.opaqueData.dataDescriptor));
         frm.append(jQuery('<input type="hidden" name="dataValue">').val(response.opaqueData.dataValue));
@@ -243,12 +252,12 @@ function acceptJsNewCcResponseHandler(response) {
             errors += response.messages.message[i].text + "\n";
         }
         // Show the errors on the form:
-        ccForm.find('.gateway-errors,.assisted-cc-input-feedback').text(errors).removeClass('hidden');
+        ccForm.find('.gateway-errors,.assisted-cc-input-feedback').text(errors).slideDown();
         scrollToGatewayInputError();
         jQuery('#btnSubmitNewCard').removeAttr('disabled').removeClass('disabled'); // Re-enable submission
 
     } else { // Token was created!
-        ccForm.find('.gateway-errors,.assisted-cc-input-feedback').text('').addClass('hidden');
+        ccForm.find('.gateway-errors,.assisted-cc-input-feedback').text('').slideUp();
         // Insert the token ID into the form so it gets submitted to the server:
         ccForm.append(jQuery('<input type="hidden" name="dataDescriptor">').val(response.opaqueData.dataDescriptor));
         ccForm.append(jQuery('<input type="hidden" name="dataValue">').val(response.opaqueData.dataValue));
@@ -308,13 +317,13 @@ function acceptJsPaymentResponseHandler(response) {
             errors += response.messages.message[i].text + "\n";
         }
         // Show the errors on the form:
-        paymentForm.find('.gateway-errors').text(errors).removeClass('hidden');
+        paymentForm.find('.gateway-errors').text(errors).slideDown();
         scrollToGatewayInputError();
         jQuery('#btnSubmit').removeAttr('disabled').removeClass('disabled')
-            .find('span').toggleClass('hidden'); // Re-enable submission
+            .find('span').toggle(); // Re-enable submission
 
     } else { // Token was created!
-        paymentForm.find('.gateway-errors').text('').addClass('hidden');
+        paymentForm.find('.gateway-errors').text('').slideUp();
         // Insert the token ID into the form so it gets submitted to the server:
         paymentForm.append(jQuery('<input type="hidden" name="dataDescriptor">').val(response.opaqueData.dataDescriptor));
         paymentForm.append(jQuery('<input type="hidden" name="dataValue">').val(response.opaqueData.dataValue));
@@ -333,7 +342,7 @@ function validateAdminAcceptJs(event) {
     adminCreditCard.find('button[type="submit"],input[type="submit"]')
         .prop('disabled', true)
         .addClass('disabled')
-        .find('span').toggleClass('hidden');
+        .find('span').toggle();
 
     var secureData = {},
         authData = {},
@@ -368,11 +377,11 @@ function acceptJsAdminResponseHandler(response) {
             errors += response.messages.message[i].text + "\n";
         }
         // Show the errors on the form:
-        adminCreditCard.find('.gateway-errors').text(errors).removeClass('hidden');
+        adminCreditCard.find('.gateway-errors').text(errors).slideUp();
         scrollToGatewayInputError();
         adminCreditCard.find('#btnSaveChanges').removeAttr('disabled').removeClass('disabled'); // Re-enable submission
     } else {
-        adminCreditCard.find('.gateway-errors').text('').addClass('hidden');
+        adminCreditCard.find('.gateway-errors').text('').slideUp();
         // Insert the token ID into the form so it gets submitted to the server:
         adminCreditCard.append(jQuery('<input type="hidden" name="dataDescriptor">').val(response.opaqueData.dataDescriptor));
         adminCreditCard.append(jQuery('<input type="hidden" name="dataValue">').val(response.opaqueData.dataValue));

@@ -1,4 +1,7 @@
-<link rel="stylesheet" type="text/css" href="{$WEB_ROOT}/templates/orderforms/{$carttpl}/css/style.css" property="stylesheet" />
+<!-- Product Recommendations CSS -->
+<link type="text/css" rel="stylesheet" href="{$BASE_PATH_CSS}/recommendations.min.css" property="stylesheet" />
+<!-- Core CSS -->
+<link rel="stylesheet" type="text/css" href="{assetPath file="style.css"}" property="stylesheet" />
 <script>
     jQuery(document).ready(function () {
         jQuery('#btnShowSidebar').click(function () {
@@ -22,10 +25,10 @@
     </button>
 {/if}
 <div class="row row-product-selection">
-    <div class="col-xs-3 product-selection-sidebar" id="supremeComparisonSidebar">
+    <div class="col-md-3 sidebar product-selection-sidebar" id="supremeComparisonSidebar">
         {include file="orderforms/standard_cart/sidebar-categories.tpl"}
     </div>
-    <div class="col-xs-12">
+    <div class="col-md-12">
         <div id="order-supreme_comparison">
             <div class="product-group-heading">
                 <div class="product-group-headline">
@@ -44,23 +47,28 @@
                     <div class="alert alert-danger">
                         {$errormessage}
                     </div>
+                {elseif !$productGroup}
+                    <div class="alert alert-info">
+                        {lang key='orderForm.selectCategory'}
+                    </div>
                 {/if}
             </div>
             <div id="products" class="price-table-container">
                 <ul>
                     {$count = 1}
                     {foreach $products as $product}
-                        <li id="product{$product@iteration}">
+                        {$idPrefix = ($product.bid) ? ("bundle"|cat:$product.bid) : ("product"|cat:$product.pid)}
+                        <li id="{$idPrefix}">
                             <div class="price-table">
                                 <div class="product-icon">
-                                    <img src="{$WEB_ROOT}/templates/orderforms/{$carttpl}/img/bg{$count}.png" width="155" height="95" alt="Product {$product@iteration}" />
+                                    <img src="{assetPath ns="img" file="bg{$count}.png"}" width="155" height="95" alt="Product {$product@iteration}" />
                                 </div>
                                 <div class="product-title">
-                                    <h3 id="product{$product@iteration}-name">
+                                    <h3 id="{$idPrefix}-name" class="font-size-24">
                                         {$product.name}
                                     </h3>
                                     {if $product.tagLine}
-                                        <p id="product{$product@iteration}-tag-line">
+                                        <p id="{$idPrefix}-tag-line">
                                             {$product.tagLine}
                                         </p>
                                     {/if}
@@ -71,24 +79,24 @@
                                     </div>
                                 {/if}
                                 <div class="product-body">
-                                    <ul id="product{$product@iteration}-description">
+                                    <ul id="{$idPrefix}-description">
                                         {foreach $product.features as $feature => $value}
-                                            <li id="product{$product@iteration}-feature{$value@iteration}">
+                                            <li id="{$idPrefix}-feature{$value@iteration}">
                                                 <span>{$value}</span> {$feature}
                                             </li>
                                         {foreachelse}
-                                            <li id="product{$product@iteration}-description">
+                                            <li id="{$idPrefix}-description">
                                                 {$product.description}
                                             </li>
                                         {/foreach}
                                         {if !empty($product.features) && $product.featuresdesc}
-                                            <li id="product{$product@iteration}-feature-description">
+                                            <li id="{$idPrefix}-feature-description">
                                                 {$product.featuresdesc}
                                             </li>
                                         {/if}
                                     </ul>
                                     <div class="price-area">
-                                        <div class="price" id="product{$product@iteration}-price">
+                                        <div class="price" id="{$idPrefix}-price">
                                             {if $product.bid}
                                                 {if $product.displayprice}
                                                     <div class="price-label">{$LANG.bundledeal}</div>
@@ -119,13 +127,13 @@
                                             {/if}
                                         </div>
                                         {if $product.qty eq "0"}
-                                            <div id="product{$product@iteration}-unavailable">
+                                            <div id="{$idPrefix}-unavailable">
                                                 <div class="order-unavailable">
                                                     {$LANG.outofstock}
                                                 </div>
                                             </div>
                                         {else}
-                                            <a href="{$smarty.server.PHP_SELF}?a=add&amp;{if $product.bid}bid={$product.bid}{else}pid={$product.pid}{/if}" id="product{$product@iteration}-order-button">
+                                            <a href="{$product.productUrl}" class="btn-order-now" id="{$idPrefix}-order-button"{if $product.hasRecommendations} data-has-recommendations="1"{/if}>
                                                 <div class="order-now">
                                                     {$LANG.ordernowbutton}
                                                 </div>
@@ -149,7 +157,7 @@
                     <div class="row clearfix">
                         <div class="col-md-12">
                             <div class="head-area">
-                                <span>
+                                <span class="primary-bg-color">
                                     {$LANG.orderForm.includedWithPlans}
                                 </span>
                             </div>
@@ -165,3 +173,7 @@
         </div>
     </div>
 </div>
+
+{include file="orderforms/supreme_comparison/recommendations-modal.tpl"}
+
+<script src="{$BASE_PATH_JS}/whmcs/recommendations.min.js"></script>

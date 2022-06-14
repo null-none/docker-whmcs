@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS `tbldynamic_translations`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tbldynamic_translations` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `related_type` enum('configurable_option.{id}.name','configurable_option_option.{id}.name','custom_field.{id}.description','custom_field.{id}.name','download.{id}.description','download.{id}.title','product.{id}.description','product.{id}.name','product_addon.{id}.description','product_addon.{id}.name','product_bundle.{id}.description','product_bundle.{id}.name','product_group.{id}.headline','product_group.{id}.name','product_group.{id}.tagline','product_group_features.{id}.feature','ticket_department.{id}.description','ticket_department.{id}.name') COLLATE utf8_unicode_ci NOT NULL,
+  `related_type` enum('configurable_option.{id}.name','configurable_option_option.{id}.name','custom_field.{id}.description','custom_field.{id}.name','download.{id}.description','download.{id}.title','product.{id}.description','product.{id}.name','product.{id}.tagline','product.{id}.short_description','product_addon.{id}.description','product_addon.{id}.name','product_bundle.{id}.description','product_bundle.{id}.name','product_group.{id}.headline','product_group.{id}.name','product_group.{id}.tagline','product_group_feature.{id}.feature','ticket_department.{id}.description','ticket_department.{id}.name') COLLATE utf8_unicode_ci NOT NULL,
   `related_id` int(10) unsigned NOT NULL DEFAULT '0',
   `language` varchar(16) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `translation` text COLLATE utf8_unicode_ci NOT NULL,

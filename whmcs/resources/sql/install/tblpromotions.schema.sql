@@ -12,7 +12,7 @@ CREATE TABLE `tblpromotions` (
   `code` text COLLATE utf8_unicode_ci NOT NULL,
   `type` text COLLATE utf8_unicode_ci NOT NULL,
   `recurring` int(1) DEFAULT NULL,
-  `value` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `value` decimal(16,2) NOT NULL DEFAULT '0.00',
   `cycles` text COLLATE utf8_unicode_ci NOT NULL,
   `appliesto` text COLLATE utf8_unicode_ci NOT NULL,
   `requires` text COLLATE utf8_unicode_ci NOT NULL,

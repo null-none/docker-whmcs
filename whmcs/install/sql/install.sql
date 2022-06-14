@@ -14,11 +14,11 @@ CREATE TABLE IF NOT EXISTS `tblaccounts` (
   `transid` text COLLATE utf8_unicode_ci NOT NULL,
   `invoiceid` int(1) NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblactivitylog`
 --
 
@@ -28,11 +28,11 @@ CREATE TABLE IF NOT EXISTS `tblactivitylog` (
   `description` text COLLATE utf8_unicode_ci NOT NULL,
   `user` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbladdons`
 --
 
@@ -46,13 +46,13 @@ CREATE TABLE IF NOT EXISTS `tbladdons` (
   `billingcycle` text COLLATE utf8_unicode_ci NOT NULL,
   `showorder` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbladminlog`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbladminlog` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -63,13 +63,13 @@ CREATE TABLE IF NOT EXISTS `tbladminlog` (
   `sessionid` text COLLATE utf8_unicode_ci NOT NULL,
   `lastvisit` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbladmins`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbladmins` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -86,13 +86,13 @@ CREATE TABLE IF NOT EXISTS `tbladmins` (
   `ticketnotifications` varchar(2) COLLATE utf8_unicode_ci NOT NULL,
   `ordernotifications` varchar(2) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblaffiliates`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblaffiliates` (
   `id` int(3) unsigned zerofill NOT NULL auto_increment,
@@ -104,13 +104,13 @@ CREATE TABLE IF NOT EXISTS `tblaffiliates` (
   `balance` decimal(10,2) NOT NULL default '0.00',
   `withdrawn` decimal(10,2) NOT NULL default '0.00',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblaffiliatesaccounts`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblaffiliatesaccounts` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -124,13 +124,13 @@ CREATE TABLE IF NOT EXISTS `tblaffiliatesaccounts` (
   `lastpaid` date NOT NULL default '0000-00-00',
   `relid` int(10) unsigned zerofill NOT NULL default '0000000000',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblaffiliateshistory`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblaffiliateshistory` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -139,13 +139,13 @@ CREATE TABLE IF NOT EXISTS `tblaffiliateshistory` (
   `affaccid` int(1) NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblannouncements`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblannouncements` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -154,26 +154,26 @@ CREATE TABLE IF NOT EXISTS `tblannouncements` (
   `announcement` text COLLATE utf8_unicode_ci NOT NULL,
   `published` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblbannedemails`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblbannedemails` (
   `id` int(1) NOT NULL auto_increment,
   `domain` text COLLATE utf8_unicode_ci NOT NULL,
   `count` int(1) NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblbannedips`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblbannedips` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -181,26 +181,26 @@ CREATE TABLE IF NOT EXISTS `tblbannedips` (
   `reason` text COLLATE utf8_unicode_ci NOT NULL,
   `expires` datetime NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblbrowserlinks`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblbrowserlinks` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
   `name` text COLLATE utf8_unicode_ci NOT NULL,
   `url` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblcalendar`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblcalendar` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -215,13 +215,13 @@ CREATE TABLE IF NOT EXISTS `tblcalendar` (
   `endt2` text COLLATE utf8_unicode_ci NOT NULL,
   `adminid` int(1) NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblcancelrequests`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblcancelrequests` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -230,13 +230,13 @@ CREATE TABLE IF NOT EXISTS `tblcancelrequests` (
   `reason` text COLLATE utf8_unicode_ci NOT NULL,
   `type` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblclients`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblclients` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -267,24 +267,24 @@ CREATE TABLE IF NOT EXISTS `tblclients` (
   `status` text COLLATE utf8_unicode_ci NOT NULL,
   `language` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblconfiguration`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblconfiguration` (
   `setting` text COLLATE utf8_unicode_ci NOT NULL,
   `value` text COLLATE utf8_unicode_ci NOT NULL
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblcredit`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblcredit` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -293,13 +293,13 @@ CREATE TABLE IF NOT EXISTS `tblcredit` (
   `description` text COLLATE utf8_unicode_ci NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblcustomfields`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblcustomfields` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -313,25 +313,25 @@ CREATE TABLE IF NOT EXISTS `tblcustomfields` (
   `required` text COLLATE utf8_unicode_ci NOT NULL,
   `showorder` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblcustomfieldsvalues`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblcustomfieldsvalues` (
   `fieldid` int(1) NOT NULL,
   `relid` int(10) unsigned zerofill NOT NULL,
   `value` text COLLATE utf8_unicode_ci NOT NULL
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbldomainpricing`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbldomainpricing` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -343,13 +343,13 @@ CREATE TABLE IF NOT EXISTS `tbldomainpricing` (
   `autoreg` text COLLATE utf8_unicode_ci NOT NULL,
   `order` int(1) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbldomains`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbldomains` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -371,13 +371,13 @@ CREATE TABLE IF NOT EXISTS `tbldomains` (
   `urlforwarding` text COLLATE utf8_unicode_ci NOT NULL,
   `emailforwarding` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbldomainsadditionalfields`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbldomainsadditionalfields` (
   `id` int(1) NOT NULL auto_increment,
@@ -385,13 +385,13 @@ CREATE TABLE IF NOT EXISTS `tbldomainsadditionalfields` (
   `name` text COLLATE utf8_unicode_ci NOT NULL,
   `value` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbldownloadcats`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbldownloadcats` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -400,13 +400,13 @@ CREATE TABLE IF NOT EXISTS `tbldownloadcats` (
   `description` text COLLATE utf8_unicode_ci NOT NULL,
   `hidden` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbldownloads`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbldownloads` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -418,13 +418,13 @@ CREATE TABLE IF NOT EXISTS `tbldownloads` (
   `location` text COLLATE utf8_unicode_ci NOT NULL,
   `clientsonly` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblemails`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblemails` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -433,13 +433,13 @@ CREATE TABLE IF NOT EXISTS `tblemails` (
   `message` text COLLATE utf8_unicode_ci NOT NULL,
   `date` datetime default NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblemailtemplates`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblemailtemplates` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -453,13 +453,13 @@ CREATE TABLE IF NOT EXISTS `tblemailtemplates` (
   `custom` text COLLATE utf8_unicode_ci NOT NULL,
   `language` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblfraud`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblfraud` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -467,13 +467,13 @@ CREATE TABLE IF NOT EXISTS `tblfraud` (
   `setting` text COLLATE utf8_unicode_ci NOT NULL,
   `value` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblgatewaylog`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblgatewaylog` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -482,13 +482,13 @@ CREATE TABLE IF NOT EXISTS `tblgatewaylog` (
   `data` text COLLATE utf8_unicode_ci NOT NULL,
   `result` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblhosting`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblhosting` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -521,13 +521,13 @@ CREATE TABLE IF NOT EXISTS `tblhosting` (
   `bwlimit` int(10) NOT NULL default '0',
   `lastupdate` datetime NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblhostingaddons`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblhostingaddons` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -544,13 +544,13 @@ CREATE TABLE IF NOT EXISTS `tblhostingaddons` (
   `paymentmethod` text COLLATE utf8_unicode_ci NOT NULL,
   `subscriptionid` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblhostingconfigoptions`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblhostingconfigoptions` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -558,13 +558,13 @@ CREATE TABLE IF NOT EXISTS `tblhostingconfigoptions` (
   `configid` int(10) unsigned zerofill NOT NULL default '0000000000',
   `optionid` int(10) unsigned zerofill NOT NULL default '0000000000',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblinvoiceitems`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblinvoiceitems` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -579,13 +579,13 @@ CREATE TABLE IF NOT EXISTS `tblinvoiceitems` (
   `paymentmethod` text COLLATE utf8_unicode_ci NOT NULL,
   `notes` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 --
 -- Table structure for table `tblinvoices`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblinvoices` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -603,13 +603,13 @@ CREATE TABLE IF NOT EXISTS `tblinvoices` (
   `paymentmethod` text COLLATE utf8_unicode_ci NOT NULL,
   `notes` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblknowledgebase`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblknowledgebase` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -621,13 +621,13 @@ CREATE TABLE IF NOT EXISTS `tblknowledgebase` (
   `votes` int(1) NOT NULL default '0',
   `private` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblknowledgebasecats`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblknowledgebasecats` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -636,13 +636,13 @@ CREATE TABLE IF NOT EXISTS `tblknowledgebasecats` (
   `description` text COLLATE utf8_unicode_ci NOT NULL,
   `hidden` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblorders`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblorders` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -667,13 +667,13 @@ CREATE TABLE IF NOT EXISTS `tblorders` (
   `fraudmodule` text COLLATE utf8_unicode_ci NOT NULL,
   `fraudoutput` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblpaymentgateways`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblpaymentgateways` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -687,13 +687,13 @@ CREATE TABLE IF NOT EXISTS `tblpaymentgateways` (
   `description` text COLLATE utf8_unicode_ci NOT NULL,
   `order` int(1) NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblproductconfigoptions`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblproductconfigoptions` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -702,13 +702,13 @@ CREATE TABLE IF NOT EXISTS `tblproductconfigoptions` (
   `optiontype` text COLLATE utf8_unicode_ci NOT NULL,
   `order` int(1) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblproductconfigoptionssub`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblproductconfigoptionssub` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -716,13 +716,13 @@ CREATE TABLE IF NOT EXISTS `tblproductconfigoptionssub` (
   `optionname` text COLLATE utf8_unicode_ci NOT NULL,
   `price` decimal(10,2) NOT NULL default '0.00',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblproductgroups`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblproductgroups` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -731,13 +731,13 @@ CREATE TABLE IF NOT EXISTS `tblproductgroups` (
   `hidden` text COLLATE utf8_unicode_ci NOT NULL,
   `order` int(1) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblproducts`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblproducts` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -803,13 +803,13 @@ CREATE TABLE IF NOT EXISTS `tblproducts` (
   `affiliatepaytype` text COLLATE utf8_unicode_ci NOT NULL,
   `affiliatepayamount` decimal(10,2) NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblpromotions`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblpromotions` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -825,13 +825,13 @@ CREATE TABLE IF NOT EXISTS `tblpromotions` (
   `uses` int(1) NOT NULL default '0',
   `appliesto` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblregistrars`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblregistrars` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -839,13 +839,13 @@ CREATE TABLE IF NOT EXISTS `tblregistrars` (
   `setting` text COLLATE utf8_unicode_ci NOT NULL,
   `value` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblreselleraccountsetup`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblreselleraccountsetup` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -900,13 +900,13 @@ CREATE TABLE IF NOT EXISTS `tblreselleraccountsetup` (
   `acl-resftp` text COLLATE utf8_unicode_ci NOT NULL,
   `acl-news` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblservers`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblservers` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -926,13 +926,13 @@ CREATE TABLE IF NOT EXISTS `tblservers` (
   `secure` text COLLATE utf8_unicode_ci NOT NULL,
   `active` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbltax`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbltax` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -941,25 +941,25 @@ CREATE TABLE IF NOT EXISTS `tbltax` (
   `country` text COLLATE utf8_unicode_ci NOT NULL,
   `taxrate` decimal(10,2) NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblticketbreaklines`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblticketbreaklines` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
   `breakline` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblticketdepartments`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblticketdepartments` (
   `id` int(3) unsigned zerofill NOT NULL auto_increment,
@@ -973,13 +973,13 @@ CREATE TABLE IF NOT EXISTS `tblticketdepartments` (
   `login` text COLLATE utf8_unicode_ci NOT NULL,
   `password` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblticketlog`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblticketlog` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -987,13 +987,13 @@ CREATE TABLE IF NOT EXISTS `tblticketlog` (
   `tid` int(10) unsigned zerofill NOT NULL,
   `action` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblticketmaillog`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblticketmaillog` (
   `id` int(1) NOT NULL auto_increment,
@@ -1005,13 +1005,13 @@ CREATE TABLE IF NOT EXISTS `tblticketmaillog` (
   `message` text COLLATE utf8_unicode_ci NOT NULL,
   `status` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblticketnotes`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblticketnotes` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -1020,26 +1020,26 @@ CREATE TABLE IF NOT EXISTS `tblticketnotes` (
   `message` text COLLATE utf8_unicode_ci NOT NULL,
   `ticketid` int(10) unsigned zerofill NOT NULL default '0000000000',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblticketpredefinedcats`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblticketpredefinedcats` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
   `parentid` int(1) NOT NULL,
   `name` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblticketpredefinedreplies`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblticketpredefinedreplies` (
   `id` int(1) unsigned zerofill NOT NULL auto_increment,
@@ -1047,13 +1047,13 @@ CREATE TABLE IF NOT EXISTS `tblticketpredefinedreplies` (
   `name` text COLLATE utf8_unicode_ci NOT NULL,
   `reply` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblticketreplies`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblticketreplies` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -1066,13 +1066,13 @@ CREATE TABLE IF NOT EXISTS `tblticketreplies` (
   `admin` text COLLATE utf8_unicode_ci NOT NULL,
   `attachment` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbltickets`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbltickets` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -1082,6 +1082,7 @@ CREATE TABLE IF NOT EXISTS `tbltickets` (
   `name` text COLLATE utf8_unicode_ci NOT NULL,
   `email` text COLLATE utf8_unicode_ci NOT NULL,
   `c` text COLLATE utf8_unicode_ci NOT NULL,
+  `ipaddress` varchar(64) COLLATE utf8_unicode_ci DEFAULT NULL,
   `date` datetime NOT NULL default '0000-00-00 00:00:00',
   `title` text COLLATE utf8_unicode_ci NOT NULL,
   `message` text COLLATE utf8_unicode_ci NOT NULL,
@@ -1094,26 +1095,26 @@ CREATE TABLE IF NOT EXISTS `tbltickets` (
   `clientunread` int(1) NOT NULL,
   `adminunread` int(1) NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblticketspamfilters`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblticketspamfilters` (
   `id` int(1) NOT NULL auto_increment,
   `type` enum('sender','subject','phrase') NOT NULL,
   `content` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tbltodolist`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tbltodolist` (
   `id` int(1) NOT NULL auto_increment,
@@ -1124,13 +1125,13 @@ CREATE TABLE IF NOT EXISTS `tbltodolist` (
   `status` text COLLATE utf8_unicode_ci NOT NULL,
   `duedate` date NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblupgrades`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblupgrades` (
   `id` int(1) NOT NULL auto_increment,
@@ -1144,13 +1145,13 @@ CREATE TABLE IF NOT EXISTS `tblupgrades` (
   `status` enum('Pending','Completed') NOT NULL default 'Pending',
   `paid` enum('Y','N') NOT NULL default 'N',
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
--- 
+--
 -- Table structure for table `tblwhoislog`
--- 
+--
 
 CREATE TABLE IF NOT EXISTS `tblwhoislog` (
   `id` int(10) unsigned zerofill NOT NULL auto_increment,
@@ -1158,13 +1159,13 @@ CREATE TABLE IF NOT EXISTS `tblwhoislog` (
   `domain` text COLLATE utf8_unicode_ci NOT NULL,
   `ip` text COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY  (`id`)
-) DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
 INSERT INTO `tblconfiguration` VALUES ('Language', 'English');
 INSERT INTO `tblconfiguration` VALUES ('CompanyName', 'Company Name');
-INSERT INTO `tblconfiguration` VALUES ('Email', 'changeme@changeme.com');
+INSERT INTO `tblconfiguration` VALUES ('Email', 'changeme@example.com');
 INSERT INTO `tblconfiguration` VALUES ('Domain', 'http://www.yourdomain.com/');
 INSERT INTO `tblconfiguration` VALUES ('LogoURL', '');
 INSERT INTO `tblconfiguration` VALUES ('SystemURL', 'http://www.yourdomain.com/whmcs/');
@@ -1192,8 +1193,8 @@ INSERT INTO `tblconfiguration` VALUES ('AllowLanguageChange', 'on');
 INSERT INTO `tblconfiguration` VALUES ('CutUtf8Mb4', 'on');
 INSERT INTO `tblconfiguration` VALUES ('Version', '');
 INSERT INTO `tblconfiguration` VALUES ('AllowCustomerChangeInvoiceGateway', 'on');
-INSERT INTO `tblconfiguration` VALUES ('DefaultNameserver1', 'ns1.yourdomain.com');
-INSERT INTO `tblconfiguration` VALUES ('DefaultNameserver2', 'ns2.yourdomain.com');
+INSERT INTO `tblconfiguration` VALUES ('DefaultNameserver1', 'ns1.example.com');
+INSERT INTO `tblconfiguration` VALUES ('DefaultNameserver2', 'ns2.example.com');
 INSERT INTO `tblconfiguration` VALUES ('SendInvoiceReminderDays', '7');
 INSERT INTO `tblconfiguration` VALUES ('SendReminder', 'on');
 INSERT INTO `tblconfiguration` VALUES ('NumRecordstoDisplay', '50');

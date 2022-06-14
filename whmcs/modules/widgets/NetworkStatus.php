@@ -8,14 +8,14 @@ use WHMCS\Module\AbstractWidget;
 /**
  * NetworkStatus Widget.
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2018
- * @license https://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2021
+ * @license https://www.whmcs.com/eula/ WHMCS Eula
  */
 class NetworkStatus extends AbstractWidget
 {
     protected $title = 'Network Status';
     protected $description = 'An overview of Network Status.';
-    protected $weight = 80;
+    protected $weight = 450;
     protected $cache = true;
 
     public function getData()

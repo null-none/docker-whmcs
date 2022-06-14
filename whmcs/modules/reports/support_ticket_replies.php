@@ -47,7 +47,8 @@ $result = Capsule::table('tblticketreplies')
             Capsule::raw('COUNT(tid) as total_replies'),
             Capsule::raw('COUNT(DISTINCT tid) as total_tickets'),
         ]
-    );
+    )
+    ->all();
 
 foreach ($result as $data) {
     $adminname = $data->admin;

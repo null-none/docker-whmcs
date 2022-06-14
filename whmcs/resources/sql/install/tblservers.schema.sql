@@ -13,7 +13,7 @@ CREATE TABLE `tblservers` (
   `ipaddress` text COLLATE utf8_unicode_ci NOT NULL,
   `assignedips` text COLLATE utf8_unicode_ci NOT NULL,
   `hostname` text COLLATE utf8_unicode_ci NOT NULL,
-  `monthlycost` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `monthlycost` decimal(16,2) NOT NULL DEFAULT '0.00',
   `noc` text COLLATE utf8_unicode_ci NOT NULL,
   `statusaddress` text COLLATE utf8_unicode_ci NOT NULL,
   `nameserver1` text COLLATE utf8_unicode_ci NOT NULL,

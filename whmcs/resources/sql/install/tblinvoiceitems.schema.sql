@@ -14,7 +14,7 @@ CREATE TABLE `tblinvoiceitems` (
   `type` varchar(30) COLLATE utf8_unicode_ci NOT NULL,
   `relid` int(10) NOT NULL,
   `description` text COLLATE utf8_unicode_ci NOT NULL,
-  `amount` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `amount` decimal(16,2) NOT NULL DEFAULT '0.00',
   `taxed` int(1) NOT NULL,
   `duedate` date DEFAULT NULL,
   `paymentmethod` text COLLATE utf8_unicode_ci NOT NULL,

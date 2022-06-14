@@ -10,14 +10,14 @@ use WHMCS\Session;
 /**
  * ToDo Widget.
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2018
- * @license https://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2021
+ * @license https://www.whmcs.com/eula/ WHMCS Eula
  */
 class ToDo extends AbstractWidget
 {
     protected $title = 'To-Do List';
     protected $description = '';
-    protected $weight = 60;
+    protected $weight = 350;
     protected $cache = false;
     protected $requiredPermission = 'To-Do List';
 

@@ -50,7 +50,8 @@ for ( $day = 0; $day < 120; $day += 30) {
         ->where('tblinvoices.duedate', '>=', $enddate)
         ->where('tblinvoices.status', '=', 'Unpaid')
         ->groupBy('tblclients.currency')
-        ->get();
+        ->get()
+        ->all();
     foreach ($results as $result) {
         $currencytotals[$result->currency] = ($result->sum - $result->sum2);
     }
@@ -61,7 +62,7 @@ for ( $day = 0; $day < 120; $day += 30) {
             $currencyamount = 0;
         }
         $totals[$currencyid] += $currencyamount;
-        $currency = getCurrency('', $currencyid);
+        $currency = getCurrency(null, $currencyid);
         $rowdata[] = formatCurrency($currencyamount);
         if ($currencyid == $defaultcurrencyid) {
             $chartdata['rows'][] = [
@@ -95,7 +96,8 @@ $results = Capsule::table('tblinvoices')
     ->where('tblinvoices.duedate', '<=', $startdate)
     ->where('tblinvoices.status', '=', 'Unpaid')
     ->groupBy('tblclients.currency')
-    ->get();
+    ->get()
+    ->all();
 foreach ($results as $result) {
     $currencytotals[$result->currency] = $result->sum;
 }
@@ -106,7 +108,7 @@ foreach ($currencies as $currencyid => $currencyname) {
         $currencyamount=0;
     }
     $totals[$currencyid] += $currencyamount;
-    $currency = getCurrency('', $currencyid);
+    $currency = getCurrency(null, $currencyid);
     $rowdata[] = formatCurrency($currencyamount);
     if ($currencyid == $defaultcurrencyid) {
         $chartdata['rows'][] = [
@@ -130,7 +132,7 @@ foreach ($currencies as $currencyid => $currencyname) {
     if (!$currencytotal) {
         $currencytotal=0;
     }
-    $currency = getCurrency('', $currencyid);
+    $currency = getCurrency(null, $currencyid);
     $rowdata[] = "<b>" . formatCurrency($currencytotal) . "</b>";
 }
 $reportdata["tablevalues"][] = $rowdata;

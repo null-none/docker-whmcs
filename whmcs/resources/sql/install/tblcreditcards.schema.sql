@@ -18,7 +18,8 @@ CREATE TABLE `tblcreditcards` (
   `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `deleted_at` timestamp NULL,
   PRIMARY KEY (`id`),
-  KEY `tblcreditcards_pay_method_id` (`pay_method_id`)
+  KEY `tblcreditcards_pay_method_id` (`pay_method_id`),
+  INDEX `tblcreditcards_last_four` (`last_four`(4))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

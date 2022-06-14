@@ -52,24 +52,18 @@
 {/foreach}
 
 {if $prevpage || $nextpage}
-
-    <div class="col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3">
+    <div class="col-xs-12 margin-bottom">
         <form class="form-inline" role="form">
             <div class="form-group">
                 <div class="input-group">
-                    {if $prevpage}
-                        <span class="input-group-btn">
-                            <a href="{routePath('announcement-index-paged', $prevpage, $view)}" class="btn btn-default">&laquo; {$LANG.previouspage}</a>
-                        </span>
-                    {/if}
-                    <input class="form-control" style="text-align: center;" value="{$LANG.page} {$pagenumber}" disabled="disabled">
-                    {if $nextpage}
-                        <span class="input-group-btn">
-                            <a href="{routePath('announcement-index-paged', $nextpage, $view)}" class="btn btn-default">{$LANG.nextpage} &raquo;</a>
-                        </span>
-                    {/if}
+                    <span class="btn-group">
+                        {foreach $pagination as $item}
+                            <a href="{$item.link}" class="btn btn-default{if $item.active} active{/if}"{if $item.disabled} disabled="disabled"{/if}>{$item.text}</a>
+                        {/foreach}
+                    </span>
                 </div>
             </div>
         </form>
     </div>
+    <div class="clearfix"></div>
 {/if}

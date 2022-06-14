@@ -96,10 +96,10 @@
                 {elseif $licenseError eq "version"}
                     <p>
                         You are using an Owned License for which the support & updates
-                        validity period expired before this release. Therefore in order to
-                        use this version of WHMCS, you first need to renew your support &
-                        updates access. You can do this from our client area @ <a
-                                href="https://www.whmcs.com/members/clientarea.php" target="_blank">www.whmcs.com/members/clientarea.php</a>
+                        validity period expired before this release.<br/><br/>
+                        To use this version of WHMCS, you must purchase a new license key.<br/><br/>
+                        Learn more and obtain a new license at <a
+                            href="https://www.whmcs.com/owned-license-upgrade?utm_source=version&utm_medium=inproduct&utm_campaign=ownedeol">www.whmcs.com/owned-license-upgrade</a>.
                     </p>
                     <p>
                         If you feel this message to be an error, please contact us @ <a
@@ -139,7 +139,7 @@
                             <input type="password" class="form-control" name="password" placeholder="Password">
                         </div>
                         <div class="form-group">
-                            <input type="text" class="form-control" name="newlicensekey" placeholder="New License Key">
+                            <input type="text" class="form-control" name="license_key" placeholder="New License Key">
                         </div>
                         <div class="row">
                             <div class="col-sm-12">

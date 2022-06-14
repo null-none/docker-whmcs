@@ -2,6 +2,8 @@
 
 namespace League\CLImate\TerminalObject\Dynamic;
 
+use League\CLImate\Exceptions\UnexpectedValueException;
+
 class Progress extends DynamicTerminalObject
 {
     /**
@@ -54,6 +56,13 @@ class Progress extends DynamicTerminalObject
     protected $force_redraw = false;
 
     /**
+     * If this progress bar ever displayed a label.
+     *
+     * @var boolean $has_label_line
+     */
+    protected $has_label_line = false;
+
+    /**
      * If they pass in a total, set the total
      *
      * @param integer $total
@@ -84,17 +93,19 @@ class Progress extends DynamicTerminalObject
      *
      * @param integer $current
      * @param mixed   $label
-     * @throws \Exception
+     *
+     * @return void
+     * @throws UnexpectedValueException
      */
     public function current($current, $label = null)
     {
         if ($this->total == 0) {
             // Avoid dividing by 0
-            throw new \Exception('The progress total must be greater than zero.');
+            throw new UnexpectedValueException('The progress total must be greater than zero.');
         }
 
         if ($current > $this->total) {
-            throw new \Exception('The current is greater than the total.');
+            throw new UnexpectedValueException('The current is greater than the total.');
         }
 
         $this->drawProgressBar($current, $label);
@@ -126,6 +137,37 @@ class Progress extends DynamicTerminalObject
 
         return $this;
     }
+
+
+    /**
+     * Update a progress bar using an iterable.
+     *
+     * @param iterable $items Array or any other iterable object
+     * @param callable $callback A handler to run on each item
+     */
+    public function each($items, callable $callback = null)
+    {
+        if ($items instanceof \Traversable) {
+            $items = iterator_to_array($items);
+        }
+
+        $total = count($items);
+        if (!$total) {
+            return;
+        }
+        $this->total($total);
+
+        foreach ($items as $key => $item) {
+            if ($callback) {
+                $label = $callback($item, $key);
+            } else {
+                $label = null;
+            }
+
+            $this->advance(1, $label);
+        }
+    }
+
 
     /**
      * Draw the progress bar, if necessary
@@ -162,13 +204,18 @@ class Progress extends DynamicTerminalObject
             $this->first_line = false;
         }
 
-        // Move the cursor up one line and clear it to the end
-        $line_count    = (strlen($label) > 0) ? 2 : 1;
+        // Move the cursor up and clear it to the end
+        $line_count = $this->has_label_line ? 2 : 1;
 
         $progress_bar  = $this->util->cursor->up($line_count);
         $progress_bar .= $this->util->cursor->startOfCurrentLine();
         $progress_bar .= $this->util->cursor->deleteCurrentLine();
         $progress_bar .= $this->getProgressBarStr($current, $label);
+
+        // If this line has a label then set that this progress bar has a label line
+        if (strlen($label) > 0) {
+            $this->has_label_line = true;
+        }
 
         return $progress_bar;
     }
@@ -192,6 +239,10 @@ class Progress extends DynamicTerminalObject
 
         if ($label) {
             $label = $this->labelFormatted($label);
+        // If this line doesn't have a label, but we've had one before,
+        // then ensure the label line is cleared
+        } elseif ($this->has_label_line) {
+            $label = $this->labelFormatted('');
         }
 
         return trim("{$bar} {$number}{$label}");

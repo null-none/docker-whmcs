@@ -36,6 +36,9 @@ jQuery(document).ready(function() {
     jQuery(document).on('click', '#ticketsClose,#ticketsDelete,#ticketsMerge', function (event)
     {
         event.preventDefault();
+        if (jQuery(this).attr('disabled')) {
+            return;
+        }
         var type = jQuery(this).attr('id'),
             name = eval(type);
 

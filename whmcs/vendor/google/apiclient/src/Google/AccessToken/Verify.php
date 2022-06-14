@@ -17,6 +17,7 @@
  */
 
 use Firebase\JWT\ExpiredException as ExpiredExceptionV3;
+use Firebase\JWT\SignatureInvalidException;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use Psr\Cache\CacheItemPoolInterface;
@@ -72,7 +73,8 @@ class Google_AccessToken_Verify
    * The audience parameter can be used to control which id tokens are
    * accepted.  By default, the id token must have been issued to this OAuth2 client.
    *
-   * @param $audience
+   * @param string $idToken the ID token in JWT format
+   * @param string $audience Optional. The audience to verify against JWt "aud"
    * @return array the token payload, if successful
    */
   public function verifyIdToken($idToken, $audience = null)
@@ -120,6 +122,8 @@ class Google_AccessToken_Verify
         return false;
       } catch (ExpiredExceptionV3 $e) {
         return false;
+      } catch (SignatureInvalidException $e) {
+        // continue
       } catch (DomainException $e) {
         // continue
       }
@@ -175,7 +179,7 @@ class Google_AccessToken_Verify
   {
     $certs = null;
     if ($cache = $this->getCache()) {
-      $cacheItem = $cache->getItem('federated_signon_certs_v3', 3600);
+      $cacheItem = $cache->getItem('federated_signon_certs_v3');
       $certs = $cacheItem->get();
     }
 
@@ -186,6 +190,7 @@ class Google_AccessToken_Verify
       );
 
       if ($cache) {
+        $cacheItem->expiresAt(new DateTime('+1 hour'));
         $cacheItem->set($certs);
         $cache->save($cacheItem);
       }
@@ -207,8 +212,8 @@ class Google_AccessToken_Verify
       $jwtClass = 'Firebase\JWT\JWT';
     }
 
-    if (property_exists($jwtClass, 'leeway')) {
-      // adds 1 second to JWT leeway
+    if (property_exists($jwtClass, 'leeway') && $jwtClass::$leeway < 1) {
+      // Ensures JWT leeway is at least 1
       // @see https://github.com/google/google-api-php-client/issues/827
       $jwtClass::$leeway = 1;
     }

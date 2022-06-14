@@ -1,5 +1,7 @@
 <?php
 
+use WHMCS\Billing\Currency;
+
 require("../init.php");
 require("../includes/domainfunctions.php");
 
@@ -12,7 +14,7 @@ require("../includes/domainfunctions.php");
 
 $systemurl = App::getSystemUrl();
 
-$currency = getCurrency();
+$currency = Currency::factoryForClientArea();
 $tlds = getTLDList();
 
 $code = '<form action="%sdomainchecker.php" method="post"><input type="hidden" name="direct" value="true">' . \Lang::trans('orderForm.www') . ' <input type="text" name="domain" size="30"> <select name="ext">';

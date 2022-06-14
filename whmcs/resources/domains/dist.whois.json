@@ -20,14 +20,19 @@
         "available": "No match for"
     },
     {
-        "extensions": ".br.com,.cn.com,.eu.com,.hu.com,.no.com,.qc.com,.sa.com,.se.com,.se.net,.us.com,.uy.com,.za.com,.com.de,.uk.com,.uk.net,.gb.com,.gb.net,.online,.site,.ink",
+        "extensions": ".br.com,.cn.com,.eu.com,.no.com,.qc.com,.sa.com,.se.com,.se.net,.us.com,.uy.com,.za.com,.uk.com,.uk.net,.gb.com,.gb.net,.online,.site,.ink",
         "uri": "socket://whois.centralnic.com",
         "available": "DOMAIN NOT FOUND"
     },
     {
-        "extensions": ".ac,.co.ac,.gv.ac,.or.ac,.ac.ac",
+        "extensions": ".com.de",
+        "uri": "socket://whois.centralnic.com",
+        "available": "Status: free"
+    },
+    {
+        "extensions": ".ac,.co.ac",
         "uri": "socket://whois.nic.ac",
-        "available": "NOT FOUND"
+        "available": "Domain not found"
     },
     {
         "extensions": ".af",
@@ -42,7 +47,7 @@
     {
         "extensions": ".as",
         "uri": "socket://whois.nic.as",
-        "available": "Available"
+        "available": "NOT FOUND"
     },
     {
         "extensions": ".at,.ac.at,.co.at,.gv.at,.or.at",
@@ -87,7 +92,7 @@
     {
         "extensions": ".cx",
         "uri": "socket://whois.nic.cx",
-        "available": "No match for"
+        "available": "No Object Found"
     },
     {
         "extensions": ".cz",
@@ -107,12 +112,12 @@
     {
         "extensions": ".fo",
         "uri": "socket://whois.nic.fo",
-        "available": "no entries found"
+        "available": "DOMAIN NOT FOUND"
     },
     {
-        "extensions": ".com.ec,.org.ec,.net.ec,.mil.ec,.fin.ec,.med.ec,.gov.ec",
+        "extensions": ".com.ec,.org.ec,.net.ec,.mil.ec,.fin.ec,.med.ec,.gob.ec,.ec",
         "uri": "socket://whois.nic.ec",
-        "available": "No match found",
+        "available": "No Object Found",
         "comment": "The registry which operates the .ec TLD requires epp code authorization from an authorized registrar and is not supported by this software. Visit www.nic.ec to check availability."
     },
     {
@@ -122,8 +127,8 @@
     },
     {
         "extensions": ".gf",
-        "uri": "socket://whois.nplus.gf",
-        "available": "not found in our database"
+        "uri": "socket://whois.mediaserv.net",
+        "available": "NO OBJECT FOUND"
     },
     {
         "extensions": ".co.il,.org.il,.net.il,.ac.il,.k12.il,.gov.il,.muni.il",
@@ -147,11 +152,11 @@
     },
     {
         "extensions": ".ac.jp,.co.jp,.go.jp,.or.jp,.ne.jp",
-        "uri": "socket://whois.nic.ad.jp",
+        "uri": "socket://whois.jprs.jp",
         "available": "No match!!"
     },
     {
-        "extensions": ".ac.kr,.co.kr,.go.kr,.ne.kr,.nm.kr,.or.kr,.re.kr",
+        "extensions": ".ac.kr,.co.kr,.go.kr,.ne.kr,.ne.kr,.or.kr,.re.kr",
         "uri": "socket://whois.nic.or.kr",
         "available": "domain was not found"
     },
@@ -177,11 +182,11 @@
     },
     {
         "extensions": ".com.mm,.org.mm,.net.mm,.edu.mm,.gov.mm",
-        "uri": "socket://whois.nic.mm",
-        "available": "No domains matched"
+        "uri": "socket://whois.registry.gov.mm",
+        "available": "DOMAIN NOT FOUND"
     },
     {
-        "extensions": ".mx,.com.mx,.org.mx,.net.mx,.edu.mx,.gov.mx,.gob.mx",
+        "extensions": ".mx,.com.mx,.org.mx,.net.mx,.edu.mx,.gob.mx",
         "uri": "socket://whois.mx",
         "available": "No_Se_Encontro_El_Objeto/Object_Not_Found"
     },
@@ -197,11 +202,11 @@
     },
     {
         "extensions": ".nu",
-        "uri": "socket://whois.nic.nu",
+        "uri": "socket://whois.iis.nu",
         "available": "not found"
     },
     {
-        "extensions": ".pl,.com.pl,.net.pl,.org.pl,.aid.pl,.agro.pl,.atm.pl,.auto.pl,.biz.pl,.edu.pl,.gmina.pl,.gsm.pl,.info.pl,.mail.pl,.miasta.pl,.media.pl,.mil.pl,.nom.pl,.pc.pl,.priv.pl,.realestate.pl,.rel.pl,.shop.pl,.sklep.pl,.sos.pl,.targi.pl,.tm.pl,.tourism.pl,.travel.pl,.turystyka.pl",
+        "extensions": ".pl,.com.pl,.net.pl,.org.pl,.aid.pl,.agro.pl,.atm.pl,.auto.pl,.biz.pl,.edu.pl,.gmina.pl,.gsm.pl,.info.pl,.mail.pl,.miasta.pl,.media.pl,.mil.pl,.nom.pl,.pc.pl,.priv.pl,.realestate.pl,.rel.pl,.shop.pl,.sklep.pl,.sos.pl,.targi.pl,.tm.pl,.tourism.pl,.turystyka.pl",
         "uri": "socket://whois.dns.pl",
         "available": "No information available"
     },
@@ -222,7 +227,7 @@
     },
     {
         "extensions": ".com.sg,.org.sg,.net.sg,.gov.sg,.sg,.edu.sg",
-        "uri": "socket://whois.nic.net.sg",
+        "uri": "socket://whois.sgnic.sg",
         "available": "Domain Not Found"
     },
     {
@@ -243,7 +248,7 @@
     {
         "extensions": ".ac.th,.co.th,.go.th,.mi.th,.net.th,.or.th,.in.th",
         "uri": "socket://whois.thnic.net",
-        "available": "No match for"
+        "available": "No match found"
     },
     {
         "extensions": ".tj",
@@ -256,7 +261,7 @@
         "available": "No match for"
     },
     {
-        "extensions": ".bbs.tr,.com.tr,.edu.tr,.gov.tr,.k12.tr,.mil.tr,.net.tr,.org.tr,.biz.tr,.name.tr,.tel.tr,.bel.tr,.gen.tr,.info.tr,.web.tr",
+        "extensions": ".bbs.tr,.com.tr,.edu.tr,.gov.tr,.k12.tr,.tsk.tr,.net.tr,.org.tr,.biz.tr,.name.tr,.tel.tr,.bel.tr,.gen.tr,.info.tr,.web.tr",
         "uri": "socket://whois.nic.tr",
         "available": "No match found"
     },
@@ -273,12 +278,7 @@
     {
         "extensions": ".ac.uk",
         "uri": "socket://whois.ja.net",
-        "available": "Sorry - no"
-    },
-    {
-        "extensions": ".uk.co",
-        "uri": "socket://whois.uk.co",
-        "available": "NO MATCH"
+        "available": "No such domain"
     },
     {
         "extensions": ".ac.za,.alt.za,.edu.za,.gov.za,.mil.za,.ngo.za,.nom.za,.school.za,.tm.za",
@@ -307,8 +307,8 @@
     },
     {
         "extensions": ".kz",
-        "uri": "socket://whois.domain.kz",
-        "available": "No entries found"
+        "uri": "socket://whois.nic.kz",
+        "available": "Nothing found"
     },
     {
         "extensions": ".ch",
@@ -316,9 +316,9 @@
         "available": "---1:"
     },
     {
-        "extensions": ".info,.blue,.kim,.pink,.black,.green,.lgbt,.poker,.red,.vote,.voto",
+        "extensions": ".info,.blue,.kim,.pink,.black,.green,.lgbt,.poker,.red,.vote,.voto,.archi,.bio,.ski,.bet,.promo,.pet,.lotto",
         "uri": "socket://whois.afilias.net",
-        "available": "NOT FOUND"
+        "available": "Domain not found"
     },
     {
         "extensions": ".ua",
@@ -348,16 +348,11 @@
     {
         "extensions": ".ie",
         "uri": "socket://whois.domainregistry.ie",
-        "available": "% Not Registered"
+        "available": "Not found"
     },
     {
-        "extensions": ".hk",
+        "extensions": ".hk,.com.hk,.org.hk,.net.hk,.edu.hk",
         "uri": "socket://whois.hkirc.hk",
-        "available": "The domain has not been registered"
-    },
-    {
-        "extensions": ".com.hk,.org.hk,.net.hk,.edu.hk",
-        "uri": "socket://whois.hkdnr.net.hk",
         "available": "The domain has not been registered"
     },
     {
@@ -367,13 +362,13 @@
     },
     {
         "extensions": ".tk",
-        "uri": "https://partners.nic.tk/cgi-bin/whmcs-whois.taloha?d=",
-        "available": "has no matches"
+        "uri": "socket://whois.dot.tk",
+        "available": "domain name not known"
     },
     {
         "extensions": ".cd",
-        "uri": "socket://whois.cd",
-        "available": "No match"
+        "uri": "socket://whois.nic.cd",
+        "available": "No Object Found"
     },
     {
         "extensions": ".aero",
@@ -389,11 +384,6 @@
         "extensions": ".lv",
         "uri": "socket://whois.nic.lv",
         "available": "Status: free"
-    },
-    {
-        "extensions": ".eu.lv",
-        "uri": "socket://whois.biz",
-        "available": "Not found"
     },
     {
         "extensions": ".bz",
@@ -418,7 +408,7 @@
     {
         "extensions": ".mobi",
         "uri": "socket://whois.dotmobiregistry.net",
-        "available": "NOT FOUND"
+        "available": "Domain not found"
     },
     {
         "extensions": ".eu",
@@ -433,7 +423,7 @@
     {
         "extensions": ".io",
         "uri": "socket://whois.nic.io",
-        "available": "---NOT FOUND"
+        "available": "---Domain not found"
     },
     {
         "extensions": ".la",
@@ -447,8 +437,8 @@
     },
     {
         "extensions": ".sc",
-        "uri": "socket://wawa.eahd.or.ug",
-        "available": "No entries found"
+        "uri": "socket://whois2.afilias-grs.net",
+        "available": "NOT FOUND"
     },
     {
         "extensions": ".vc",
@@ -473,7 +463,7 @@
     {
         "extensions": ".travel",
         "uri": "socket://whois.nic.travel",
-        "available": "The queried object does not exist"
+        "available": "Domain not found"
     },
     {
         "extensions": ".my,.com.my,.net.my,.org.my,.edu.my,.gov.my",
@@ -481,7 +471,7 @@
         "available": "does not exist in database"
     },
     {
-        "extensions": ".com.ph,.net.ph,.ph,.ngo.ph,.org.ph",
+        "extensions": ".com.ph,.net.ph,.ph,.org.ph",
         "uri": "https://whois.dot.ph/?search=",
         "available": "Domain is available"
     },
@@ -518,12 +508,12 @@
     {
         "extensions": ".com.ve,.net.ve,.org.ve,.web.ve,.info.ve,.co.ve",
         "uri": "socket://whois.nic.ve",
-        "available": "No match for"
+        "available": "No entries found"
     },
     {
         "extensions": ".tel",
         "uri": "socket://whois.nic.tel",
-        "available": "Not found"
+        "available": "No Data Found"
     },
     {
         "extensions": ".im",
@@ -551,9 +541,14 @@
         "available": "No entries found"
     },
     {
-        "extensions": ".com.ua,.lviv.ua,.dn.ua,.kh.ua,.lg.ua,.net.ua,.org.ua,.kiev.ua",
+        "extensions": ".com.ua,.dn.ua,.kh.ua,.lg.ua,.net.ua,.org.ua,.kiev.ua",
         "uri": "socket://whois.net.ua",
         "available": "No entries found"
+    },
+    {
+        "extensions": ".lviv.ua",
+        "uri": "socket://whois.lviv.ua",
+        "available": "No Object Found"
     },
     {
         "extensions": ".co,.net.co,.com.co,.nom.co",
@@ -561,14 +556,14 @@
         "available": "No Data Found"
     },
     {
-        "extensions": ".com.gt,.net.gt,.org.gt,.ind.gt,.edu.gt,.gob.gt,.mil.gt",
-        "uri": "http://www.gt/cgi-bin/whois.cgi?domain=",
-        "available": "DOMINIO NO REGISTRADO"
+        "extensions": ".gt,.com.gt,.net.gt,.org.gt,.ind.gt,.edu.gt,.gob.gt,.mil.gt",
+        "uri": "https://www.gt/sitio/whois.php?dn=",
+        "available": "no está registrado"
     },
     {
         "extensions": ".pro",
         "uri": "socket://whois.nic.pro",
-        "available": "NOT FOUND"
+        "available": "Domain not found"
     },
     {
         "extensions": ".re",
@@ -593,7 +588,7 @@
     {
         "extensions": ".xxx",
         "uri": "socket://whois.nic.xxx",
-        "available": "NOT FOUND"
+        "available": "No Data Found"
     },
     {
         "extensions": ".hu",
@@ -627,13 +622,13 @@
     },
     {
         "extensions": ".cat",
-        "uri": "socket://whois.cat",
+        "uri": "socket://whois.nic.cat",
         "available": "no matching objects found"
     },
     {
         "extensions": ".mil.id,.go.id",
-        "uri": "socket://whois.idnic.net.id",
-        "available": "Not found"
+        "uri": "socket://whois.id",
+        "available": "DOMAIN NOT FOUND"
     },
     {
         "extensions": ".fm",
@@ -648,17 +643,22 @@
     {
         "extensions": ".sx",
         "uri": "socket://whois.sx",
-        "available": "Status: AVAILABLE"
+        "available": "Not found:"
     },
     {
         "extensions": ".pa,.com.pa,.net.pa,.org.pa",
-        "uri": "http://www.nic.pa/whois.php?nombre_d=",
-        "available": "esta disponible para ser Registrado"
+        "uri": "http://www.nic.pa/en/whois/dominio/",
+        "available": "The domain doesn't exist"
     },
     {
-        "extensions": ".equipment,.gallery,.graphics,.lighting,.photography,.directory,.technology,.today,.bike,.clothing,.guru,.plumbing,.singles,.camera,.estate,.construction,.contractors,.kitchen,.land,.enterprises,.holdings,.ventures,.diamonds,.voyage,.photos,.shoes,.careers,.recipes,.academy,.agency,.associates,.bargains,.boutique,.builders,.cab,.camp,.center,.cheap,.codes,.coffee,.company,.computer,.cool,.education,.email,.expert,.exposed,.farm,.flights,.florist,.glass,.holiday,.house,.institute,.international,.limo,.maison,.management,.marketing,.onl,.repair,.solar,.solutions,.supplies,.supply,.support,.systems,.tips,.training,.viajes,.wiki,.zone,.world,.apartments,.bingo,.business,.cafe,.capital,.cards,.care,.cash,.casino,.catering,.chat,.church,.city,.claims,.cleaning,.clinic,.coach,.community,.condos,.coupons,.credit,.creditcard,.cruises,.dating,.deals,.delivery,.dental,.digital,.direct,.discount,.dog,.domains,.energy,.engineering,.events,.exchange,.express,.fail,.finance,.financial,.fish,.fitness,.football,.foundation,.fund,.furniture,.fyi,.gifts,.gold,.golf,.gratis,.gripe,.guide,.healthcare,.hockey,.immo,.industries,.insure,.investments,.jewelry,.lease,.legal,.life,.limited,.loans,.mba,.media,.memorial,.money,.movie,.network,.partners,.parts,.pictures,.pizza,.place,.plus,.productions,.properties,.reisen,.rentals,.report,.restaurant,.run,.sarl,.school,.schule,.services,.show,.soccer,.style,.surgery,.tax,.taxi,.team,.tennis,.theater,.tienda,.tires,.tools,.tours,.town,.toys,.university,.vacations,.villas,.vision,.watch,.works,.wtf",
+        "extensions": ".equipment,.gallery,.graphics,.lighting,.photography,.directory,.technology,.today,.bike,.clothing,.guru,.plumbing,.singles,.camera,.estate,.construction,.contractors,.kitchen,.land,.enterprises,.holdings,.ventures,.diamonds,.voyage,.photos,.shoes,.careers,.recipes,.academy,.agency,.associates,.bargains,.boutique,.builders,.cab,.camp,.center,.cheap,.codes,.coffee,.company,.computer,.cool,.education,.email,.expert,.exposed,.farm,.flights,.florist,.glass,.holiday,.house,.institute,.international,.limo,.maison,.management,.marketing,.repair,.solar,.solutions,.supplies,.supply,.support,.systems,.tips,.training,.viajes,.zone,.world,.apartments,.bingo,.business,.cafe,.capital,.cards,.care,.cash,.casino,.catering,.chat,.church,.city,.claims,.cleaning,.clinic,.coach,.community,.condos,.coupons,.credit,.creditcard,.cruises,.dating,.deals,.delivery,.dental,.digital,.direct,.discount,.dog,.domains,.energy,.engineering,.events,.exchange,.express,.fail,.finance,.financial,.fish,.fitness,.football,.foundation,.fund,.furniture,.fyi,.gifts,.gold,.golf,.gratis,.gripe,.guide,.healthcare,.hockey,.immo,.industries,.insure,.investments,.jewelry,.lease,.legal,.life,.limited,.loans,.mba,.media,.memorial,.money,.movie,.network,.partners,.parts,.pictures,.pizza,.place,.plus,.productions,.properties,.reisen,.rentals,.report,.restaurant,.run,.sarl,.school,.schule,.services,.show,.soccer,.style,.surgery,.tax,.taxi,.team,.tennis,.theater,.tienda,.tires,.tools,.tours,.town,.toys,.university,.vacations,.villas,.vision,.watch,.works,.wtf,.irish",
         "uri": "socket://whois.donuts.co",
         "available": "Domain not found"
+    },
+    {
+        "extensions": ".wiki",
+        "uri": "socket://whois.nic.wiki",
+        "available": "No Data Found"
     },
     {
         "extensions": ".cm",
@@ -678,7 +678,7 @@
     {
         "extensions": ".sh",
         "uri": "socket://whois.nic.sh",
-        "available": "is available for purchase"
+        "available": "Domain not found"
     },
     {
         "extensions": ".tm",
@@ -692,7 +692,7 @@
     },
     {
         "extensions": ".airforce,.futbol,.social,.pub,.auction,.consulting,.dance,.democrat,.forsale,.haus,.immobilien,.kaufen,.reviews,.rocks",
-        "uri": "socket://whois.unitedtld.com",
+        "uri": "socket://whois.donuts.co",
         "available": "Domain not found"
     },
     {
@@ -701,9 +701,9 @@
         "available": "Domain not found"
     },
     {
-        "extensions": ".archi,.bio,.desi,.ski",
-        "uri": "socket://whois.afilias.net",
-        "available": "NOT FOUND"
+        "extensions": ".desi",
+        "uri": "socket://whois.nic.desi",
+        "available": "DOMAIN NOT FOUND"
     },
     {
         "extensions": ".arpa",
@@ -713,22 +713,22 @@
     {
         "extensions": ".ax",
         "uri": "socket://whois.ax",
-        "available": "No records matching"
+        "available": "Domain not found"
     },
     {
         "extensions": ".berlin",
         "uri": "socket://whois.nic.berlin",
-        "available": "No match"
+        "available": "object does not exist"
     },
     {
         "extensions": ".build",
         "uri": "socket://whois.nic.build",
-        "available": "No Data Found"
+        "available": "DOMAIN NOT FOUND"
     },
     {
         "extensions": ".buzz",
         "uri": "socket://whois.nic.buzz",
-        "available": "Not found:"
+        "available": "No Data Found"
     },
     {
         "extensions": ".capetown",
@@ -746,8 +746,13 @@
         "available": "Available"
     },
     {
-        "extensions": ".gift,.guitars,.link,.pics,.sexy,.audio,.blackfriday,.christmas,.click,.diet,.flowers,.help,.hiphop,.hosting,.juegos,.lol,.photo,.property,.tattoo",
+        "extensions": ".gift,.guitars,.link,.pics,.sexy,.audio,.blackfriday,.christmas,.click,.diet,.flowers,.help,.hosting,.juegos,.lol,.photo,.property,.tattoo",
         "uri": "socket://whois.uniregistry.net",
+        "available": "is available for registration"
+    },
+    {
+        "extensions": ".hiphop",
+        "uri": "socket://whois.nic.hiphop",
         "available": "is available for registration"
     },
     {
@@ -758,7 +763,7 @@
     {
         "extensions": ".luxury",
         "uri": "socket://whois.nic.luxury",
-        "available": "No Data Found"
+        "available": "DOMAIN NOT FOUND"
     },
     {
         "extensions": ".menu",
@@ -778,17 +783,17 @@
     {
         "extensions": ".shiksha",
         "uri": "socket://whois.nic.shiksha",
-        "available": "NOT FOUND"
+        "available": "Domain not found"
     },
     {
         "extensions": ".uno",
         "uri": "socket://whois.nic.uno",
-        "available": "Not found"
+        "available": "DOMAIN NOT FOUND"
     },
     {
         "extensions": ".work",
         "uri": "socket://whois.nic.work",
-        "available": "This domain name has not been registered."
+        "available": "No Data Found"
     },
     {
         "extensions": ".co.zw",
@@ -926,9 +931,24 @@
         "available": "No entries found"
     },
     {
-        "extensions": ".irish,.adult,.ltda,.porn,.rich,.sex,.srl,.vegas",
+        "extensions": ".ltda,.rich,.srl,.vegas,.onl",
         "uri": "socket://whois.afilias-srs.net",
         "available": "NOT FOUND"
+    },
+    {
+        "extensions": ".sex",
+        "uri": "socket://whois.nic.sex",
+        "available": "No match for"
+    },
+    {
+        "extensions": ".adult",
+        "uri": "socket://whois.nic.adult",
+        "available": "No Data Found"
+    },
+    {
+        "extensions": ".porn",
+        "uri": "socket://whois.nic.porn",
+        "available": "No Data Found"
     },
     {
         "extensions": ".pe,.com.pe",
@@ -946,11 +966,6 @@
         "available": "Domain not found"
     },
     {
-        "extensions": ".ar.com",
-        "uri": "socket://whois.centralnic.net",
-        "available": "DOMAIN NOT FOUND"
-    },
-    {
         "extensions": ".bar",
         "uri": "socket://whois.nic.bar",
         "available": "DOMAIN NOT FOUND"
@@ -958,7 +973,7 @@
     {
         "extensions": ".best",
         "uri": "socket://whois.nic.best",
-        "available": "No Data Found"
+        "available": "DOMAIN NOT FOUND"
     },
     {
         "extensions": ".bid",
@@ -968,7 +983,7 @@
     {
         "extensions": ".ceo",
         "uri": "socket://whois.nic.ceo",
-        "available": "No Data Found"
+        "available": "DOMAIN NOT FOUND"
     },
     {
         "extensions": ".college",
@@ -976,8 +991,13 @@
         "available": "DOMAIN NOT FOUND"
     },
     {
-        "extensions": ".courses,.melbourne",
-        "uri": "socket://whois.aridnrs.net.au",
+        "extensions": ".courses",
+        "uri": "socket://whois.nic.courses",
+        "available": "No Data Found"
+    },
+    {
+        "extensions": ".melbourne",
+        "uri": "socket://whois.nic.melbourne",
         "available": "No Data Found"
     },
     {
@@ -998,7 +1018,7 @@
     {
         "extensions": ".design",
         "uri": "socket://whois.nic.design",
-        "available": "DOMAIN NOT FOUND"
+        "available": "No Data Found"
     },
     {
         "extensions": ".download",
@@ -1012,7 +1032,7 @@
     },
     {
         "extensions": ".eus",
-        "uri": "socket://whois.eus.coreregistry.net",
+        "uri": "socket://whois.nic.eus",
         "available": "no matching objects found"
     },
     {
@@ -1032,13 +1052,13 @@
     },
     {
         "extensions": ".gal",
-        "uri": "socket://whois.gal.coreregistry.net",
+        "uri": "socket://whois.nic.gal",
         "available": "no matching objects found"
     },
     {
         "extensions": ".global",
         "uri": "socket://whois.nic.global",
-        "available": "NOT FOUND"
+        "available": "Domain not found"
     },
     {
         "extensions": ".host",
@@ -1047,7 +1067,7 @@
     },
     {
         "extensions": ".how,.soy",
-        "uri": "socket://domain-registry-whois.l.google.com",
+        "uri": "socket://whois.nic.google",
         "available": "Domain not found"
     },
     {
@@ -1058,12 +1078,12 @@
     {
         "extensions": ".london",
         "uri": "socket://whois.nic.london",
-        "available": "This domain name has not been registered."
+        "available": "DOMAIN NOT FOUND"
     },
     {
         "extensions": ".love",
         "uri": "socket://whois.nic.love",
-        "available": "DOMAIN NOT FOUND"
+        "available": "available for registration"
     },
     {
         "extensions": ".men",
@@ -1087,8 +1107,8 @@
     },
     {
         "extensions": ".paris",
-        "uri": "socket://whois-paris.nic.fr",
-        "available": "The queried object does not exist"
+        "uri": "socket://whois.nic.paris",
+        "available": "NOT FOUND"
     },
     {
         "extensions": ".party",
@@ -1167,8 +1187,8 @@
     },
     {
         "extensions": ".voting",
-        "uri": "socket://whois.voting.tld-box.at",
-        "available": ""
+        "uri": "socket://whois.nic.voting",
+        "available": "No Data Found"
     },
     {
         "extensions": ".wales",
@@ -1248,7 +1268,7 @@
     {
         "extensions": ".sa,.com.sa,.net.sa,.med.sa,.sch.sa,.org.sa,.edu.sa,.gov.sa,.pub.sa",
         "uri": "socket://whois.nic.net.sa",
-        "available": "Error."
+        "available": "No Match for"
     },
     {
         "extensions": ".lat",
@@ -1262,13 +1282,13 @@
     },
     {
         "extensions": ".cam",
-        "uri": "socket://whois.ksregistry.net",
+        "uri": "socket://whois.nic.cam",
         "available": "The queried object does not exist"
     },
     {
         "extensions": ".eco",
-        "uri": "socket://whois.afilias-srs.net",
-        "available": "NOT FOUND"
+        "uri": "socket://whois.nic.eco",
+        "available": "Not found"
     },
     {
         "extensions": ".health",
@@ -1308,7 +1328,7 @@
     {
         "extensions": ".vip",
         "uri": "socket://whois.nic.vip",
-        "available": "This domain name has not been registered"
+        "available": "No Data Found"
     },
     {
         "extensions": ".gdn",
@@ -1328,7 +1348,7 @@
     {
         "extensions": ".miami",
         "uri": "socket://whois.nic.miami",
-        "available": "This domain name has not been registered"
+        "available": "No Data Found"
     },
     {
         "extensions": ".jetzt",
@@ -1351,29 +1371,9 @@
         "available": "Domain not found."
     },
     {
-        "extensions": ".bet",
-        "uri": "socket://whois.afilias.net",
-        "available": "NOT FOUND"
-    },
-    {
-        "extensions": ".promo",
-        "uri": "socket://whois.afilias.net",
-        "available": "NOT FOUND"
-    },
-    {
-        "extensions": ".pet",
-        "uri": "socket://whois.afilias.net",
-        "available": "NOT FOUND"
-    },
-    {
-        "extensions": ".lotto",
-        "uri": "socket://whois.afilias.net",
-        "available": "NOT FOUND"
-    },
-    {
         "extensions": ".blog",
         "uri": "socket://whois.nic.blog",
-        "available": "This domain name has not been registered"
+        "available": "DOMAIN NOT FOUND"
     },
     {
         "extensions": ".security",
@@ -1401,7 +1401,7 @@
         "available": "is available for registration"
     },
     {
-        "extensions": ".com.ar,.org.ar,.gob.ar,.gov.ar,.tur.ar,.net.ar,mil.ar,musica.ar",
+        "extensions": ".ar,.com.ar,.org.ar,.gob.ar,.gov.ar,.tur.ar,.net.ar,.mil.ar,.musica.ar",
         "uri": "socket://whois.nic.ar",
         "available": "El dominio no se encuentra registrado en NIC Argentina"
     },

@@ -1,5 +1,7 @@
 <?php
 
+use WHMCS\Billing\Currency;
+
 require("../init.php");
 require("../includes/domainfunctions.php");
 
@@ -31,11 +33,11 @@ $code = '<table cellspacing="1" cellpadding="0" class="domainpricing"><tr><th>' 
 if (!is_numeric($currency)) {
     $currency = array();
 } else {
-    $currency = getCurrency('', $currency);
+    $currency = getCurrency(null, $currency);
 }
 
 if (!$currency || !is_array($currency) || !isset($currency['id'])) {
-    $currency = getCurrency();
+    $currency = Currency::factoryForClientArea();
 }
 
 $freeamt = formatCurrency(0);

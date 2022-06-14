@@ -95,8 +95,8 @@ $additionaldomainfields[".uk"] = $additionaldomainfields[".co.uk"];
 // .CA
 
 $additionaldomainfields[".ca"][] = array("Name" => "Legal Type", "Required" => true, "LangVar" => "catldlegaltype", "Type" => "dropdown", "Options" => "Corporation,Canadian Citizen,Permanent Resident of Canada,Government,Canadian Educational Institution,Canadian Unincorporated Association,Canadian Hospital,Partnership Registered in Canada,Trade-mark registered in Canada,Canadian Trade Union,Canadian Political Party,Canadian Library Archive or Museum,Trust established in Canada,Aboriginal Peoples,Legal Representative of a Canadian Citizen,Official mark registered in Canada", "Default" => "Corporation", "Description" => "Legal type of registrant contact",);
-$additionaldomainfields[".ca"][] = array("Name" => "CIRA Agreement", "Required" => true, "LangVar" => "catldciraagreement", "Type" => "tickbox", "Description" => "Tick to confirm you agree to the CIRA Registration Agreement shown below<br /><blockquote>You have read, understood and agree to the terms and conditions of the Registrant Agreement, and that CIRA may, from time to time and at its discretion, amend any or all of the terms and conditions of the Registrant Agreement, as CIRA deems appropriate, by posting a notice of the changes on the CIRA website and by sending a notice of any material changes to Registrant. You meet all the requirements of the Registrant Agreement to be a Registrant, to apply for the registration of a Domain Name Registration, and to hold and maintain a Domain Name Registration, including without limitation CIRA's Canadian Presence Requirements for Registrants, at: www.cira.ca/assets/Documents/Legal/Registrants/CPR.pdf. CIRA will collect, use and disclose your personal information, as set out in CIRA's Privacy Policy, at: www.cira.ca/assets/Documents/Legal/Registrants/privacy.pdf</blockquote>",);
-$additionaldomainfields[".ca"][] = array("Name" => "WHOIS Opt-out", "LangVar" => "catldwhoisoptout", "Type" => "tickbox", "Description" => "Tick to hide your contact information in CIRA WHOIS (only available to individuals)",);
+$additionaldomainfields[".ca"][] = array("Name" => "CIRA Agreement", "Required" => true, "LangVar" => "catldciraagreement", "Type" => "tickbox", "Description" => "Check to confirm you agree to the CIRA Registration Agreement shown below<br /><blockquote>You have read, understood and agree to the terms and conditions of the Registrant Agreement, and that CIRA may, from time to time and at its discretion, amend any or all of the terms and conditions of the Registrant Agreement, as CIRA deems appropriate, by posting a notice of the changes on the CIRA website and by sending a notice of any material changes to Registrant. You meet all the requirements of the Registrant Agreement to be a Registrant, to apply for the registration of a Domain Name Registration, and to hold and maintain a Domain Name Registration, including without limitation CIRA's Canadian Presence Requirements for Registrants, at: https://www.cira.ca/policy/legal-agreement/registrant-agreement. CIRA will collect, use and disclose your personal information, as set out in CIRA's Privacy Policy, at: https://www.cira.ca/policy/corporate/cira-privacy-policy</blockquote>",);
+$additionaldomainfields[".ca"][] = array("Name" => "WHOIS Opt-out", "LangVar" => "catldwhoisoptout", "Type" => "tickbox", "Description" => "Check to hide your contact information in CIRA WHOIS (only available to individuals)",);
 
 // .ES
 
@@ -187,7 +187,7 @@ $additionaldomainfields[".it"][] = array("Name" => "Accept Section 7 of .IT regi
 // .DE
 
 $additionaldomainfields[".de"][] = array("Name" => "Tax ID", "LangVar" => "detldtaxid", "Type" => "text", "Size" => "20", "Default" => "", "Required" => true,);
-$additionaldomainfields[".de"][] = array("Name" => "Address Confirmation", "LangVar" => "detldaddressconfirm", "Type" => "tickbox", "Description" => "Please tick to confirm you have a valid German address",);
+$additionaldomainfields[".de"][] = array("Name" => "Address Confirmation", "LangVar" => "detldaddressconfirm", "Type" => "tickbox", "Description" => "Check to confirm you have a valid German address",);
 $additionaldomainfields[".de"][] = array(
     "Name" => "Agree to DE Terms",
     "LangVar" => "deTLDTermsAgree",
@@ -294,19 +294,33 @@ $additionaldomainfields['.nu'][] = array(
 $additionaldomainfields[".quebec"][] = array("Name" => "Intended Use", 'LangVar' => 'quebec_intendeduse', "Type" => "text", "Size" => "50", "Default" => "", "Required" => true);
 $additionaldomainfields[".quebec"][] = array("Name" => "Info", "LangVar" => "quebec_info", "Type" => "display", "Default" =>"Intended Use field limited to 2048 characters by the API.  The contents of the field above will be truncated if longer than that when sent to the registrar.");
 
+// .SCOT
+$additionaldomainfields['.scot'] = $additionaldomainfields['.quebec'];
+$additionaldomainfields['.scot'][] = [
+    'Name' => 'Terms & Conditions',
+    'LangVar' => 'domainsTermsAndConditions',
+    'Type' => 'tickbox',
+    'Required' => true,
+    'Description' => '<sup style="cursor:help; text-align:justify;" title="'
+        . $_LANG['domains']['europeanDomainTerms'] . '">Learn More<sup>',
+];
+
 // .JOBS
 $additionaldomainfields['.jobs'][] = array('Name' => 'Website', 'Type' => 'text', 'Size' => '20', 'Required' => true);
 
 // .TRAVEL
-$travel_id = array (
-    'TRUST|Use Trustee',
-    'UIN|Use My Information (Requires UIN)'
-);
-
-$additionaldomainfields['.travel'][] = array('Name'	=> 'Trustee Service', 'DisplayName'	=> 'Trustee Service <sup style="cursor:help;" title="Trustee service allows you to register domains under the name of the trustee if you do not meet the requiremets.">what\'s this?</sup>', 'Options'	=> implode(',', $travel_id),  'Type'	=> 'dropdown', 'Required' => true);
-$additionaldomainfields['.travel'][] = array('Name'	=> '.TRAVEL UIN Code', 'DisplayName' => '.TRAVEL UIN Code <sup style="cursor:help;" title="Travel UIN Code obtained from http://www.authentication.travel/">what\'s this?</sup>', 'Type'	=> 'text', 'Size' => '30');
-$additionaldomainfields['.travel'][] = array('Name'	=> 'Trustee Service Agreement ', 'Description' => 'I agree to the <a href="http://www.101domain.com/trustee_agreement.htm" target="_BLANK">Trustee Service Agreement</a>', 'Type' => 'tickbox');
-$additionaldomainfields['.travel'][] = array('Name'	=> '.TRAVEL Usage Agreement', 'Description'	=> 'I agree that .travel domains are restricted to those who are primarily active in the travel industry.', 'Type'	=> 'tickbox');
+$additionaldomainfields['.travel'][] = [
+    'Name' => '.TRAVEL UIN Code',
+    'DisplayName' => '.TRAVEL UIN Code <sup style="cursor:help;"'
+        . ' title="Travel UIN Code obtained from https://www.authentication.travel/">what\'s this?</sup>',
+    'Type' => 'text',
+    'Size' => '30',
+];
+$additionaldomainfields['.travel'][] = [
+    'Name' => '.TRAVEL Usage Agreement',
+    'Description' => 'I agree that .travel domains are restricted to those who are primarily active in the travel industry.',
+    'Type' => 'tickbox',
+];
 
 // .RU
 
@@ -662,6 +676,18 @@ $additionaldomainfields['.eu'][] = [
     'Description' => 'EURid Geographical Restrictions. In order to register a .EU domain '
         . 'name, you must meet certain eligibility requirements.',
 ];
+$additionaldomainfields['.eu'][] = [
+    'Name' => 'EU Country of Citizenship',
+    'LangVar' => 'eu_country_of_citizenship',
+    'Type' => 'dropdown',
+    'Options' => [
+        '', 'AT', 'BE', 'BG', 'CY', 'CZ', 'DE', 'DK', 'EE', 'EL', 'ES', 'FI',
+        'FR', 'GR', 'HR', 'HU', 'IE', 'IT', 'LT', 'LU', 'LV', 'MT', 'NL', 'PL',
+        'PT', 'RO', 'SE', 'SI', 'SK', 'AX', 'GF', 'GP', 'MQ', 'RE',
+    ],
+    'Default' => '',
+    'Required' => true,
+];
 
 // .DEV
 $additionaldomainfields['.dev'][] = [
@@ -672,6 +698,32 @@ $additionaldomainfields['.dev'][] = [
         . ' meaning that HTTPS is required for all .dev websites. You can buy your .Dev domain name now,'
         . ' but in order for it to work properly in browsers you must first configure HTTPS/SSL to serve'
         . ' the domain. I, the Registrant, understand and agree to the .dev Registration Policy."
+        >Learn More</sup>',
+    'Required' => true,
+];
+
+// .APP
+$additionaldomainfields['.app'][] = [
+    'Name' => '.APP SSL Agreement',
+    'LangVar' => 'app_agree',
+    'Type' => 'tickbox',
+    'Description' => '<sup style="cursor:help; text-align:justify;" title=".app is a more secure domain,'
+        . ' meaning that HTTPS is required for all .app websites. You can buy your .app domain name now,'
+        . ' but in order for it to work properly in browsers you must first configure HTTPS/SSL to serve'
+        . ' the domain. I, the Registrant, understand and agree to the .app Registration Policy."
+        >Learn More</sup>',
+    'Required' => true,
+];
+
+// .BIO
+$additionaldomainfields['.bio'][] = [
+    'Name' => '.BIO SSL Agreement',
+    'LangVar' => 'bio_agree',
+    'Type' => 'tickbox',
+    'Description' => '<sup style="cursor:help; text-align:justify;" title=".bio is a more secure domain,'
+        . ' meaning that HTTPS is required for all .bio websites. You can buy your .bio domain name now,'
+        . ' but in order for it to work properly in browsers you must first configure HTTPS/SSL to serve'
+        . ' the domain. I, the Registrant, understand and agree to the .bio Registration Policy."
         >Learn More</sup>',
     'Required' => true,
 ];

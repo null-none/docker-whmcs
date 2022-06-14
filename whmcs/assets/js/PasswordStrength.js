@@ -50,7 +50,15 @@ function registerFormPasswordStrengthFeedback()
     }
     jQuery("#passwordStrengthTextLabel").html(langPasswordStrength + ': ' + passwordStrength + '% ' + textLabel);
     jQuery("#passwordStrengthMeterBar").css('width', passwordStrength + '%').attr('aria-valuenow', passwordStrength);
-    jQuery("#passwordStrengthMeterBar").removeClass('progress-bar-success progress-bar-warning progress-bar-danger').addClass('progress-bar-' + cssClass);
+    var ver = parseInt($.fn.tooltip.Constructor.VERSION);
+    switch (ver) {
+        case 3:
+            jQuery("#passwordStrengthMeterBar").removeClass('progress-bar-success progress-bar-warning progress-bar-danger').addClass('progress-bar-' + cssClass);
+            break;
+        default:
+            jQuery("#passwordStrengthMeterBar").removeClass('bg-danger bg-warning bg-success').addClass('bg-' + cssClass);
+            break;
+    }
 }
 
 function getPasswordStrength(pw){

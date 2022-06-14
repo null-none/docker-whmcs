@@ -82,7 +82,8 @@ $results = Capsule::table('tblcustomfieldsvalues')
     )
     ->orderBy('value', 'asc')
     ->groupBy('value')
-    ->get();
+    ->get()
+    ->all();
 
 foreach ($results as $result) {
     $reportdata["tablevalues"][] = [$result->value, $result->rows];

@@ -84,58 +84,53 @@ dataTable: function () {
                     ordering: true,
                     info: false,
                     autoWidth: true,
+                    columns: [],
+                    lengthMenu: [10, 25, 50, 100, 500, 1000],
                     language: {
-                        emptyTable: (el.data('lang-empty-table')) ? el.data('lang-empty-table') : "No records found"
+                        emptyTable: (el.data('langEmptyTable')) ? el.data('langEmptyTable') : "No records found"
                     }
                 };
             }
-            var ajaxUrl = el.data('ajax-url');
-            if (typeof ajaxUrl !== 'undefined') {
-                options.ajax = {
-                    url: ajaxUrl
-                };
-            }
-            var dom = el.data('dom');
-            if (typeof dom !== 'undefined') {
-                options.dom = dom;
-            }
-            var searching = el.data('searching');
-            if (typeof searching !== 'undefined') {
-                options.searching = searching;
-            }
-            var responsive = el.data('responsive');
-            if (typeof responsive !== 'undefined') {
-                options.responsive = responsive;
-            }
-            var ordering = el.data('ordering');
-            if (typeof ordering !== 'undefined') {
-                options["ordering"] = ordering;
-            }
-            var order = el.data('order');
-            if (typeof order !== 'undefined' && order) {
-                options["order"] = order;
-            }
-            var colCss = el.data('columns');
-            if (typeof colCss !== 'undefined' && colCss) {
-                options["columns"] = colCss;
-            }
-            var autoWidth = el.data('auto-width');
-            if (typeof autoWidth !== 'undefined') {
-                options["autoWidth"] = autoWidth;
-            }
-            var paging = el.data('paging');
-            if (typeof paging !== 'undefined') {
-                options["paging"] = paging;
-            }
-            var lengthChange = el.data('length-change');
-            if (typeof lengthChange !== 'undefined') {
-                options["lengthChange"] = lengthChange;
-            }
-            var pageLength = el.data('page-length');
-            if (typeof pageLength !== 'undefined') {
-                options["pageLength"] = pageLength;
-            }
-
+            jQuery.each(el.data(), function (key, value) {
+                if (typeof value === 'undefined') {
+                    return;
+                }
+                if (key === 'ajaxUrl') {
+                    options.ajax = {
+                        url: value
+                    };
+                    return;
+                }
+                if (key === 'lengthChange') {
+                    options.lengthChange = value;
+                    return;
+                }
+                if (key === 'pageLength') {
+                    options.pageLength = value;
+                    return;
+                }
+                if (key === 'langEmptyTable') {
+                    if (typeof options.language === "undefined") {
+                        options.language = {};
+                    }
+                    options.language.emptyTable = value;
+                    return
+                }
+                if (key === 'langZeroRecords') {
+                    if (typeof options.language === "undefined") {
+                        options.language = {};
+                    }
+                    options.language.zeroRecords = value;
+                    return
+                }
+                options.key = value;
+            });
+            jQuery.each(el.find('th'), function() {
+                if (typeof options.columns === "undefined") {
+                    options.columns = [];
+                }
+                options.columns.push({data:jQuery(this).data('name')});
+            });
             self.tables[id] = self.initTable(el, options);
         } else if (typeof options !== 'undefined') {
             var oldTable = self.tables[id];
@@ -352,7 +347,15 @@ jsonForm: function() {
     };
 
     this.clearFieldError = function (field) {
-        $(field).tooltip('destroy');
+        /**
+         * Try dispose first for BS 4, which will raise error
+         * on BS 3 or older, then we use destroy instead
+         */
+        try {
+            $(field).tooltip('dispose');
+        } catch (err) {
+            $(field).tooltip('destroy');
+        }
         $(field).parents('.form-group').removeClass('has-error');
     };
 

@@ -13,14 +13,14 @@ interface LoaderInterface
      *
      * @return ItemInterface
      */
-    public function load($data);
+    public function load($data): ItemInterface;
 
     /**
      * Checks whether the loader can load these data
      *
      * @param mixed $data
      *
-     * @return boolean
+     * @return bool
      */
-    public function supports($data);
+    public function supports($data): bool;
 }

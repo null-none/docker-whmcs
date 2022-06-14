@@ -39,10 +39,14 @@ final class StreamContextFactory
             'max_redirects' => 20,
         ));
 
-        // Handle system proxy
-        if (!empty($_SERVER['HTTP_PROXY']) || !empty($_SERVER['http_proxy'])) {
-            // Some systems seem to rely on a lowercased version instead...
+        // Handle HTTP_PROXY/http_proxy on CLI only for security reasons
+        if ((PHP_SAPI === 'cli' || PHP_SAPI === 'phpdbg') && (!empty($_SERVER['HTTP_PROXY']) || !empty($_SERVER['http_proxy']))) {
             $proxy = parse_url(!empty($_SERVER['http_proxy']) ? $_SERVER['http_proxy'] : $_SERVER['HTTP_PROXY']);
+        }
+
+        // Prefer CGI_HTTP_PROXY if available
+        if (!empty($_SERVER['CGI_HTTP_PROXY'])) {
+            $proxy = parse_url($_SERVER['CGI_HTTP_PROXY']);
         }
 
         // Override with HTTPS proxy if present and URL is https
@@ -51,8 +55,8 @@ final class StreamContextFactory
         }
 
         // Remove proxy if URL matches no_proxy directive
-        if (!empty($_SERVER['no_proxy']) && parse_url($url, PHP_URL_HOST)) {
-            $pattern = new NoProxyPattern($_SERVER['no_proxy']);
+        if (!empty($_SERVER['NO_PROXY']) || !empty($_SERVER['no_proxy']) && parse_url($url, PHP_URL_HOST)) {
+            $pattern = new NoProxyPattern(!empty($_SERVER['no_proxy']) ? $_SERVER['no_proxy'] : $_SERVER['NO_PROXY']);
             if ($pattern->test($url)) {
                 unset($proxy);
             }
@@ -105,9 +109,9 @@ final class StreamContextFactory
 
             // handle proxy auth if present
             if (isset($proxy['user'])) {
-                $auth = urldecode($proxy['user']);
+                $auth = rawurldecode($proxy['user']);
                 if (isset($proxy['pass'])) {
-                    $auth .= ':' . urldecode($proxy['pass']);
+                    $auth .= ':' . rawurldecode($proxy['pass']);
                 }
                 $auth = base64_encode($auth);
 
@@ -135,13 +139,14 @@ final class StreamContextFactory
             $phpVersion = 'PHP ' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION;
         }
 
-        if (!isset($options['http']['header']) || false === strpos(strtolower(implode('', $options['http']['header'])), 'user-agent')) {
+        if (!isset($options['http']['header']) || false === stripos(implode('', $options['http']['header']), 'user-agent')) {
             $options['http']['header'][] = sprintf(
-                'User-Agent: Composer/%s (%s; %s; %s)',
-                Composer::VERSION === '@package_version@' ? 'source' : Composer::VERSION,
-                php_uname('s'),
-                php_uname('r'),
-                $phpVersion
+                'User-Agent: Composer/%s (%s; %s; %s%s)',
+                Composer::getVersion(),
+                function_exists('php_uname') ? php_uname('s') : 'Unknown',
+                function_exists('php_uname') ? php_uname('r') : 'Unknown',
+                $phpVersion,
+                getenv('CI') ? '; CI' : ''
             );
         }
 
@@ -155,7 +160,7 @@ final class StreamContextFactory
      * This method fixes the array by moving the content-type header to the end
      *
      * @link https://bugs.php.net/bug.php?id=61548
-     * @param $header
+     * @param string|array $header
      * @return array
      */
     private static function fixHttpHeaderField($header)
@@ -164,7 +169,7 @@ final class StreamContextFactory
             $header = explode("\r\n", $header);
         }
         uasort($header, function ($el) {
-            return preg_match('{^content-type}i', $el) ? 1 : -1;
+            return stripos($el, 'content-type') === 0 ? 1 : -1;
         });
 
         return $header;

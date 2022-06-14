@@ -10,7 +10,8 @@ if (!defined("WHMCS")) {
 require(ROOTDIR."/includes/clientfunctions.php");
 
 $reportdata["title"] = "Project Management Summary";
-$reportdata["description"] = "This report shows a summary of all projects with times logged betwen";
+$reportdata["description"] = 'This report shows a summary of all log entries '
+    . 'related to projects that have a due date within the given date range.';
 
 $range = App::getFromRequest('range');
 if (!$range) {
@@ -20,14 +21,10 @@ if (!$range) {
 }
 
 $statusdropdown = '<select name="status" class="form-control"><option value="">- Any -</option>';
-$statuses = get_query_val(
-    "tbladdonmodules",
-    "value",
-    [
-        "module" => "project_management",
-        "setting" => "statusvalues",
-    ]
-);
+$statuses = Capsule::table('tbladdonmodules')
+    ->where('module', 'project_management')
+    ->where('setting', 'statusvalues')
+    ->value('value');
 $statuses = explode(",", $statuses);
 foreach ($statuses as $statusx) {
     $statusx = explode("|", $statusx, 2);
@@ -46,7 +43,8 @@ $admins = Capsule::table('tbladmins')
             'CONCAT_WS(\' \', tbladmins.firstname, tbladmins.lastname) as name'
         ),
         'id'
-    );
+    )
+    ->all();
 
 $adminDropdown = '';
 foreach ($admins as $adminId => $adminName) {
@@ -110,29 +108,29 @@ $reportdata["tableheadings"] = array("ID","Created","Project Title","Assigned St
 
 $totalprojectstime = $i = 0;
 
-$adminquery = ($adminid) ? " AND adminid='".(int)$adminid."'" : '';
-$statusquery = ($status) ? " AND status='".db_escape_string($status)."'" : '';
-
 $dateRange = Carbon::parseDateRangeValue($range);
 $fromdate = $dateRange['from']->toDateTimeString();
 $todate = $dateRange['to']->toDateTimeString();
 
-$result = select_query(
-    "mod_project",
-    "",
-    "duedate>='{$fromdate}' AND duedate<='{$todate}'" . $adminquery . $statusquery
-);
-while($data = mysql_fetch_array($result)) {
-
+$results = Capsule::table('mod_project')
+    ->whereBetween('duedate', [$fromdate, $todate]);
+if ($adminid) {
+    $results->where('adminid', (int) $adminid);
+}
+if ($status) {
+    $results->where('status', db_escape_string($status));
+}
+$results = $results->get()->all();
+foreach ($results as $data) {
     $totaltaskstime = 0;
-    $projectid = $data["id"];
-    $projectname = $data["title"];
-    $adminid = $data["adminid"];
-    $userid = $data["userid"];
-    $created = $data["created"];
-    $duedate = $data["duedate"];
-    $ticketids = $data["ticketids"];
-    $projectstatus = $data["status"];
+    $projectid = $data->id;
+    $projectname = $data->title;
+    $adminid = $data->adminid;
+    $userid = $data->userid;
+    $created = $data->created;
+    $duedate = $data->duedate;
+    $ticketids = explode(',', $data->ticketids);
+    $projectstatus = $data->status;
 
     $created = fromMySQLDate($created);
     $duedate = fromMySQLDate($duedate);
@@ -149,38 +147,65 @@ while($data = mysql_fetch_array($result)) {
         $client = 'None';
     }
 
-    $ticketinvoicelinks = array();
-    foreach ($ticketids AS $i=>$ticketnum) {
-        if ($ticketnum) {
-            $ticketnum = get_query_val("tbltickets","tid",array("tid"=>$ticketnum));
-            $ticketinvoicelinks[] = "description LIKE '%Ticket #$ticketnum%'";
-        }
-    }
-    $ticketinvoicesquery = (!empty($ticketinvoicelinks)) ? "(\".implode(' AND ',$ticketinvoicelinks).\") OR " : '';
-    $totalinvoiced = get_query_val("tblinvoices","SUM(subtotal+tax+tax2)","id IN (SELECT invoiceid FROM tblinvoiceitems WHERE description LIKE '%Project #$projectid%' OR $ticketinvoicesquery (type='Project' AND relid='$projectid'))");
+    $ticketinvoicelinks = Capsule::table('tbltickets')
+        ->whereIn('tid', $ticketids)
+        ->pluck('tid')
+        ->all();
+    $baseQuery = Capsule::table('tblinvoices')
+        ->join('tblinvoiceitems', 'tblinvoices.id', '=', 'tblinvoiceitems.invoiceid')
+        ->where('tblinvoiceitems.description', 'like', "%Project #{$projectid}%")
+        ->orWhere(function ($query) use ($projectid, $ticketinvoicelinks) {
+            $query->orWhere(function ($query) use ($projectid) {
+                $query->where('tblinvoiceitems.type', 'Project')
+                    ->where('tblinvoiceitems.relid', $projectid);
+            });
+            $query->orWhere(function ($query) use ($ticketinvoicelinks) {
+                foreach ($ticketinvoicelinks as $ticketinvoicelink) {
+                    $query->orWhere('tblinvoiceitems.description', 'like', "%Ticket #{$ticketinvoicelink}%");
+                }
+            });
+        });
+    $totalinvoiced = $baseQuery->value(
+        Capsule::raw('sum(tblinvoices.subtotal + tblinvoices.tax + tblinvoices.tax2)')
+    );
     $totalinvoiced = ($userid) ? formatCurrency($totalinvoiced) : format_as_currency($totalinvoiced);
 
-    $totalpaid = get_query_val("tblinvoices","SUM(subtotal+tax+tax2)","id IN (SELECT invoiceid FROM tblinvoiceitems WHERE description LIKE '%Project #$projectid%' OR $ticketinvoicesquery (type='Project' AND relid='$projectid')) AND status='Paid'");
+    $baseQuery->where('tblinvoices.status', 'Paid');
+    $totalpaid = $baseQuery->value(
+        Capsule::raw('sum(tblinvoices.subtotal + tblinvoices.tax + tblinvoices.tax2)')
+    );
     $totalpaid = ($userid) ? formatCurrency($totalpaid) : format_as_currency($totalpaid);
 
     $reportdata["drilldown"][$i]["tableheadings"] = array("Task Name","Start Time","Stop Time","Duration","Task Status");
 
-    $timerresult = select_query("mod_projecttimes","mod_projecttimes.start,mod_projecttimes.end,mod_projecttasks.task,mod_projecttasks.completed",array("mod_projecttimes.projectid"=>$projectid),"","","","mod_projecttasks ON mod_projecttimes.taskid = mod_projecttasks.id");
-    while ($data2=mysql_fetch_assoc($timerresult)) {
-
+    $timerresults = Capsule::table('mod_projecttimes')
+        ->where('mod_projecttimes.projectid', $projectid)
+        ->join('mod_projecttasks', 'mod_projecttimes.taskid', '=', 'mod_projecttasks.id')
+        ->get([
+            'mod_projecttimes.start',
+            'mod_projecttimes.end',
+            'mod_projecttasks.task',
+            'mod_projecttasks.completed',
+        ])
+        ->all();
+    foreach ($timerresults as $data2) {
         $rowcount = $rowtotal = 0;
 
-        $taskid = $data2['id'];
-        $task = $data2['task'];
-        $taskadminid = $data2['adminid'];
-        $timerstart = $data2['start'];
-        $timerend = $data2['end'];
+        $taskid = $data2->id;
+        $task = $data2->task;
+        $taskadminid = $data2->adminid;
+        $timerstart = $data2->start;
+        $timerend = $data2->end;
         $duration = ($timerend) ? ($timerend-$timerstart) : 0;
 
         $taskadmin = getAdminName($taskadminid);
         $starttime = date("d/m/Y H:i:s ",$timerstart);
         $stoptime = date("d/m/Y H:i:s ",$timerend);
-        $taskstatus = ($data2['completed']) ? "Completed" : "Open";
+
+        $taskstatus = "Open";
+        if ($data2->completed) {
+            $taskstatus = "Completed";
+        }
 
         $totalprojectstime += $duration;
         $totaltaskstime += $duration;
@@ -189,7 +214,6 @@ while($data = mysql_fetch_array($result)) {
         $rowtotal += $ordertotal;
 
         $reportdata["drilldown"][$i]["tablevalues"][] = array($task,$starttime,$stoptime,project_management_sec2hms($duration),$taskstatus);
-
     }
 
     $reportdata["tablevalues"][$i] = array('<a href="addonmodules.php?module=project_management&m=view&projectid='.$projectid.'">'.$projectid.'</a>',$created,$projectname,$admin,$client,$duedate,$totalinvoiced,$totalpaid,project_management_sec2hms($totaltaskstime),$projectstatus);

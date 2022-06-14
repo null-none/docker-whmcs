@@ -1,7 +1,11 @@
 <?php
 
-if (!defined("WHMCS"))
+if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
+}
+
+$reportdata['isPrintable'] = false;
+$reportdata['canCsvExport'] = false;
 
 $userid = App::getFromRequest('userid');
 
@@ -120,7 +124,7 @@ $reportdata["headertext"] = '
 
 <script>
 $(document).ready(function() {
-    jQuery("#selectUserid")[0].selectize.on("change", function() {
+    $("#selectUserid")[0].selectize.on("change", function() {
         var userId = this.getValue();
         if (userId) {
             $("#frmClientExport").attr("action", $("#frmClientExport").data("route").replace("xxx", userId));

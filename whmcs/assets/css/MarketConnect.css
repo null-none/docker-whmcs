@@ -179,24 +179,23 @@
 .modal-mc-service .modal-footer {
     display: none;
 }
+.modal-mc-service .modal-body {
+    height: 100%;
+    overflow: auto;
+}
 .modal-mc-service .modal-content {
     border: 0;
     border-radius: 0;
     box-shadow: none;
     height: 600px;
 }
-.modal-mc-service .logo {
-    float: left;
-    margin: 0 0 10px 0;
-    height: 100px;
-}
 .modal-mc-service .logo img {
     max-height: 100%;
+    max-width: 80%;
+    margin-bottom: 10px;
 }
 .modal-mc-service .title {
-    float: right;
-    text-align: right;
-    padding: 20px 30px 0;
+    padding: 0 0 20px;
 }
 .modal-mc-service h3 {
     margin: 0;
@@ -209,28 +208,19 @@
     color: #bbb9b9;
     font-weight: 300;
 }
-.modal-mc-service .nav-tabs > li:first-child {
-    padding-left: 20px;
-}
-.modal-mc-service .nav-tabs > li:last-child {
-    padding-right: 20px;
-}
 .modal-mc-service .nav-tabs > li:not(.active) > a {
     padding: 6px 15px;
     background-color: #f9f9f9;
-    border-bottom: 1px solid #ddd;
 }
 .modal-mc-service .nav-tabs > li > a.activate {
     background-color: #beeaa0;
     color: #5f9234;
     border: 1px solid #beeaa0;
-    border-bottom: 0;
 }
 .modal-mc-service .nav-tabs > li > a.deactivate {
     background-color: #ff9898;
     color: #ffe6e6;
     border: 1px solid #ff9898;
-    border-bottom: 0;
 }
 .modal-mc-service .nav-tabs > li > a.deactivate:hover {
     background-color: #e66666;
@@ -241,7 +231,54 @@
     background-color: #fff;
 }
 .modal-mc-service .content-padded {
-    padding: 30px 30px 0 30px;
+    padding: 30px 15px;
+}
+
+@media (max-width:991px) {
+    .modal-mc-service .nav-tabs > li {
+        margin-bottom: 0;
+    }
+    .modal-mc-service .nav-tabs > li > a {
+        border-radius: 4px;
+        margin-bottom: 4px;
+    }
+    .modal-mc-service .nav-tabs>li.active>a,
+    .modal-mc-service .nav-tabs>li.active>a:focus,
+    .modal-mc-service .nav-tabs>li.active>a:hover {
+        border-bottom-color: #ddd;
+    }
+}
+@media (min-width:992px) {
+    .modal-mc-service .logo {
+        float: left;
+        height: 100px;
+    }
+    .modal-mc-service .title {
+        float: right;
+        text-align: right;
+        padding: 20px 30px 0;
+    }
+    .modal-mc-service .nav-tabs > li:first-child {
+        padding-left: 20px;
+    }
+    .modal-mc-service .nav-tabs > li:last-child {
+        padding-right: 20px;
+    }
+    .modal-mc-service .nav-tabs > li:not(.active) > a {
+        border-bottom: 1px solid #ddd;
+    }
+    .modal-mc-service .nav-tabs > li.li-right {
+        float: right;
+    }
+    .modal-mc-service .nav-tabs>li>a.activate {
+        border-bottom: 0;
+    }
+    .modal-mc-service .nav-tabs>li>a.deactivate {
+        border-bottom: 0;
+    }
+    .modal-mc-service .content-padded {
+        padding: 30px 30px 0 30px;
+    }
 }
 
 .market-connect-apps-container {
@@ -295,6 +332,21 @@
 .modal-mc-service .activate-btn-container {
     margin: 40px 0;
     text-align: right;
+}
+@media (max-width:991px) {
+    .modal-mc-service .activate {
+        padding: 30px 20px;
+    }
+    .modal-mc-service .activate ul {
+        padding: 0;
+        font-size: 1.1em;
+    }
+    .modal-mc-service .activate ul i {
+        padding-right: 0;
+    }
+    .modal-mc-service .activate-btn-container {
+        text-align: center;
+    }
 }
 
 .modal-mc-service .btn-activate {
@@ -464,7 +516,7 @@
 
 .modal-mc-service .weebly-features .feature {
     text-align: center;
-    margin-bottom: 15px;
+    margin-bottom: 28px;
 }
 .modal-mc-service .weebly-features .feature .icon {
     height: 60px;
@@ -475,6 +527,15 @@
 }
 .modal-mc-service .weebly-features .feature .icon img {
     max-height: 100%;
+}
+.modal-mc-service .weebly-free i {
+    padding-right: 3px;
+    font-size: 2em;
+    color: #888;
+}
+.modal-mc-service .weebly-free strong,
+.modal-mc-service .site-builder-free strong {
+    font-size: 1.15em;
 }
 .modal-mc-service .weebly.faq h4 {
     color: #666;
@@ -565,9 +626,16 @@
 .modal-mc-service .activate.advanced-mode .activate-btn-container {
     margin: 18px 0 0 0;
 }
+@media (max-width:991px) {
+    .modal-mc-service .activate.advanced-mode {
+        padding: 20px 0;
+    }
+}
 
 .modal-mc-service .activate .steps {
     margin: 0 0 15px 0;
+    white-space: nowrap;
+    overflow: auto;
 }
 .modal-mc-service .activate .steps a {
     padding: 7px 12px;
@@ -712,10 +780,20 @@
 .modal-mc-service .sitelock .table-pricing {
     font-size: 0.9em;
 }
+.modal-mc-service .content-padded.symantec,
+.modal-mc-service .content-padded.site-builder,
 .modal-mc-service .sitelock.pricing,
 .modal-mc-service .symantec.pricing {
     max-height: 400px;
     overflow: auto;
+}
+
+.modal-mc-service .content-padded.site-builder.site-builder-features {
+    padding: 15px 10px 0;
+    overflow: visible;
+}
+.modal-mc-service .content-padded.site-builder.highlights {
+    overflow: visible;
 }
 
 .modal-mc-service .sitelockvpn.features {
@@ -725,6 +803,150 @@
 .modal-mc-service .sitelockvpn.features img {
     display: block;
     margin: 10px auto;
+}
+
+.modal-mc-service .site-builder-features .feature {
+    text-align: center;
+    margin-bottom: 0;
+}
+.modal-mc-service .site-builder-features .feature .icon {
+    height: 60px;
+}
+.modal-mc-service .site-builder-features .feature h4 {
+    margin-bottom: 5px;
+}
+.modal-mc-service .site-builder-features .feature .icon img {
+    max-height: 100%;
+}
+.modal-mc-service .site-builder-highlights {
+    margin-top: 15px;
+}
+.modal-mc-service .site-builder-highlights i {
+    padding-right: 3px;
+    font-size: 1.5em;
+    color: #888;
+}
+.modal-mc-service .site-builder-free i {
+    padding-right: 3px;
+    font-size: 2em;
+    color: #888;
+}
+.modal-mc-service .site-builder-highlights strong {
+    font-size: 1.15em;
+}
+.modal-mc-service .site-builder.faq h4 {
+    color: #666;
+    font-size: 1.4em;
+    margin-bottom: 10px;
+}
+.modal-mc-service .site-builder .table-pricing {
+    font-size: 0.9em;
+}
+.modal-mc-service .site-builder .table-pricing th {
+    padding: 6px;
+    vertical-align: bottom;
+}
+.modal-mc-service .site-builder .table-pricing th span {
+    font-size: 1.7em;
+    font-weight: 300;
+}
+.modal-mc-service .site-builder .table-pricing td {
+    padding: 1px 5px !important;
+}
+.modal-mc-service .cpanelseo.about h4 {
+    font-size: 16px;
+    color: #444;
+    font-weight: 600;
+}
+.modal-mc-service .cpanelseo.about h4,
+.modal-mc-service .cpanelseo.about p {
+    margin-bottom: 10px;
+}
+
+.modal-mc-service .cpanelseo.faq h4 {
+    color: #666;
+    font-size: 1.4em;
+    margin-bottom: 10px;
+}
+.modal-mc-service .cpanelseo .table-pricing {
+    font-size: 0.9em;
+}
+.modal-mc-service .cpanelseo .table-pricing th {
+    padding: 6px;
+    vertical-align: bottom;
+}
+.modal-mc-service .cpanelseo .table-pricing th span {
+    font-size: 1.7em;
+    font-weight: 300;
+}
+.modal-mc-service .cpanelseo .table-pricing td {
+    padding: 1px 5px !important;
+}
+.modal-mc-service .cpanelseo.features {
+    overflow: visible;
+}
+.modal-mc-service .cpanelseo.features .feature-menu {
+    border-right: 1px solid #ddd;
+    height: 400px;
+}
+.modal-mc-service .cpanelseo.features .feature-menu .feature-menu-item {
+    display: block;
+    border: 1px solid lightgrey;
+    padding: 5px 0;
+    text-align: center;
+    background-color: #f9f9f9;
+    line-height: 1.42857143;
+    border-radius: 4px 0 0 4px;
+    margin-bottom: 2px;
+    margin-right: -16px;
+}
+.modal-mc-service .cpanelseo.features .feature-menu .feature-menu-item.shown {
+    background-color: #fff;
+    text-decoration: underline;
+    border-right-color: transparent;
+}
+.modal-mc-service .cpanelseo.features .feature-menu .feature-menu-item small {
+    font-size: 75%;
+    text-decoration: none;
+    text-align: left !important;
+}
+.modal-mc-service .cpanelseo.features .feature-info {
+    line-height: 30px;
+}
+.modal-mc-service .cpanelseo.features .feature-info div.feature-info-item.shown {
+    display: block;
+}
+.modal-mc-service .cpanelseo.features .feature-info div.feature-info-item:not(.shown) {
+    display: none;
+}
+.modal-mc-service .cpanelseo .faq .panel {
+    border: 0;
+}
+.modal-mc-service .cpanelseo .faq .panel-heading {
+    padding: 10px 14px;
+    background: transparent;
+}
+.modal-mc-service .cpanelseo .faq h4 {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+}
+.modal-mc-service .cpanelseo .faq h4 a {
+    color: #222;
+    font-weight: 500;
+}
+.modal-mc-service .cpanelseo .faq h4 a:not(.collapsed) {
+    text-decoration: underline;
+}
+.modal-mc-service .cpanelseo .faq .panel-body {
+    padding: 3px 14px 10px;
+    color: #555;
+    border: 0;
+    font-weight: 300;
+}
+.modal-mc-service .cpanelseo.faq {
+    max-height: 400px;
+    overflow: auto;
 }
 
 .marketconnect-product-redirect {
@@ -797,11 +1019,20 @@
     font-size: 0.9em;
 }
 .mc-sm-container .status.active,
-.mc-sm-container .status.configurationsubmitted {
+.mc-sm-container .status.configurationsubmitted,
+.mc-sm-container .status.certificateissued {
     background-color:#64bf59;
 }
 .mc-sm-container .status.awaitingconfiguration {
     background-color:#5bc0de;
+}
+.mc-sm-container .status.certificatecancelled,
+.mc-sm-container .status.certificaterejected,
+.mc-sm-container .status.certificaterevoked {
+    background-color:#cc0000;
+}
+.mc-sm-container .status.reissuepending {
+    background-color:#F89406;
 }
 .mc-sm-container .status.refunded {
     background-color:#de9e5b;
@@ -827,5 +1058,12 @@
     }
     .mc-sm-container .actions {
         margin: 20px 0;
+    }
+}
+
+@media (min-width:992px) {
+    .market-connect-row {
+        display: flex;
+        flex-flow: row wrap;
     }
 }

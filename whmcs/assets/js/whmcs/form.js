@@ -22,7 +22,7 @@ function () {
     this.bindCheckAll = function ()
     {
         var huntSelector = '.btn-check-all';
-        jQuery(huntSelector).click(function (e) {
+        jQuery('body').on('click', huntSelector, function (e) {
             var btn = jQuery(e.target);
             var targetInputs = jQuery(
                 '#' + btn.data('checkbox-container') + ' input[type="checkbox"]'
@@ -60,12 +60,21 @@ function () {
 
     this.reloadCaptcha = function (element)
     {
-        if (!element) {
-            element = jQuery('#inputCaptchaImage');
-        }
+        if (typeof grecaptcha !== 'undefined') {
+            grecaptcha.reset();
+        } else {
+            if (!element) {
+                element = jQuery('#inputCaptchaImage');
+            }
 
-        var src = jQuery(element).data('src');
-        jQuery(element).attr('src', src + '?nocache=' + (new Date()).getTime());
+            var src = jQuery(element).data('src');
+            jQuery(element).attr('src', src + '?nocache=' + (new Date()).getTime());
+
+            var userInput = jQuery('#inputCaptcha');
+            if (userInput.length) {
+                userInput.val('');
+            }
+        }
     };
 
     return this;

@@ -12,10 +12,13 @@ CREATE TABLE `tbllog_register` (
   `name` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
   `namespace_id` int(10) unsigned DEFAULT NULL,
   `namespace` varchar(255) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
-  `namespace_value` text COLLATE utf8_unicode_ci NOT NULL,
+  `namespace_value` mediumtext COLLATE utf8_unicode_ci NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `tbllog_register_namespace_id_index` (`namespace_id`),
+  KEY `tbllog_register_namespace_index` (`namespace`(32)),
+  KEY `tbllog_register_created_at_index` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

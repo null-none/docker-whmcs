@@ -8,39 +8,6 @@
  */
 
 $(document).ready(function(){
-
-    Selectize.define('whmcs_no_results', function(options) {
-        var self = this;
-        this.search = (function() {
-            var original = self.search;
-
-            return function() {
-                var results = original.apply(this, arguments);
-
-                var isActualItem = function (item) {
-                    // item.id may be 'client' - this is an actual item
-                    return isNaN(item.id) || item.id > 0;
-                };
-
-                var actualItems = results.items.filter(function (item) {
-                    return isActualItem(item);
-                });
-
-                var noResultsItems = results.items.filter(function (item) {
-                    return !isActualItem(item);
-                });
-
-                if (actualItems.length > 0) {
-                    results.items = actualItems;
-                } else if (noResultsItems.length > 0) {
-                    results.items = [noResultsItems[0]];
-                }
-
-                return results;
-            };
-        })();
-    });
-
     if (typeof WHMCS.selectize !== "undefined") {
         jQuery('.selectize-client-search').data('search-url', getClientSearchPostUrl());
         WHMCS.selectize.clientSearch();

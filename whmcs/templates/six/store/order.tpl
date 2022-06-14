@@ -1,7 +1,7 @@
 <div class="container">
     <div class="store-order-container">
 
-        <form method="post" action="{routePath('store-order-addtocart')}" id="frmAddToCart">
+        <form method="post" action="{routePath('cart-order-addtocart')}" id="frmAddToCart">
             <input type="hidden" name="pid" value="{$product->id}">
             <input type="hidden" name="domain_type" value="" id="inputDomainType">
 
@@ -40,7 +40,7 @@
 
             <ul class="nav nav-tabs store-domain-tabs" role="tablist">
                 {if $requireDomain}
-                    {if (count($domains) > 0 || !$loggedin)}
+                    {if (count($domains) > 0 && $loggedin)}
                         <li role="presentation" class="active"><a href="#existing-domain" aria-controls="existing-domain" role="tab" data-toggle="tab">{lang key='store.chooseExistingDomain'}</a></li>
                     {/if}
                     {if $allowSubdomains}
@@ -78,7 +78,7 @@
                                     </div>
                                 </div>
                             {else}
-                                <a href="{routePath('store-order-login')}">{lang key='store.login'}</a> {lang key='store.addToExistingPackage'}
+                                <a href="{routePath('cart-order-login')}">{lang key='store.login'}</a> {lang key='store.addToExistingPackage'}
                             {/if}
                         </div>
                     {/if}
@@ -108,7 +108,7 @@
                     <div role="tabpanel" class="tab-pane" id="custom-domain">
                         <div class="row">
                             <div class="col-sm-8">
-                                <input type="text" class="form-control domain-input" placeholder="yourdomain.com" name="custom_domain" value="{$customDomain}">
+                                <input type="text" class="form-control domain-input" placeholder="example.com" name="custom_domain" value="{$customDomain}">
                             </div>
                             <div class="col-sm-4">
                                 <span class="domain-validation domain-input-validation"></span>
@@ -165,15 +165,15 @@
                             {/foreach}
                         </ul>
                     {/if}
-                    <form method="post" action="{routePath('store-order')}">
+                    <form method="post" action="{routePath('cart-order')}">
                         <input type="hidden" name="pid" value="{$upsellProduct->id}">
                         <button type="submit" class="btn btn-success">
                             {foreach $product->pricing()->allAvailableCycles() as $pricing}
                                 <span class="span-upsell span-upsell-{$pricing->cycle()}">
                                     {if is_null($upsellComparison->diff({$pricing->cycle()}))}
-                                        {$promotion->getCta()} {$upsellProduct->name} from just {$upsellProduct->pricing()->best()->breakdownPrice()}
+                                        {$promotion->getCta()} {$upsellProduct->name} {lang key='store.fromJust'} {$upsellProduct->pricing()->best()->breakdownPrice()}
                                     {else}
-                                        {$promotion->getCta()} {$upsellProduct->name} for just {$upsellComparison->diff({$pricing->cycle()})->breakdownPrice()} more
+                                        {$promotion->getCta()} {$upsellProduct->name} {lang key='store.forJust'} {$upsellComparison->diff({$pricing->cycle()})->breakdownPrice()} {lang key='more'}
                                     {/if}
                                 </span>
                             {/foreach}
@@ -204,7 +204,7 @@ jQuery(document).ready(function(){
 
           var domainName = jQuery('.subdomain-input').val() + '.' + jQuery('#existing_sld_for_subdomain').val();
 
-          WHMCS.http.jqClient.post('{routePath('store-order-validate')}', 'domain=' + domainName, function(data) {
+          WHMCS.http.jqClient.post('{routePath('cart-order-validate')}', 'domain=' + domainName, function(data) {
               if (data.valid) {
                   jQuery('.subdomain-validation').html('<i class="fas fa-check"></i> Valid').addClass('ok');
                   jQuery('#frmAddToCart button[type="submit"]').removeProp('disabled');
@@ -228,7 +228,7 @@ jQuery(document).ready(function(){
         delay2(function(){
           jQuery('.domain-input-validation').html('<i class="fas fa-spinner fa-spin"></i> Validating...').removeClass('ok');
           jQuery('#frmAddToCart button[type="submit"]').prop('disabled', true);
-          WHMCS.http.jqClient.post('{routePath('store-order-validate')}', 'domain=' + jQuery('.domain-input').val(), function(data) {
+          WHMCS.http.jqClient.post('{routePath('cart-order-validate')}', 'domain=' + jQuery('.domain-input').val(), function(data) {
             if (data.valid) {
                 jQuery('.domain-input-validation').html('<i class="fas fa-check"></i> Valid').addClass('ok');
                 jQuery('#frmAddToCart button[type="submit"]').removeProp('disabled');

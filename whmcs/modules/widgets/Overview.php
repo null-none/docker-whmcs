@@ -12,8 +12,8 @@ use WHMCS\Order\Order;
 /**
  * System Overview Widget.
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2018
- * @license https://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2021
+ * @license https://www.whmcs.com/eula/ WHMCS Eula
  */
 class Overview extends AbstractWidget
 {
@@ -72,7 +72,8 @@ class Overview extends AbstractWidget
             )
             ->where('date', '>', $today)
             ->groupBy(Capsule::raw("DATE_FORMAT(date, '%k')"))
-            ->get();
+            ->get()
+            ->all();
 
         foreach ($results as $result) {
             $incomeData['today'][$result->dateTime] = $result->amountIn;
@@ -85,7 +86,8 @@ class Overview extends AbstractWidget
             )
             ->where('date', '>', $month)
             ->groupBy(Capsule::raw("DATE_FORMAT(date, '%e %M')"))
-            ->get();
+            ->get()
+            ->all();
         foreach ($results as $result) {
             $incomeData['month'][$result->dateTime] = $result->amountIn;
         }
@@ -97,7 +99,8 @@ class Overview extends AbstractWidget
             )
             ->where('date', '>', $year)
             ->groupBy(Capsule::raw("date_format(date, '%M %Y')"))
-            ->get();
+            ->get()
+            ->all();
 
         foreach ($results as $result) {
             $incomeData['year'][$result->dateTime] = $result->amountIn;
@@ -181,6 +184,11 @@ class Overview extends AbstractWidget
         $langActiveThisMonth = AdminLang::trans('billing.incomethismonth');
         $langActiveThisYear = AdminLang::trans('billing.incomethisyear');
 
+        $langNewOrders = AdminLang::trans('home.newOrders');
+        $langActivatedOrders = AdminLang::trans('home.activatedOrders');
+        $langIncome = AdminLang::trans('billing.income');
+        $langOrders = AdminLang::trans('orders.title');
+
         return <<<EOF
 <div style="padding:20px;">
     <div class="btn-group btn-group-sm btn-period-chooser" role="group" aria-label="...">
@@ -225,7 +233,7 @@ $(document).ready(function() {
         labels: [{$graphLabels}],
         datasets: [
             {
-                label: "New Orders",
+                label: '{$langNewOrders}',
                 backgroundColor: "rgba(220,220,220,0.5)",
                 borderColor: "rgba(220,220,220,1)",
                 pointBackgroundColor: "rgba(220,220,220,1)",
@@ -236,7 +244,7 @@ $(document).ready(function() {
                 lineTension: 0
             },
             {
-                label: "Activated Orders",
+                label: '{$langActivatedOrders}',
                 backgroundColor: "rgba(51,92,249,0.5)",
                 borderColor: "rgba(51,92,249,1)",
                 pointBackgroundColor: "rgba(51,92,249,1)",
@@ -245,7 +253,7 @@ $(document).ready(function() {
                 data: [{$graphData3}]
             },
             {
-                label: "Income",
+                label: '{$langIncome}',
                 backgroundColor: "rgba(93,197,96,0.5)",
                 borderColor: "rgba(93,197,96,1)",
                 pointBackgroundColor: "rgba(93,197,96,1)",
@@ -278,7 +286,7 @@ $(document).ready(function() {
                         "id": "y-axis-0",
                         scaleLabel: {
                             display: true,
-                            labelString: 'Orders'
+                            labelString: '{$langOrders}'
                         },
                         ticks: {
                             beginAtZero: true
@@ -289,7 +297,7 @@ $(document).ready(function() {
                         "id": "y-axis-1",
                         scaleLabel: {
                             display: true,
-                            labelString: 'Income'
+                            labelString: '{$langIncome}'
                         },
                         ticks: {
                             beginAtZero: true

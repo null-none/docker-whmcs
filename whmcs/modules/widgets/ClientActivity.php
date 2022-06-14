@@ -10,14 +10,14 @@ use WHMCS\Utility\GeoIp;
 /**
  * Client Activity Widget.
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2018
- * @license https://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2021
+ * @license https://www.whmcs.com/eula/ WHMCS Eula
  */
 class ClientActivity extends AbstractWidget
 {
     protected $title = 'Client Activity';
     protected $description = 'Recent online clients.';
-    protected $weight = 70;
+    protected $weight = 400;
     protected $cache = true;
     protected $cacheExpiry = 300;
     protected $requiredPermission = 'List Clients';

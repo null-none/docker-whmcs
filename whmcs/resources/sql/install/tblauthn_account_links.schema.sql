@@ -11,6 +11,7 @@ CREATE TABLE `tblauthn_account_links` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `provider` char(32) COLLATE utf8_unicode_ci NOT NULL,
   `remote_user_id` char(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `user_id` int(11) DEFAULT NULL,
   `client_id` int(11) DEFAULT NULL,
   `contact_id` int(11) DEFAULT NULL,
   `metadata` text COLLATE utf8_unicode_ci,

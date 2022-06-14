@@ -8,6 +8,34 @@
  */
 
 jQuery(document).ready(function() {
+    if (typeof customCountryData !== "undefined") {
+        var teleCountryData = $.fn['intlTelInput'].getCountryData();
+        for (var code in customCountryData) {
+            if (customCountryData.hasOwnProperty(code)) {
+                var countryDetails = customCountryData[code];
+                codeLower = code.toLowerCase();
+                if (countryDetails === false) {
+                    for (var i = 0; i < teleCountryData.length; i++) {
+                        if (codeLower === teleCountryData[i].iso2) {
+                            teleCountryData.splice(i, 1);
+                            break;
+                        }
+                    }
+                } else {
+                    teleCountryData.push(
+                        {
+                            name: countryDetails.name,
+                            iso2: codeLower,
+                            dialCode: countryDetails.callingCode,
+                            priority: 0,
+                            areaCodes: null
+                        }
+                    );
+                }
+            }
+        }
+    }
+
     if (jQuery('body').data('phone-cc-input')) {
         var phoneInput = jQuery('input[name^="phone"], input[name$="phone"], input[name="domaincontactphonenumber"]').not('input[type="hidden"]');
         if (phoneInput.length) {
@@ -101,7 +129,7 @@ jQuery(document).ready(function() {
              * In places where a form icon is present, hide it.
              * Where the input has a class of field, remove that and add form-control in place.
              */
-            phoneInput.parents('div.form-group').find('.field-icon').addClass('hidden').end();
+            phoneInput.parents('div.form-group').find('.field-icon').hide().end();
             phoneInput.removeClass('field').addClass('form-control');
         }
 

@@ -5,7 +5,7 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 /*!40000 ALTER TABLE `tblcurrencies` DISABLE KEYS */;
-INSERT INTO `tblcurrencies` VALUES (1,'USD','$',' USD',1,1.00000,1);
+INSERT INTO `tblcurrencies` VALUES (1, 'USD', '$', ' USD', 2, 1.00000, 1);
 /*!40000 ALTER TABLE `tblcurrencies` ENABLE KEYS */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 

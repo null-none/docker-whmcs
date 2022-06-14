@@ -15,7 +15,7 @@
  * You must also provide the appropriate path to the crons folder in the
  * $crons_dir variable inside the WHMCS master configuration file.
  *
- * For more information please see http://docs.whmcs.com/Custom_Crons_Directory
+ * For more information please see https://docs.whmcs.com/Custom_Crons_Directory
  */
 
 //$whmcspath = '/path/to/whmcs/';

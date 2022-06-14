@@ -12,8 +12,9 @@ jQuery(document).ready(
     {
         var multiSelectize = jQuery('.selectize-multi-select'),
             standardSelectize = jQuery('.selectize-select'),
+            promoSelectize = jQuery('.selectize-promo'),
             tags = jQuery('.selectize-tags'),
-            ticketCc = jQuery('.selectize-ticketCc'),
+            newTicketCC = jQuery('.selectize-newTicketCc,.selectize-ticketCc'),
             currentValue = '';
 
         jQuery(multiSelectize).selectize(
@@ -85,6 +86,81 @@ jQuery(document).ready(
             }
         );
 
+        jQuery(promoSelectize).selectize(
+            {
+                valueField: jQuery(promoSelectize).attr('data-value-field'),
+                labelField: 'name',
+                searchField: 'name',
+                allowEmptyOption: jQuery(promoSelectize).attr('data-allow-empty-option'),
+                create: false,
+                maxItems: 1,
+                render: {
+                    item: function(item, escape) {
+                        var colour = '';
+                        var promo = item.name.split(' - ');
+                        if (typeof item.colour !== 'undefined' && item.colour !== '#FFF' && item.colour !== '') {
+                            colour = ' style="background-color: ' + escape(item.colour) + ';"';
+                        }
+                        if (typeof otherPromos !== 'undefined'
+                            && item.optgroup === otherPromos
+                            && currentValue !== ''
+                        ) {
+                            jQuery('#nonApplicablePromoWarning').show();
+                        } else {
+                            jQuery('#nonApplicablePromoWarning').hide();
+                        }
+                        if (promo[1]) {
+                            return '<div' + colour + '>'
+                                + '<strong>' + escape(promo[0]) + '</strong>'
+                                + '<small style="overflow: hidden"> - ' + escape(promo[1]) + '</small>'
+                                + '</div>';
+                        } else {
+                            return '<div' + colour + '>'
+                                + escape(promo[0])
+                                + '</div>';
+                        }
+                    },
+                    option: function(item, escape) {
+                        var colour = '';
+                        var promo = item.name.split(' - ');
+                        if (typeof item.colour !== 'undefined' && item.colour !== '#FFF' && item.colour !== '') {
+                            colour = ' style="background-color: ' + escape(item.colour) + ';"';
+                        }
+                        if (promo[1]) {
+                            return '<div' + colour + '>'
+                                + '<strong>' + escape(promo[0]) + '</strong><br />'
+                                + escape(promo[1])
+                                + '</div>';
+                        } else {
+                            return '<div' + colour + '>'
+                                + escape(promo[0])
+                                + '</div>';
+                        }
+                    }
+                },
+                onFocus: function() {
+                    this.$control.parent('div').css('overflow', 'visible');
+                    currentValue = this.getValue();
+                    this.clear();
+                },
+                onBlur: function()
+                {
+                    this.$control.parent('div').css('overflow', 'hidden');
+                    if (this.getValue() === '') {
+                        this.setValue(currentValue);
+                        updatesummary();
+                    }
+                    if (
+                        jQuery(promoSelectize).hasClass('selectize-auto-submit')
+                        && currentValue !== this.getValue()
+                    ) {
+                        this.setValue(this.getValue());
+                        jQuery(promoSelectize).parent('form').submit();
+                    }
+                }
+            }
+        );
+
         jQuery(tags).selectize(
             {
                 plugins: ['remove_button'],
@@ -135,45 +211,68 @@ jQuery(document).ready(
                             newTag: value,
                             token: csrfToken
                         }
+                    }).success(function() {
+                        jQuery.growl.notice({ title: "", message: "Saved successfully!" });
                     });
-
                 },
                 onItemRemove: function(value)
                 {
-                    jQuery.ajax(
-                        {
-                            url: window.location.href,
-                            type: 'POST',
-                            data: {
-                                action: 'removeTag',
-                                removeTag: value,
-                                token: csrfToken
-                            }
+                    jQuery.ajax({
+                        url: window.location.href,
+                        type: 'POST',
+                        data: {
+                            action: 'removeTag',
+                            removeTag: value,
+                            token: csrfToken
                         }
-                    );
+                    }).success(function() {
+                        jQuery.growl.notice({ title: "", message: "Saved successfully!" });
+                    });
                 }
             }
         );
 
-        jQuery(ticketCc).selectize(
+        jQuery(newTicketCC).selectize(
             {
                 plugins: ['remove_button'],
                 valueField: 'text',
                 searchField: ['text'],
                 delimiter: ',',
-                persist: false,
+                persist: true,
                 create: function(input) {
+                    input = input.toLowerCase();
                     return {
                         value: input,
-                        text: input
+                        text: input,
+                        name: input,
+                        iconclass: ''
                     }
                 },
                 render: {
                     item: function(item, escape) {
-                        return '<div><span class="item">' + escape(item.text) + '</span></div>';
+                        var name = '';
+                        if (typeof item.iconclass !== 'undefined' && item.iconclass.length > 0) {
+                            name = '<span style="padding-right: 8px"><i class="' + escape(item.iconclass) + '"></i></span>'
+                            + escape(item.name);
+                        } else {
+                            name = escape(item.name);
+                        }
+                        return '<div class="selectize">'
+                            + '<span class="name">' + name + '</span>'
+                            + '</div>';
                     },
                     option: function(item, escape) {
-                        return '<div><span class="item">' + escape(item.text) + '</span></div>';
+                        var name = '';
+                        if (typeof item.iconclass !== 'undefined' && item.iconclass.length > 0) {
+                            name = '<span style="padding-right: 8px"><i class="' + escape(item.iconclass) + '"></i></span>'
+                                + escape(item.name);
+                        } else {
+                            name = escape(item.name);
+                        }
+                        return '<div class="selectize">'
+                            + '<span class="name">' + name + '</span>'
+                            + '<span class="email">' + escape(item.text) + '</span>'
+                            + '</div>';
                     }
                 }
             }

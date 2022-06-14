@@ -12,6 +12,7 @@ CREATE TABLE `tblticketreplies` (
   `tid` int(10) NOT NULL,
   `userid` int(10) NOT NULL,
   `contactid` int(10) NOT NULL,
+  `requestor_id` INT(10) UNSIGNED NOT NULL DEFAULT '0',
   `name` text COLLATE utf8_unicode_ci NOT NULL,
   `email` text COLLATE utf8_unicode_ci NOT NULL,
   `date` datetime NOT NULL,

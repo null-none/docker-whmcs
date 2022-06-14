@@ -8,6 +8,7 @@ use WHMCS\Mail\Template;
 use WHMCS\Module\Notification\DescriptionTrait;
 use WHMCS\Module\Contracts\NotificationModuleInterface;
 use WHMCS\Notification\Contracts\NotificationInterface;
+use WHMCS\Notification\Rule;
 use WHMCS\Utility\Environment\WebHelper;
 
 /**
@@ -15,7 +16,7 @@ use WHMCS\Utility\Environment\WebHelper;
  *
  * All notification modules must implement NotificationModuleInterface
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2017
+ * @copyright Copyright (c) WHMCS Limited 2005-2020
  * @license http://www.whmcs.com/license/ WHMCS Eula
  */
 class Email implements NotificationModuleInterface

@@ -37,7 +37,7 @@ function yourprefix123_check_license($licensekey, $localkey='') {
     // -----------------------------------
 
     // Enter the url to your WHMCS installation here
-    $whmcsurl = 'http://www.yourdomain.com/whmcs/';
+    $whmcsurl = 'http://www.example.com/whmcs/';
     // Must match what is specified in the MD5 Hash Verification field
     // of the licensing product that will be used with this check.
     $licensing_secret_key = 'abc123';

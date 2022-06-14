@@ -1,5 +1,6 @@
 <?php
 
+use WHMCS\Billing\Cycles;
 use WHMCS\Database\Capsule;
 
 if (!defined("WHMCS")) {
@@ -7,21 +8,35 @@ if (!defined("WHMCS")) {
 }
 
 $months = array('January','February','March','April','May','June','July','August','September','October','November','December');
+$cyclesMax = 36; // in months
 
 $reportdata["title"] = "Income Forecast";
 $reportdata["description"] = "This report shows the projected income for each month of the year if all active services are renewed within that month";
 
 $reportdata["currencyselections"] = true;
 
-$reportdata["tableheadings"] = array("Month","Monthly","Quarterly","Semi-Annual","Annual","Biennial","Total");
+$reportdata['tableheadings'] = [
+    'Month',
+    'Monthly',
+    'Quarterly',
+    'Semi-Annual',
+    'Annual',
+    'Biennial',
+    'Triennial',
+    'Total',
+];
 
 $totals = array();
+
+$cycles = new Cycles;
 
 $results = Capsule::table('tblhosting')
     ->where('tblhosting.domainstatus', '=', 'Active')
     ->where('tblclients.currency', '=', (int) $currencyid)
+    ->whereIn('tblhosting.billingcycle', array_values($cycles->getRecurringCycles()))
     ->join('tblclients', 'tblclients.id', '=', 'tblhosting.userid')
-    ->get();
+    ->get()
+    ->all();
 foreach ($results as $result) {
     $recurringamount = $result->amount;
     $nextduedate = $result->nextduedate;
@@ -29,22 +44,19 @@ foreach ($results as $result) {
     $nextduedate = explode("-", $nextduedate);
     $year = $nextduedate[0];
     $month = $nextduedate[1];
-    if ($billingcycle == "Monthly") {
-        $recurrence = 1;
-    } elseif ($billingcycle == "Quarterly") {
-        $recurrence = 3;
-    } elseif ($billingcycle == "Semi-Annually") {
-        $recurrence = 6;
-    } elseif ($billingcycle == "Annually") {
-        $recurrence = 12;
-    } elseif ($billingcycle == "Biennially") {
-        $recurrence = 24;
-    } else {
-        $recurrence = 24;
+    if ($cycles->isFree($billingcycle)) {
+        continue;
     }
-    $recurrences = (24 / $recurrence);
-    for ($i = 0; $i <= 24; $i += $recurrence) {
+    try {
+        $recurrence = $cycles->getNumberOfMonths($billingcycle);
+    } catch (Exception $e) {
+        $recurrence = $cyclesMax;
+    }
+    for ($i = 0; $i <= $cyclesMax; $i += $recurrence) {
         $new_time = mktime(0, 0, 0, ($month + $i), 1, $year);
+        if ($new_time === false) {
+            continue;
+        }
         $totals[date("Y", $new_time)][date("m", $new_time)][$recurrence] += $recurringamount;
     }
 }
@@ -53,7 +65,8 @@ $results = Capsule::table('tbldomains')
     ->where('tbldomains.status', '=', 'Active')
     ->where('tblclients.currency', '=', (int) $currencyid)
     ->join('tblclients', 'tblclients.id', '=', 'tbldomains.userid')
-    ->get();
+    ->get()
+    ->all();
 foreach ($results as $result) {
     $recurringamount = $result->recurringamount;
     $nextduedate = $result->nextduedate;
@@ -65,15 +78,20 @@ foreach ($results as $result) {
         $regperiod = 1;
     }
     $recurrence = ($regperiod * 12);
-    $recurrences = (24 / $recurrence);
-    for ($i = 0; $i <= 24; $i += $recurrence) {
+    for ($i = 0; $i <= $cyclesMax; $i += $recurrence) {
         $new_time = mktime(0, 0, 0, ($month + $i), 1, $year);
+        if ($new_time === false) {
+            continue;
+        }
         $totals[date("Y", $new_time)][date("m", $new_time)][$recurrence] += $recurringamount;
     }
 }
 
-for ($i=0;$i<=24;$i++) {
+for ($i = 0; $i <= $cyclesMax; $i++) {
     $new_time = mktime(0,0,0,date("m")+$i,1,date("Y"));
+    if ($new_time === false) {
+        continue;
+    }
     $months_array[date("Y",$new_time)][date("m",$new_time)] = "x";
 }
 
@@ -81,10 +99,23 @@ $overallincome = 0;
 
 foreach ($months_array AS $year=>$month) {
     foreach ($month AS $mon=>$x) {
-        $monthlyincome = $totals[$year][$mon][1]+$totals[$year][$mon][3]+$totals[$year][$mon][6]+$totals[$year][$mon][12]+$totals[$year][$mon][24];
+        $monthlyincome = $totals[$year][$mon][1]
+            + $totals[$year][$mon][3]
+            + $totals[$year][$mon][6]
+            + $totals[$year][$mon][12]
+            + $totals[$year][$mon][24]
+            + $totals[$year][$mon][$cyclesMax];
         $overallincome += $monthlyincome;
         $chartdata['rows'][] = array('c'=>array(array('v'=>$months[$mon-1]." ".$year),array('v'=>$overallincome,'f'=>formatCurrency($overallincome))));
-        $reportdata["tablevalues"][] = array($months[$mon-1]." ".$year,formatCurrency($totals[$year][$mon][1]),formatCurrency($totals[$year][$mon][3]),formatCurrency($totals[$year][$mon][6]),formatCurrency($totals[$year][$mon][12]),formatCurrency($totals[$year][$mon][24]),formatCurrency($monthlyincome));
+        $reportdata["tablevalues"][] = array(
+            $months[$mon-1]." ".$year,
+            formatCurrency($totals[$year][$mon][1]),
+            formatCurrency($totals[$year][$mon][3]),
+            formatCurrency($totals[$year][$mon][6]),
+            formatCurrency($totals[$year][$mon][12]),
+            formatCurrency($totals[$year][$mon][24]),
+            formatCurrency($totals[$year][$mon][$cyclesMax]),
+            formatCurrency($monthlyincome));
 
     }
 }

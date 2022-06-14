@@ -8,14 +8,14 @@ use WHMCS\Module\AbstractWidget;
 /**
  * Abstract Widget.
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2018
- * @license https://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2021
+ * @license https://www.whmcs.com/eula/ WHMCS Eula
  */
 class Support extends AbstractWidget
 {
     protected $title = 'Support';
     protected $description = 'An overview of support.';
-    protected $weight = 30;
+    protected $weight = 600;
     protected $cache = true;
     protected $cacheExpiry = 120;
     protected $cachePerUser = true;

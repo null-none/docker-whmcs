@@ -54,7 +54,7 @@ deallocate prepare statement;
 INSERT INTO `tbladminperms` (`roleid`, `permid`) VALUES ('1', '145'), ('2', '145');
 
 -- Add email marketing opt in default message
-set @query = if ((select count(*) from `tblconfiguration` where `setting` = 'EmailMarketingOptInMessage') = 0, "INSERT INTO `tblconfiguration` (`setting`, `value`, `created_at`, `updated_at`) VALUES ('EmailMarketingOptInMessage', 'We would like to send you occasional news, information and special offers by email. To join our mailing list, simply tick the box below. You can unsubscribe at any time.', now(), now());",'DO 0;');
+set @query = if ((select count(*) from `tblconfiguration` where `setting` = 'EmailMarketingOptInMessage') = 0, "INSERT INTO `tblconfiguration` (`setting`, `value`, `created_at`, `updated_at`) VALUES ('EmailMarketingOptInMessage', 'We would like to send you occasional news, information and special offers by email. To join our mailing list, check below. You can unsubscribe at any time.', now(), now());",'DO 0;');
 prepare statement from @query;
 execute statement;
 deallocate prepare statement;

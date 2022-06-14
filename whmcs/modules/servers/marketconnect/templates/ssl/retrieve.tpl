@@ -5,31 +5,34 @@
         {$errorMessage}
     </div>
 
-    <p>You can only retrieve the certificate once it has been issued by the certificate authority.</p>
-    <p>If you only recently submitted the configuration information, please allow time for security checks to be completed and the certificate issued. For DV orders this is typically under 24 hours. For OV and EV level certificates it can take up to 3-5 days.</p>
-    <p>If you continue to see this message after that time, please <a href="submitticket.php">contact support</a>.</p>
-
+    <p>{lang key='ssl.certError1'}</p>
+    <p>{lang key='ssl.certError2'}</p>
+    <p>{lang key='ssl.certError3'}</p>
     <br><br>
 
 {else}
 
     <div class="alert alert-success">
         <i class="fas fa-check fa-fw"></i>
-        Your certificate has been successfully retrieved.
+        {lang key='ssl.retrieved'}
     </div>
 
-    <p>Copy your certificate from the text below.</p>
+    <p>{lang key='ssl.copyCert'}</p>
 
-    <textarea rows="15" class="form-control">
-    {$certificate}
-    </textarea>
+    <textarea id="inputCertificate" rows="15" class="form-control" readonly="readonly">{$certificate}</textarea>
+    <br>
+    <button type="button" class="btn btn-default btn-sm copy-to-clipboard pull-right float-right" data-clipboard-target="#inputCertificate">
+        <i aria-hidden="true" class="far fa-clipboard-list fa-lg" title="{lang key='copyToClipboard'}"></i>
+        {lang key='copyToClipboard'}
+    </button>
+    <div class="clearfix"></div>
 
     <br>
 
     <div class="well">
-        <h4>Installing Your Certificate</h4>
-        <p>To install your certificate, you must upload the certificate shown above to your web hosting server/control panel. The exact method for doing this varies depending upon the hosting environment being used.</p>
-        <p>For further instructions, please refer to the <a href="https://knowledge.digicert.com/solution/SO16226.html" target="_blank">RapidSSL Installation Support</a> page.</p>
+        <h4>{lang key='ssl.installing'}</h4>
+        <p>{lang key='ssl.howToInstall'}</p>
+        <p>{lang key='ssl.installFurtherInfo' anchor='<a href="https://www.digicert.com/kb/ssl-certificate-installation.htm" target="_blank">' endAnchor='</a>'}</p>
     </div>
 
 {/if}

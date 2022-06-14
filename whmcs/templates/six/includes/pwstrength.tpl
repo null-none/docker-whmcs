@@ -2,7 +2,7 @@
 
 <div class="progress" id="passwordStrengthBar">
     <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-        <span class="sr-only">New Password Rating: 0%</span>
+        <span class="sr-only">{lang key='pwstrengthrating'}: 0%</span>
     </div>
 </div>
 
@@ -45,7 +45,7 @@ jQuery("#inputNewPassword1").keyup(function() {
     $newPassword1.removeClass('has-error has-warning has-success');
     jQuery("#inputNewPassword1").next('.form-control-feedback').removeClass('glyphicon-remove glyphicon-warning-sign glyphicon-ok');
     jQuery("#passwordStrengthBar .progress-bar").removeClass("progress-bar-danger progress-bar-warning progress-bar-success").css("width", pwstrength + "%").attr('aria-valuenow', pwstrength);
-    jQuery("#passwordStrengthBar .progress-bar .sr-only").html('New Password Rating: ' + pwstrength + '%');
+    jQuery("#passwordStrengthBar .progress-bar .sr-only").html('{lang|addslashes key='pwstrengthrating'}: ' + pwstrength + '%');
     if (pwstrength < pwStrengthErrorThreshold) {
         $newPassword1.addClass('has-error');
         jQuery("#inputNewPassword1").next('.form-control-feedback').addClass('glyphicon-remove');
@@ -71,7 +71,7 @@ function validatePassword2() {
         $newPassword2.removeClass('has-success')
             .addClass('has-error');
         jQuery("#inputNewPassword2").next('.form-control-feedback').removeClass('glyphicon-ok').addClass('glyphicon-remove');
-        jQuery("#inputNewPassword2Msg").html('<p class="help-block">{$LANG.pwdoesnotmatch|escape}</p>');
+        jQuery("#inputNewPassword2Msg").html('<p class="help-block" id="nonMatchingPasswordResult">{$LANG.pwdoesnotmatch|escape}</p>');
         {if !isset($noDisable)}jQuery('input[type="submit"]').attr('disabled', 'disabled');{/if}
     } else {
         if (password2) {

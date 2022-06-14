@@ -1,6 +1,7 @@
 <?php
 
 use WHMCS\Carbon;
+use WHMCS\Database\Capsule;
 
 if (!defined("WHMCS")) {
     die("This file cannot be accessed directly");
@@ -51,6 +52,7 @@ HTML;
 }
 
 $dateRange = Carbon::parseDateRangeValue($range);
+$diffInDays = $dateRange['from']->diffInDays($dateRange['to']);
 $datefromsql = $dateRange['from']->toDateTimeString();
 $datetosql = $dateRange['to']->toDateTimeString();
 
@@ -60,7 +62,7 @@ $startday = substr($datefromsql, 8, 2);
 $startmonth = substr($datefromsql, 5, 2);
 $startyear = substr($datefromsql, 0, 4);
 
-for ($i = 0; $i <= 365; $i++) {
+for ($i = 0; $i <= $diffInDays; $i++) {
     $date = date("Y-m-d",mktime(0,0,0,$startmonth,$startday+$i,$startyear));
     $reportdata["tableheadings"][] = $date;
     if (str_replace('-','',$date)==str_replace('-','',$datetosql)) break;
@@ -71,48 +73,56 @@ $reportdata["tableheadings"][] = "Totals";
 $daytotals = array();
 $r = 0;
 
-$result = select_query("tbladmins","id,firstname,lastname","","firstname","ASC");
-while ($data = mysql_fetch_array($result)) {
-
-    $adminid = $data['id'];
-    $firstname = $data['firstname'];
-    $lastname = $data['lastname'];
+$results = Capsule::table('tbladmins')
+    ->orderBy('firstname', 'asc')
+    ->get(['id', 'firstname', 'lastname'])
+    ->all();
+foreach ($results as $data) {
+    $adminid = $data->id;
+    $firstname = $data->firstname;
+    $lastname = $data->lastname;
 
     $reportdata["tablevalues"][$r] = array($firstname.' '.$lastname);
 
     $totalduration = 0;
 
-    for ($i = 0; $i <= 365; $i++) {
+    for ($i = 0; $i <= $diffInDays; $i++) {
         $date = date("Y-m-d",mktime(0,0,0,$startmonth,$startday+$i,$startyear));
         $datestart = mktime(0,0,0,$startmonth,$startday+$i,$startyear);
         $dateend = mktime(0,0,0,$startmonth,$startday+$i+1,$startyear);
 
         $duration = 0;
-        $result2 = select_query("mod_projecttimes","start,end","start>='".$datestart."' AND start<'".$dateend."' AND adminid=$adminid");
-        while ($data = mysql_fetch_array($result2)) {
-            $starttime = $data['start'];
-            $endtime = $data['end'];
 
-            $time = $endtime - $starttime;
+        $results2 = Capsule::table('mod_projecttimes')
+            ->where('start', '>=', $datestart)
+            ->where('start', '<', $dateend)
+            ->where('adminid', $adminid)
+            ->get(['start', 'end'])
+            ->all();
+        foreach ($results2 as $data) {
+            $starttime = $data->start;
+            $endtime = $data->end;
+
+            $time = ($endtime - $starttime);
             $duration += $time;
             $totalduration += $time;
             $daytotals[$date] += $time;
-
         }
         $reportdata["tablevalues"][$r][] = project_staff_logs_time($duration);
 
-        if (str_replace('-','',$date)==str_replace('-','',$datetosql)) break;
+        if (str_replace('-', '', $date) == str_replace('-', '', $datetosql)) {
+            break;
+        }
     }
 
     $reportdata["tablevalues"][$r][] = '<strong>'.project_staff_logs_time($totalduration).'</strong>';
 
     $r++;
-
 }
 
 $reportdata["tablevalues"][$r][] = '<strong>Totals</strong>';
 
-for ($i = 0; $i <= 365; $i++) {
+for ($i = 0; $i <= $diffInDays; $i++) {
     $date = date("Y-m-d",mktime(0,0,0,$startmonth,$startday+$i,$startyear));
     $reportdata["tablevalues"][$r][] = '<strong>'.project_staff_logs_time($daytotals[$date]).'</strong>';
     if (str_replace('-','',$date)==str_replace('-','',$datetosql)) break;

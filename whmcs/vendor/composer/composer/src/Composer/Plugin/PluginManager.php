@@ -15,15 +15,16 @@ namespace Composer\Plugin;
 use Composer\Composer;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\IO\IOInterface;
+use Composer\Package\CompletePackage;
 use Composer\Package\Package;
 use Composer\Package\Version\VersionParser;
 use Composer\Repository\RepositoryInterface;
-use Composer\Package\AliasPackage;
 use Composer\Package\PackageInterface;
 use Composer\Package\Link;
 use Composer\Semver\Constraint\Constraint;
 use Composer\DependencyResolver\Pool;
 use Composer\Plugin\Capability\Capability;
+use Composer\Util\PackageSorter;
 
 /**
  * Plugin manager
@@ -169,7 +170,7 @@ class PluginManager
         $generator = $this->composer->getAutoloadGenerator();
         $autoloads = array();
         foreach ($autoloadPackages as $autoloadPackage) {
-            $downloadPath = $this->getInstallPath($autoloadPackage, ($globalRepo && $globalRepo->hasPackage($autoloadPackage)));
+            $downloadPath = $this->getInstallPath($autoloadPackage, $globalRepo && $globalRepo->hasPackage($autoloadPackage));
             $autoloads[] = array($autoloadPackage, $downloadPath);
         }
 
@@ -183,6 +184,7 @@ class PluginManager
                 $path = $classLoader->findFile($class);
                 $code = file_get_contents($path);
                 $separatorPos = strrpos($class, '\\');
+                $className = $class;
                 if ($separatorPos) {
                     $className = substr($class, $separatorPos + 1);
                 }
@@ -190,7 +192,8 @@ class PluginManager
                 $code = str_replace('__FILE__', var_export($path, true), $code);
                 $code = str_replace('__DIR__', var_export(dirname($path), true), $code);
                 $code = str_replace('__CLASS__', var_export($class, true), $code);
-                eval('?>'.$code);
+                $code = preg_replace('/^\s*<\?(php)?/i', '', $code, 1);
+                eval($code);
                 $class .= '_composer_tmp'.self::$classCounter;
                 self::$classCounter++;
             }
@@ -221,12 +224,16 @@ class PluginManager
     /**
      * Adds a plugin, activates it and registers it with the event dispatcher
      *
+     * Ideally plugin packages should be registered via registerPackage, but if you use Composer
+     * programmatically and want to register a plugin class directly this is a valid way
+     * to do it.
+     *
      * @param PluginInterface $plugin plugin instance
      */
-    private function addPlugin(PluginInterface $plugin)
+    public function addPlugin(PluginInterface $plugin)
     {
         $this->io->writeError('Loading plugin '.get_class($plugin), true, IOInterface::DEBUG);
-        $this->plugins[] =  $plugin;
+        $this->plugins[] = $plugin;
         $plugin->activate($this->composer, $this->io);
 
         if ($plugin instanceof EventSubscriberInterface) {
@@ -247,8 +254,10 @@ class PluginManager
      */
     private function loadRepository(RepositoryInterface $repo)
     {
-        foreach ($repo->getPackages() as $package) { /** @var PackageInterface $package */
-            if ($package instanceof AliasPackage) {
+        $packages = $repo->getPackages();
+        $sortedPackages = array_reverse(PackageSorter::sortPackages($packages));
+        foreach ($sortedPackages as $package) {
+            if (!($package instanceof CompletePackage)) {
                 continue;
             }
             if ('composer-plugin' === $package->getType()) {
@@ -301,7 +310,7 @@ class PluginManager
     {
         $packages = $pool->whatProvides($link->getTarget(), $link->getConstraint());
 
-        return (!empty($packages)) ? $packages[0] : null;
+        return !empty($packages) ? $packages[0] : null;
     }
 
     /**
@@ -362,6 +371,7 @@ class PluginManager
                 throw new \RuntimeException("Cannot instantiate Capability, as class $capabilityClass from plugin ".get_class($plugin)." does not exist.");
             }
 
+            $ctorArgs['plugin'] = $plugin;
             $capabilityObj = new $capabilityClass($ctorArgs);
 
             // FIXME these could use is_a and do the check *before* instantiating once drop support for php<5.3.9
@@ -373,5 +383,24 @@ class PluginManager
 
             return $capabilityObj;
         }
+    }
+
+    /**
+     * @param  string       $capabilityClassName The fully qualified name of the API interface which the plugin may provide
+     *                                           an implementation of.
+     * @param  array        $ctorArgs            Arguments passed to Capability's constructor.
+     *                                           Keeping it an array will allow future values to be passed w\o changing the signature.
+     * @return Capability[]
+     */
+    public function getPluginCapabilities($capabilityClassName, array $ctorArgs = array())
+    {
+        $capabilities = array();
+        foreach ($this->getPlugins() as $plugin) {
+            if ($capability = $this->getPluginCapability($plugin, $capabilityClassName, $ctorArgs)) {
+                $capabilities[] = $capability;
+            }
+        }
+
+        return $capabilities;
     }
 }

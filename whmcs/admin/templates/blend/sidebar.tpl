@@ -1,7 +1,10 @@
 {if $sidebar eq "home"}
 
-<span class="header"><img src="images/icons/linktracking.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.global.shortcuts}</span>
-<ul class="menu">
+<div class="sidebar-header">
+    <i class="fas fa-star"></i>
+    {$_ADMINLANG.global.shortcuts}
+</div>
+<ul>
     <li><a href="clientsadd.php"><img src="images/icons/clientsadd.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.clients.addnew}</a></li>
     <li><a href="ordersadd.php"><img src="images/icons/ordersadd.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.orders.addnew}</a></li>
     <li><a href="quotes.php?action=manage"><img src="images/icons/quotes.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.quotes.createnew}</a></li>
@@ -12,18 +15,29 @@
     <li><a href="#" data-toggle="modal" data-target="#modalCreditCardCapture"><img src="images/icons/offlinecc.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.invoices.attemptcccaptures}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/home.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.global.systeminfo}</span>
-<div class="smallfont">{$_ADMINLANG.license.regto}: {$licenseinfo.registeredname}<br />{$_ADMINLANG.license.type}: {$licenseinfo.productname}<br />{$_ADMINLANG.license.expires}: {$licenseinfo.expires}<br />{$_ADMINLANG.global.version}: {$licenseinfo.currentversion}{if $licenseinfo.updateavailable}<br /><span class="textred"><b>{$_ADMINLANG.license.updateavailable}</b></span>{/if}<br /><br /></div>
+<div class="sidebar-header">
+    <i class="fas fa-home"></i>
+    {$_ADMINLANG.global.systeminfo}
+</div>
+<div class="content-padded small">
+    {$_ADMINLANG.license.regto}: {$licenseinfo.registeredname}<br />{$_ADMINLANG.license.type}: {$licenseinfo.productname}<br />{$_ADMINLANG.license.expires}: {$licenseinfo.expires}<br />{$_ADMINLANG.global.version}: {$licenseinfo.currentversion}{if $licenseinfo.updateavailable}<br /><span class="textred"><b>{$_ADMINLANG.license.updateavailable}</b></span>{/if}
+</div>
 
 {elseif $sidebar eq "clients"}
 
-<span class="header"><img src="images/icons/clients.png" class="absmiddle" alt="Clients" width="16" height="16" /> {$_ADMINLANG.clients.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-users"></i>
+    {$_ADMINLANG.clients.title}
+</div>
 <ul class="menu">
     <li><a href="clients.php">{$_ADMINLANG.clients.viewsearch}</a></li>
     <li><a href="clientsadd.php">{$_ADMINLANG.clients.addnew}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/products.png" alt="Products/Services" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.services.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-cube"></i>
+    {$_ADMINLANG.services.title}
+</div>
 <ul class="menu">
     <li><a href="{routePath('admin-services-index')}">{$_ADMINLANG.services.listall}</a></li>
     <li><a href="{routePath('admin-services-shared')}">- {$_ADMINLANG.services.listhosting}</a></li>
@@ -35,14 +49,20 @@
     <li><a href="cancelrequests.php">{$_ADMINLANG.clients.cancelrequests}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/affiliates.png" alt="Affiliates" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.affiliates.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-retweet"></i>
+    {$_ADMINLANG.affiliates.title}
+</div>
 <ul class="menu">
     <li><a href="affiliates.php">{$_ADMINLANG.affiliates.manage}</a></li>
 </ul>
 
 {elseif $sidebar eq "orders"}
 
-<span class="header"><img src="images/icons/orders.png" alt="Affiliates" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.orders.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-shopping-cart"></i>
+    {$_ADMINLANG.orders.title}
+</div>
 <ul class="menu">
     <li><a href="orders.php">{$_ADMINLANG.orders.listall}</a></li>
     <li><a href="orders.php?status=Pending">- {$_ADMINLANG.orders.listpending}</a></li>
@@ -54,14 +74,21 @@
 
 {elseif $sidebar eq "billing"}
 
-<span class="header"><img src="images/icons/transactions.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.billing.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-money-bill-wave-alt"></i>
+    {$_ADMINLANG.billing.title}
+</div>
 <ul class="menu">
     <li><a href="transactions.php">{$_ADMINLANG.billing.transactionslist}</a></li>
     <li><a href="gatewaylog.php">{$_ADMINLANG.billing.gatewaylog}</a></li>
     <li><a href="offlineccprocessing.php">{$_ADMINLANG.billing.offlinecc}</a></li>
+    <li><a href="{routePath('admin-billing-disputes-index')}">{$_ADMINLANG.disputes.title}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/invoices.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.invoices.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-file-invoice"></i>
+    {$_ADMINLANG.invoices.title}
+</div>
 <ul class="menu">
     <li><a href="invoices.php">{$_ADMINLANG.invoices.listall}</a></li>
     <li><a href="invoices.php?status=Paid">- {$_ADMINLANG.status.paid}</a></li>
@@ -74,7 +101,10 @@
     <li><a href="invoices.php?status=Payment%20Pending">- {$_ADMINLANG.status.paymentpending}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/billableitems.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.billableitems.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-user-clock"></i>
+    {$_ADMINLANG.billableitems.title}
+</div>
 <ul class="menu">
     <li><a href="billableitems.php">{$_ADMINLANG.billableitems.listall}</a></li>
     <li><a href="billableitems.php?status=Uninvoiced">- {$_ADMINLANG.billableitems.uninvoiced}</a></li>
@@ -82,7 +112,10 @@
     <li><a href="billableitems.php?action=manage">{$_ADMINLANG.billableitems.addnew}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/quotes.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.quotes.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-file-signature"></i>
+    {$_ADMINLANG.quotes.title}
+</div>
 <ul class="menu">
     <li><a href="quotes.php">{$_ADMINLANG.quotes.listall}</a></li>
     <li><a href="quotes.php?validity=Valid">- {$_ADMINLANG.status.valid}</a></li>
@@ -94,66 +127,103 @@
 
 {if $inticket}
 
-<span class="header"><img src="images/icons/support.png" alt="Support Center" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.support.ticketinfo}</span>
-
-<span class="ticketheader">{$_ADMINLANG.fields.client}</span>
-<div class="ticketinfo smallfont">
-    {if $userid}
-        <a href="clientssummary.php?userid={$userid}"{if $clientgroupcolour} style="background-color:{$clientgroupcolour}"{/if} target="_blank">
-            {$clientname}
-        </a>
-        {if $contactid}
-            (<a href="clientscontacts.php?userid={$userid}&contactid={$contactid}"{if $clientgroupcolour} style="background-color:{$clientgroupcolour}"{/if} target="_blank">{$contactname}</a>)
+<div class="sidebar-header">
+    <i class="fas fa-comment-alt-check"></i>
+    {$_ADMINLANG.support.ticketinfo}
+</div>
+<div class="content-padded">
+    <span class="sub-header">{$_ADMINLANG.fields.owner}</span>
+    <div class="bottom-margin-5">
+        {if $userid}
+            <a href="clientssummary.php?userid={$userid}"{if $clientgroupcolour} style="background-color:{$clientgroupcolour}"{/if} target="_blank">
+                {$clientname}
+            </a>
+            {if $contactid}
+                (<a href="clientscontacts.php?userid={$userid}&contactid={$contactid}"{if $clientgroupcolour} style="background-color:{$clientgroupcolour}"{/if} target="_blank">{$contactname}</a>)
+            {/if}
+        {else}
+            <a href="{$SCRIPT_NAME}?email={$email|urlencode}">{$name}</a><br />
+            <div class="truncate" title="{$email}">{$email}</div>
         {/if}
-    {else}
-        <a href="{$SCRIPT_NAME}?email={$email|urlencode}">{$name}</a><br />
-        {$email}
-    {/if}
-</div>
+    </div>
 
-<span class="ticketheader">{$_ADMINLANG.support.department}</span>
-<div class="ticketinfo">
-<input type="hidden" id="currentdeptid" value="{$deptid}" />
-<select id="deptid" data-update-type="deptid" class="form-control input-sm sidebar-ticket-ajax">
-{foreach from=$departments item=department}
-<option value="{$department.id}"{if $department.id eq $deptid} selected{/if}>{$department.name}</option>
-{/foreach}
-</select>
-</div>
+    <span class="sub-header">
+        {$_ADMINLANG.fields.requestor}
+    </span>
+    <div class="bottom-margin-5">
+        {$requestor.name}<br>
+        <span class="label requestor-type-{$requestor.type_normalised}">
+            {if $requestor.type_normalised eq 'operator'}
+                {lang key='support.requestor.operator'}
+            {elseif $requestor.type_normalised eq 'owner'}
+                {lang key='support.requestor.owner'}
+            {elseif $requestor.type_normalised eq 'authorizeduser'}
+                {lang key='support.requestor.authorizeduser'}
+            {elseif $requestor.type_normalised eq 'registereduser'}
+                {lang key='support.requestor.registereduser'}
+            {elseif $requestor.type_normalised eq 'subaccount'}
+                {lang key='support.requestor.subaccount'}
+            {elseif $requestor.type_normalised eq 'guest'}
+                {lang key='support.requestor.guest'}
+            {/if}
+        </span>
+        <br>
+        <div class="small truncate" title="{$requestor.email}">{$requestor.email}</div>
+    </div>
 
-<span class="ticketheader">{$_ADMINLANG.support.assignedto}</span>
-<div class="ticketinfo">
-<input type="hidden" id="currentflagto" value="{$flag}" />
-<select id="flagto" data-update-type="flagto" class="form-control input-sm select-assignto sidebar-ticket-ajax">
-<option value="0">{$_ADMINLANG.global.none}</option>
-{foreach from=$staff item=staffmember}
-<option value="{$staffmember.id}"{if $staffmember.id eq $flag} selected{/if}>{$staffmember.name}</option>
-{/foreach}
-</select> <a href="#" onclick="$('#flagto').val({$adminid});$('#flagto').trigger('change');return false">{$_ADMINLANG.support.me}</a>
-</div>
-
-<span class="ticketheader">{$_ADMINLANG.support.priority}</span>
-<div class="ticketinfo">
-<input type="hidden" id="currentpriority" value="{$priority}" />
-<select id="priority" data-update-type="priority" class="form-control input-sm sidebar-ticket-ajax">
-<option value="High"{if $priority eq "High"} selected{/if}>{$_ADMINLANG.status.high}</option>
-<option value="Medium"{if $priority eq "Medium"} selected{/if}>{$_ADMINLANG.status.medium}</option>
-<option value="Low"{if $priority eq "Low"} selected{/if}>{$_ADMINLANG.status.low}</option>
-</select>
-</div>
-
-<span class="ticketheader">{$_ADMINLANG.support.staffparticipants}</span>
-<div class="ticketinfo smallfont">
-{foreach from=$staffinvolved item=staffname}
-{$staffname}<br />
-{foreachelse}
-No Replies Yet
-{/foreach}
-</div>
-
-<span class="ticketheader">{$_ADMINLANG.support.tags}</span>
-<div class="ticketinfo">
+    <span class="sub-header">{$_ADMINLANG.support.department}</span>
+    <div class="bottom-margin-5">
+        <input type="hidden" id="currentdeptid" value="{$deptid}" />
+        <select id="deptid" data-update-type="deptid" class="form-control sidebar-ticket-ajax">
+            {foreach from=$departments item=department}
+                <option value="{$department.id}"{if $department.id eq $deptid} selected{/if}>{$department.name}</option>
+            {/foreach}
+        </select>
+    </div>
+    <span class="sub-header">
+        {$_ADMINLANG.support.assignedto}
+        <a href="#" onclick="$('#flagto').val({$adminid});$('#flagto').trigger('change');return false" class="pull-right">{$_ADMINLANG.support.me}</a>
+    </span>
+    <div class="bottom-margin-5">
+        <input type="hidden" id="currentflagto" value="{$flag}" />
+        <select id="flagto" data-update-type="flagto" class="form-control select-assignto sidebar-ticket-ajax">
+            <option value="0">{$_ADMINLANG.global.none}</option>
+            {foreach from=$staff item=staffmember}
+                <option value="{$staffmember.id}"{if $staffmember.id eq $flag} selected{/if}>{$staffmember.name}</option>
+            {/foreach}
+        </select>
+    </div>
+    <span class="sub-header">{$_ADMINLANG.support.priority}</span>
+    <div class="bottom-margin-5">
+        <input type="hidden" id="currentpriority" value="{$priority}" />
+        <select id="priority" data-update-type="priority" class="form-control sidebar-ticket-ajax">
+            <option value="High"{if $priority eq "High"} selected{/if}>{$_ADMINLANG.status.high}</option>
+            <option value="Medium"{if $priority eq "Medium"} selected{/if}>{$_ADMINLANG.status.medium}</option>
+            <option value="Low"{if $priority eq "Low"} selected{/if}>{$_ADMINLANG.status.low}</option>
+        </select>
+    </div>
+    <span class="sub-header">{$_ADMINLANG.support.staffparticipants}</span>
+    <div class="bottom-margin-5">
+        {foreach from=$staffinvolved item=staffname}
+            {$staffname}<br />
+        {foreachelse}
+            No Replies Yet
+        {/foreach}
+    </div>
+    <span class="sub-header">{$_ADMINLANG.support.tags}</span>
     <input id="ticketTags" value="{$tags|implode:','}" class="selectize-tags" placeholder="{lang key='support.addTag'}" />
+
+    <div class="watch-ticket">
+        {if $watchingTicket}
+            <button class="btn btn-danger btn-block btn-xs" id="watch-ticket" type="button" data-admin-full-name="{$adminFullName}" data-admin-id="{$adminid}" data-ticket-id="{$ticketid}" data-type="unwatch">
+                {lang key="support.unwatchTicket"}
+            </button>
+        {else}
+            <button class="btn btn-info btn-block btn-xs" id="watch-ticket" type="button" data-admin-full-name="{$adminFullName}" data-admin-id="{$adminid}" data-ticket-id="{$ticketid}" data-type="watch">
+                {lang key="support.watchTicket"}
+            </button>
+        {/if}
+    </div>
 </div>
 
 {foreach $sidebaroutput as $output}
@@ -162,57 +232,60 @@ No Replies Yet
     </div>
 {/foreach}
 
-<div class="watch-ticket">
-    {if $watchingTicket}
-        <button class="btn btn-danger btn-block btn-sm" id="watch-ticket" type="button" data-admin-full-name="{$adminFullName}" data-admin-id="{$adminid}" data-ticket-id="{$ticketid}" data-type="unwatch">
-            {lang key="support.unwatchTicket"}
-        </button>
+<div class="sidebar-header">
+    <i class="fas fa-eye"></i>
+    {$_ADMINLANG.support.ticketWatchers}
+</div>
+<div class="content-padded small">
+    <ol id="ticketWatchers">
+        {foreach $ticketWatchers as $k => $ticketWatcher}
+            <li id="ticket-watcher-{$k}">{$ticketWatcher}</li>
+        {/foreach}
+        <li id="ticket-watcher-0"{if $ticketWatchers} class="hidden"{/if}>{$_ADMINLANG.global.none}</li>
+    </ol>
+</div>
+
+<div class="sidebar-header">
+    <i class="fad fa-copy"></i>
+    {$_ADMINLANG.support.ccrecipients}
+</div>
+<div class="content-padded small">
+    {if count($ticketCc) > 0}
+        <ol>
+            {foreach $ticketCc as $k => $cc}
+                <li>{$cc}</li>
+            {/foreach}
+        </ol>
     {else}
-        <button class="btn btn-info btn-block btn-sm" id="watch-ticket" type="button" data-admin-full-name="{$adminFullName}" data-admin-id="{$adminid}" data-ticket-id="{$ticketid}" data-type="watch">
-            {lang key="support.watchTicket"}
-        </button>
+        {lang key="global.none"}
     {/if}
 </div>
 
-<span class="header">
-    <img src="images/icons/find.png" alt="{$_ADMINLANG.support.ticketWatchers}" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.support.ticketWatchers}
-</span>
-<ul class="menu smallfont" id="ticketWatchers">
-    {foreach $ticketWatchers as $k => $ticketWatcher}
-        <li id="ticket-watcher-{$k}">{$ticketWatcher}</li>
-    {/foreach}
-    <li id="ticket-watcher-0"{if $ticketWatchers} class="hidden"{/if}>{$_ADMINLANG.global.none}</li>
-</ul>
-
-<span class="header">
-    <img src="images/icons/emailmarketer.png" alt="{lang key="support.ccrecipients"}" width="16" height="16" class="absmiddle" />
-    {lang key="support.ccrecipients"}
-</span>
-<ul class="menu smallfont" id="ticketCcRecipients">
-    {foreach $ticketCc as $k => $cc}
-        <li id="ticket-cc-{$k}">{$cc}</li>
-    {/foreach}
-    <li id="ticket-cc-0"{if $ticketCc} class="hidden"{/if}>{lang key="global.none"}</li>
-</ul>
-
 {else}
 
-<span class="header"><img src="images/icons/support.png" alt="Support Center" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.support.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-life-ring"></i>
+    {$_ADMINLANG.support.title}
+</div>
 <ul class="menu">
     <li><a href="supportannouncements.php">{$_ADMINLANG.support.announcements}</a></li>
     <li><a href="supportdownloads.php">{$_ADMINLANG.support.downloads}</a></li>
     <li><a href="supportkb.php">{$_ADMINLANG.support.knowledgebase}</a></li>
+    <li><a href="supporttickets.php">{$_ADMINLANG.support.supporttickets}</a></li>
     <li><a href="supporttickets.php?action=open">{$_ADMINLANG.support.opennewticket}</a></li>
     <li><a href="supportticketpredefinedreplies.php">{$_ADMINLANG.support.predefreplies}</a></li>
 </ul>
 
 {/if}
 
-<span class="header"><img src="images/icons/tickets.png" alt="Filter Tickets" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.support.filtertickets}</span>
-
+<div class="sidebar-header">
+    <i class="fas fa-search"></i>
+    {$_ADMINLANG.support.filtertickets}
+</div>
+<div class="content-padded">
 <form method="post" action="supporttickets.php">
-<span class="ticketheader">{$_ADMINLANG.fields.status}</span>
-<select name="view" class="form-control input-sm">
+<span class="sub-header">{$_ADMINLANG.fields.status}</span>
+<select name="view" class="form-control">
     <option value="any">- Any -</option>
     <option value=""{if $ticketfilterdata.view eq ""} selected{/if}>{$_ADMINLANG.support.awaitingreply} ({$ticketsawaitingreply})</option>
     <option value="flagged"{if $ticketfilterdata.view eq "flagged"} selected{/if}>{$_ADMINLANG.support.flagged} ({$ticketsflagged})</option>
@@ -221,33 +294,37 @@ No Replies Yet
     <option value="{$status.title}"{if $status.title eq $ticketfilterdata.view} selected{/if}>{$status.title} ({$status.count})</option>
 {/foreach}
 </select>
-<span class="ticketheader">{$_ADMINLANG.support.department}</span>
-<select name="deptid" class="form-control input-sm">
+<span class="sub-header">{$_ADMINLANG.support.department}</span>
+<select name="deptid" class="form-control">
     <option value="">- Any -</option>
 {foreach from=$ticketdepts item=dept}
     <option value="{$dept.id}"{if $dept.id eq $ticketfilterdata.deptid} selected{/if}>{$dept.name}</option>
 {/foreach}
 </select>
-<span class="ticketheader">{$_ADMINLANG.support.subjectmessage}</span>
-<input type="text" name="subject" value="{$ticketfilterdata.subject}" class="form-control input-sm" />
-<span class="ticketheader">{$_ADMINLANG.fields.email}</span>
-<input type="text" name="email" value="{$ticketfilterdata.email}" class="form-control input-sm" />
-<input type="submit" value="{$_ADMINLANG.global.filter}  &raquo;" class="btn btn-sm btn-block top-margin-5" />
+<span class="sub-header">{$_ADMINLANG.support.subjectmessage}</span>
+<input type="text" name="subject" value="{$ticketfilterdata.subject}" class="form-control" />
+<span class="sub-header">{$_ADMINLANG.fields.email}</span>
+<input type="text" name="email" value="{$ticketfilterdata.email}" class="form-control" />
+<input type="submit" value="{$_ADMINLANG.global.filter}  &raquo;" class="btn btn-primary btn-block btn-sm top-margin-5" />
 </form>
-
-<br />
+</div>
 
 {if $inticketlist}
 
-<span class="header"><img src="images/icons/tickets.png" alt="Tag Cloud" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.support.tagcloud}</span>
-
-<div class="tagcloud">{$tagcloud}</div>
+<div class="sidebar-header">
+    <i class="fas fa-tags"></i>
+    {$_ADMINLANG.support.tagcloud}
+</div>
+<div class="content-padded">{$tagcloud}</div>
 
 {/if}
 
 {if !$inticket}
 
-<span class="header"><img src="images/icons/networkissues.png" alt="Network Issues" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.networkissues.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-wifi"></i>
+    {$_ADMINLANG.networkissues.title}
+</div>
 <ul class="menu">
     <li><a href="networkissues.php">- {$_ADMINLANG.networkissues.open}</a></li>
     <li><a href="networkissues.php?view=scheduled">- {$_ADMINLANG.networkissues.scheduled}</a></li>
@@ -259,7 +336,10 @@ No Replies Yet
 
 {elseif $sidebar eq "reports"}
 
-<span class="header"><img src="images/icons/reports.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.reports.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-chart-bar"></i>
+    {$_ADMINLANG.reports.title}
+</div>
 <ul class="menu">
     {foreach from=$text_reports key=filename item=reporttitle}
         {if !in_array($filename, $denied_reports)}
@@ -270,31 +350,84 @@ No Replies Yet
 
 {elseif $sidebar eq "utilities"}
 
-<span class="header"><img src="images/icons/utilities.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.utilities.title}</span>
+<div class="sidebar-header">
+    <i class="fas fa-cubes"></i>
+    {lang key='utilities.title'}
+</div>
 <ul class="menu">
-    {if in_array("View Module Queue", $admin_perms)}
-        <li><a href="modulequeue.php">{$_ADMINLANG.utilities.moduleQueue}</a></li>
+    {if in_array('Update WHMCS', $admin_perms)}
+        <li><a href="update.php">{lang key='update.title'}</a></li>
     {/if}
-    <li><a href="utilitiesemailmarketer.php">{$_ADMINLANG.utilities.emailmarketer}</a></li>
-    <li><a href="utilitieslinktracking.php">{$_ADMINLANG.utilities.linktracking}</a></li>
-    <li><a href="calendar.php">{$_ADMINLANG.utilities.calendar}</a></li>
-    <li><a href="todolist.php">{$_ADMINLANG.utilities.todolist}</a></li>
-    <li><a href="whois.php">{$_ADMINLANG.utilities.whois}</a></li>
-    <li><a href="utilitiesresolvercheck.php">{$_ADMINLANG.utilities.domainresolver}</a></li>
-    <li><a href="systemintegrationcode.php">{$_ADMINLANG.utilities.integrationcode}</a></li>
-    <li><a href="systemdatabase.php">{$_ADMINLANG.utilities.dbstatus}</a></li>
-    <li><a href="systemcleanup.php">{$_ADMINLANG.utilities.syscleanup}</a></li>
-    <li><a href="systemphpinfo.php">{$_ADMINLANG.utilities.phpinfo}</a></li>
-    <li><a href="{routePath('admin-utilities-system-phpcompat')}">{$_ADMINLANG.utilities.phpcompat}</a></li>
+    {if in_array('WHMCSConnect', $admin_perms)}
+        <li><a href="whmcsconnect.php">{lang key='whmcsConnect.whmcsConnectName'}</a></li>
+    {/if}
+    {if in_array('Automation Status', $admin_perms)}
+        <li><a href="automationstatus.php">{lang key='utilities.automationStatus'}</a></li>
+    {/if}
+    {if in_array('View Module Queue', $admin_perms)}
+        <li><a href="modulequeue.php">{lang key='utilities.moduleQueue'}</a></li>
+    {/if}
+    {if in_array('Configure Domain Pricing', $admin_perms)}
+        <li><a href="{routePath('admin-utilities-tools-tld-import-step-one')}">{lang key='utilities.tldImport'}</a></li>
+    {/if}
+    {if in_array('Mass Mail', $admin_perms)}
+        <li>
+            <a href="{routePath('admin-utilities-tools-email-campaigns')}">
+                {lang key='utilities.emailCampaigns.title'}
+            </a>
+        </li>
+    {/if}
+    {if in_array('Email Marketer', $admin_perms)}
+        <li><a href="utilitiesemailmarketer.php">{lang key='utilities.emailmarketer'}</a></li>
+    {/if}
+    {if in_array('Link Tracking', $admin_perms)}
+        <li><a href="utilitieslinktracking.php">{lang key='utilities.linktracking'}</a></li>
+    {/if}
+    {if in_array('Calendar', $admin_perms)}
+        <li><a href="calendar.php">{lang key='utilities.calendar'}</a></li>
+    {/if}
+    {if in_array('To-Do List', $admin_perms)}
+        <li><a href="todolist.php">{lang key='utilities.todolist'}</a></li>
+    {/if}
+    {if in_array('WHOIS Lookups', $admin_perms)}
+        <li><a href="whois.php">{lang key='utilities.whois'}</a></li>
+    {/if}
+    {if in_array('Domain Resolver Checker', $admin_perms)}
+        <li><a href="utilitiesresolvercheck.php">{lang key='utilities.domainresolver'}</a></li>
+    {/if}
+    {if in_array('View Integration Code', $admin_perms)}
+        <li><a href="systemintegrationcode.php">{lang key='utilities.integrationcode'}</a></li>
+    {/if}
+    {if in_array('Database Status', $admin_perms)}
+        <li><a href="systemdatabase.php">{lang key='utilities.dbstatus'}</a></li>
+    {/if}
+    {if in_array('System Cleanup Operations', $admin_perms)}
+        <li><a href="systemcleanup.php">{lang key='utilities.syscleanup'}</a></li>
+    {/if}
+    {if in_array('View PHP Info', $admin_perms)}
+        <li><a href="systemphpinfo.php">{lang key='utilities.phpinfo'}</a></li>
+        <li><a href="{routePath('admin-utilities-system-phpcompat')}">{lang key='utilities.phpcompat'}</a></li>
+    {/if}
 </ul>
 
-<span class="header"><img src="images/icons/logs.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.utilities.logs}</span>
+{elseif $sidebar eq "logs"}
+<div class="sidebar-header" style="word-wrap: break-word">
+    <i class="fas fa-clock"></i>
+    {$_ADMINLANG.system.currentTime}
+</div>
+<div class="content-padded">
+    {$dateTimeNowFormatted}
+</div>
+<div class="sidebar-header">
+    <i class="fas fa-file-alt"></i>
+    {$_ADMINLANG.utilities.logs}
+</div>
 <ul class="menu">
     <li><a href="systemactivitylog.php">{$_ADMINLANG.utilities.activitylog}</a></li>
     <li><a href="systemadminlog.php">{$_ADMINLANG.utilities.adminlog}</a></li>
-    <li><a href="systemmodulelog.php">{$_ADMINLANG.utilities.modulelog}</a></li>
+    <li><a href="{routePath('admin-logs-module-log')}">{$_ADMINLANG.utilities.modulelog}</a></li>
     <li><a href="systememaillog.php">{$_ADMINLANG.utilities.emaillog}</a></li>
-    <li><a href="systemmailimportlog.php">{$_ADMINLANG.utilities.ticketmaillog}</a></li>
+    <li><a href="{routePath('admin-logs-mail-import-log')}">{$_ADMINLANG.utilities.ticketmaillog}</a></li>
     <li><a href="systemwhoislog.php">{$_ADMINLANG.utilities.whoislog}</a></li>
 </ul>
 
@@ -302,7 +435,10 @@ No Replies Yet
 
 {$addon_module_sidebar}
 
-<span class="header"><img src="images/icons/addonmodules.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.utilities.addonmodules}</span>
+<div class="sidebar-header">
+    <i class="fas fa-box-alt"></i>
+    {$_ADMINLANG.utilities.addonmodules}
+</div>
 <ul class="menu">
     {foreach from=$addon_modules key=filename item=addontitle}
     <li><a href="addonmodules.php?module={$filename}">{$addontitle}</a></li>
@@ -311,7 +447,10 @@ No Replies Yet
 
 {elseif $sidebar eq "config"}
 
-<span class="header"><img src="images/icons/config.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.setup.config}</span>
+<div class="sidebar-header">
+    <i class="fas fa-wrench"></i>
+    {$_ADMINLANG.setup.config}
+</div>
 <ul class="menu">
     <li><a href="configgeneral.php">{$_ADMINLANG.setup.general}</a></li>
     <li><a href="{routePath('admin-apps-index')}">{$_ADMINLANG.setup.appsAndIntegrations}</a></li>
@@ -329,7 +468,10 @@ No Replies Yet
     <li><a href="configfraud.php">{$_ADMINLANG.setup.fraud}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/admins.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.setup.staff}</span>
+<div class="sidebar-header">
+    <i class="fad fa-user-friends"></i>
+    {$_ADMINLANG.setup.staff}
+</div>
 <ul class="menu">
     <li><a href="configadmins.php">{$_ADMINLANG.setup.admins}</a></li>
     <li><a href="configadminroles.php">{$_ADMINLANG.setup.adminroles}</a></li>
@@ -337,7 +479,10 @@ No Replies Yet
     <li><a href="configapicredentials.php">{$_ADMINLANG.setup.apicredentials}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/income.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.setup.payments}</span>
+<div class="sidebar-header">
+    <i class="fad fa-coins"></i>
+    {$_ADMINLANG.setup.payments}
+</div>
 <ul class="menu">
     <li><a href="configcurrencies.php">{$_ADMINLANG.setup.currencies}</a></li>
     <li><a href="configgateways.php">{$_ADMINLANG.setup.gateways}</a></li>
@@ -345,7 +490,10 @@ No Replies Yet
     <li><a href="configpromotions.php">{$_ADMINLANG.setup.promos}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/products.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.setup.products}</span>
+<div class="sidebar-header">
+    <i class="fad fa-cubes"></i>
+    {$_ADMINLANG.setup.products}
+</div>
 <ul class="menu">
     <li><a href="configproducts.php">{$_ADMINLANG.setup.products}</a></li>
     <li><a href="configproductoptions.php">{$_ADMINLANG.setup.configoptions}</a></li>
@@ -356,7 +504,10 @@ No Replies Yet
     <li><a href="configservers.php">{$_ADMINLANG.setup.servers}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/support.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.support.title}</span>
+<div class="sidebar-header">
+    <i class="fad fa-life-ring"></i>
+    {$_ADMINLANG.support.title}
+</div>
 <ul class="menu">
     <li><a href="configticketdepartments.php">{$_ADMINLANG.setup.supportdepartments}</a></li>
     <li><a href="configticketstatuses.php">{$_ADMINLANG.setup.ticketstatuses}</a></li>
@@ -364,7 +515,10 @@ No Replies Yet
     <li><a href="configticketspamcontrol.php">{$_ADMINLANG.setup.spam}</a></li>
 </ul>
 
-<span class="header"><img src="images/icons/configother.png" class="absmiddle" width="16" height="16" /> {$_ADMINLANG.setup.other}</span>
+<div class="sidebar-header">
+    <i class="fad fa-cog"></i>
+    {$_ADMINLANG.setup.other}
+</div>
 <ul class="menu">
     <li><a href="configorderstatuses.php">{$_ADMINLANG.setup.orderstatuses}</a></li>
     <li><a href="configsecurityqs.php">{$_ADMINLANG.setup.securityqs}</a></li>
@@ -375,45 +529,51 @@ No Replies Yet
 
 {/if}
 
-<span class="header"><img src="images/icons/search.png" alt="" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.global.advancedsearch}</span>
-<div class="smallfont">
-
-<form method="get" action="search.php">
-    <select name="type" id="searchtype" onchange="populate(this)" class="form-control input-sm">
-      <option value="clients">Clients </option>
-      <option value="orders">Orders </option>
-      <option value="services">Services </option>
-      <option value="domains">Domains </option>
-      <option value="invoices">Invoices </option>
-      <option value="tickets">Tickets </option>
-    </select>
-    <select name="field" id="searchfield" class="form-control input-sm">
-      <option>Client ID</option>
-      <option selected="selected">Client Name</option>
-      <option>Company Name</option>
-      <option>Email Address</option>
-      <option>Address 1</option>
-      <option>Address 2</option>
-      <option>City</option>
-      <option>State</option>
-      <option>Postcode</option>
-      <option>Country</option>
-      <option>Phone Number</option>
-      <option>CC Last Four</option>
-    </select>
-    <div class="input-group input-group-sm">
-        <input type="text" name="q" class="form-control" />
-        <div class="input-group-btn">
-            <input type="submit" value="{$_ADMINLANG.global.search}" class="btn btn-default" />
+<div class="sidebar-header">
+    <i class="fas fa-binoculars"></i>
+    {$_ADMINLANG.global.advancedsearch}
+</div>
+<div class="content-padded">
+    <form method="get" action="search.php">
+        <select name="type" id="searchtype" onchange="populate(this)" class="form-control">
+          <option value="clients">Clients </option>
+          <option value="orders">Orders </option>
+          <option value="services">Services </option>
+          <option value="domains">Domains </option>
+          <option value="invoices">Invoices </option>
+          <option value="tickets">Tickets </option>
+        </select>
+        <select name="field" id="searchfield" class="form-control">
+          <option>Client ID</option>
+          <option selected="selected">Client Name</option>
+          <option>Company Name</option>
+          <option>Email Address</option>
+          <option>Address 1</option>
+          <option>Address 2</option>
+          <option>City</option>
+          <option>State</option>
+          <option>Postcode</option>
+          <option>Country</option>
+          <option>Phone Number</option>
+          <option>CC Last Four</option>
+        </select>
+        <div class="input-group">
+            <input type="text" name="q" class="form-control" />
+            <div class="input-group-btn">
+                <input type="submit" value="{$_ADMINLANG.global.search}" class="btn btn-default" />
+            </div>
         </div>
-    </div>
-  </form>
-
+    </form>
 </div>
 
-<br />
+<div class="sidebar-header">
+    <i class="fas fa-users"></i>
+    {$_ADMINLANG.global.staffonline}
+</div>
+<div class="content-padded small">
+    {$adminsonline}
+</div>
 
-<span class="header"><img src="images/icons/admins.png" alt="" width="16" height="16" class="absmiddle" /> {$_ADMINLANG.global.staffonline}</span>
-<div class="smallfont">{$adminsonline}</div>
-
-<div class="controls"><a href="#" onclick="sidebarClose();return false">&laquo; Minimise Sidebar</a></div>
+<a href="#" class="btn-min-sidebar" id="sidebarClose">
+    &laquo; Minimise Sidebar
+</a>

@@ -11,28 +11,18 @@ use Knp\Menu\Matcher\Voter\VoterInterface;
 class Matcher implements MatcherInterface
 {
     private $cache;
+    private $voters;
 
     /**
-     * @var VoterInterface[]
+     * @param VoterInterface[]|iterable $voters
      */
-    private $voters = array();
-
-    public function __construct()
+    public function __construct($voters = [])
     {
+        $this->voters = $voters;
         $this->cache = new \SplObjectStorage();
     }
 
-    /**
-     * Adds a voter in the matcher.
-     *
-     * @param VoterInterface $voter
-     */
-    public function addVoter(VoterInterface $voter)
-    {
-        $this->voters[] = $voter;
-    }
-
-    public function isCurrent(ItemInterface $item)
+    public function isCurrent(ItemInterface $item): bool
     {
         $current = $item->isCurrent();
         if (null !== $current) {
@@ -50,13 +40,13 @@ class Matcher implements MatcherInterface
             }
         }
 
-        $current = (boolean) $current;
+        $current = (bool) $current;
         $this->cache[$item] = $current;
 
         return $current;
     }
 
-    public function isAncestor(ItemInterface $item, $depth = null)
+    public function isAncestor(ItemInterface $item, ?int $depth = null): bool
     {
         if (0 === $depth) {
             return false;
@@ -72,7 +62,7 @@ class Matcher implements MatcherInterface
         return false;
     }
 
-    public function clear()
+    public function clear(): void
     {
         $this->cache = new \SplObjectStorage();
     }

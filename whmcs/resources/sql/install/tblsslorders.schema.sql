@@ -16,8 +16,12 @@ CREATE TABLE `tblsslorders` (
   `module` text COLLATE utf8_unicode_ci NOT NULL,
   `certtype` text COLLATE utf8_unicode_ci NOT NULL,
   `configdata` text COLLATE utf8_unicode_ci NOT NULL,
+  `authdata` text CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
   `completiondate` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
   `status` text COLLATE utf8_unicode_ci NOT NULL,
+  `certificate_expiry_date` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

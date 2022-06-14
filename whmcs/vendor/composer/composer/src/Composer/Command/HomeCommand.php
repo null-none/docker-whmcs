@@ -38,16 +38,19 @@ class HomeCommand extends BaseCommand
             ->setAliases(array('home'))
             ->setDescription('Opens the package\'s repository URL or homepage in your browser.')
             ->setDefinition(array(
-                new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::REQUIRED, 'Package(s) to browse to.'),
+                new InputArgument('packages', InputArgument::IS_ARRAY, 'Package(s) to browse to.'),
                 new InputOption('homepage', 'H', InputOption::VALUE_NONE, 'Open the homepage instead of the repository URL.'),
                 new InputOption('show', 's', InputOption::VALUE_NONE, 'Only show the homepage or repository URL.'),
             ))
-            ->setHelp(<<<EOT
+            ->setHelp(
+                <<<EOT
 The home command opens or shows a package's repository URL or
 homepage in your default browser.
 
 To open the homepage by default, use -H or --homepage.
 To show instead of open the repository or homepage URL, use -s or --show.
+
+Read more at https://getcomposer.org/doc/03-cli.md#browse-home
 EOT
             );
     }
@@ -61,7 +64,13 @@ EOT
         $io = $this->getIO();
         $return = 0;
 
-        foreach ($input->getArgument('packages') as $packageName) {
+        $packages = $input->getArgument('packages');
+        if (!$packages) {
+            $io->writeError('No package specified, opening homepage for the root package');
+            $packages = array($this->getComposer()->getPackage()->getName());
+        }
+
+        foreach ($packages as $packageName) {
             $handled = false;
             $packageExists = false;
             foreach ($repos as $repo) {
@@ -118,19 +127,20 @@ EOT
     {
         $url = ProcessExecutor::escape($url);
 
+        $process = new ProcessExecutor($this->getIO());
         if (Platform::isWindows()) {
-            return passthru('start "web" explorer "' . $url . '"');
+            return $process->execute('start "web" explorer "' . $url . '"', $output);
         }
 
-        passthru('which xdg-open', $linux);
-        passthru('which open', $osx);
+        $linux = $process->execute('which xdg-open', $output);
+        $osx = $process->execute('which open', $output);
 
         if (0 === $linux) {
-            passthru('xdg-open ' . $url);
+            $process->execute('xdg-open ' . $url, $output);
         } elseif (0 === $osx) {
-            passthru('open ' . $url);
+            $process->execute('open ' . $url, $output);
         } else {
-            $this->getIO()->writeError('no suitable browser opening command found, open yourself: ' . $url);
+            $this->getIO()->writeError('No suitable browser opening command found, open yourself: ' . $url);
         }
     }
 

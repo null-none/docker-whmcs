@@ -20,7 +20,7 @@ div#order-premium_comparison {
     font-size:14px;
     color:#666666;
     text-rendering: optimizeLegibility !important;
-    -webkit-font-smoothing: ===antialiased !important;
+    -webkit-font-smoothing: antialiased !important;
 }
 
 /* Text Styling */
@@ -290,7 +290,6 @@ div#order-premium_comparison {
     padding:0 20px;
     margin:0 0 0 0;
     display:inline-table;
-    background:#ffffff;
 }
 #order-premium_comparison .main-container.price-01 .includes-features .head-area span {
     background:#f3f3f3;

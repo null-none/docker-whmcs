@@ -12,9 +12,9 @@ CREATE TABLE `tblmodulelog` (
   `date` datetime NOT NULL,
   `module` text COLLATE utf8_unicode_ci NOT NULL,
   `action` text COLLATE utf8_unicode_ci NOT NULL,
-  `request` text COLLATE utf8_unicode_ci NOT NULL,
-  `response` text COLLATE utf8_unicode_ci NOT NULL,
-  `arrdata` text COLLATE utf8_unicode_ci NOT NULL,
+  `request` mediumtext NOT NULL,
+  `response` mediumtext NOT NULL,
+  `arrdata` mediumtext NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

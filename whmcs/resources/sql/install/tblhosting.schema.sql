@@ -16,8 +16,9 @@ CREATE TABLE `tblhosting` (
   `regdate` date NOT NULL,
   `domain` text COLLATE utf8_unicode_ci NOT NULL,
   `paymentmethod` text COLLATE utf8_unicode_ci NOT NULL,
-  `firstpaymentamount` decimal(10,2) NOT NULL DEFAULT '0.00',
-  `amount` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `qty` int unsigned NOT NULL DEFAULT '1',
+  `firstpaymentamount` decimal(16,2) NOT NULL DEFAULT '0.00',
+  `amount` decimal(16,2) NOT NULL DEFAULT '0.00',
   `billingcycle` text COLLATE utf8_unicode_ci NOT NULL,
   `nextduedate` date DEFAULT NULL,
   `nextinvoicedate` date NOT NULL,
@@ -29,6 +30,7 @@ CREATE TABLE `tblhosting` (
   `notes` text COLLATE utf8_unicode_ci NOT NULL,
   `subscriptionid` text COLLATE utf8_unicode_ci NOT NULL,
   `promoid` int(10) NOT NULL,
+  `promocount` int(10) NULL DEFAULT '0',
   `suspendreason` text COLLATE utf8_unicode_ci NOT NULL,
   `overideautosuspend` tinyint(1) NOT NULL,
   `overidesuspenduntil` date NOT NULL,
@@ -50,7 +52,8 @@ CREATE TABLE `tblhosting` (
   KEY `productid` (`packageid`),
   KEY `serverid` (`server`),
   KEY `domain` (`domain`(64)),
-  KEY `domainstatus` (`domainstatus`)
+  KEY `domainstatus` (`domainstatus`),
+  KEY `username` (`username`(8))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

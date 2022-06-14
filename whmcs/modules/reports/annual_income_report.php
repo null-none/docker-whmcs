@@ -10,7 +10,7 @@ $reportdata['title'] = "Annual Income Report for " . $currentyear;
 $reportdata['description'] = "This report shows the income received broken down by month converted to the base currency using rates at the time of the transaction";
 $reportdata['yearspagination'] = true;
 
-$currency = getCurrency(0, 1);
+$currency = getCurrency(null, 1);
 
 $reportdata['tableheadings'] = array(
     "Month",
@@ -32,7 +32,8 @@ $results = Capsule::table('tblaccounts')
     ->where('date', '>=', ($currentyear - 2) . '-01-01')
     ->groupBy(Capsule::raw("date_format(date,'%M %Y')"))
     ->orderBy('date', 'asc')
-    ->get();
+    ->get()
+    ->all();
 foreach ($results as $result) {
     $month = (int) $result->month;
     $year = (int) $result->year;

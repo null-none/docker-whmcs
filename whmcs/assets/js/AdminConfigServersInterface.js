@@ -144,6 +144,7 @@ $(document).ready(function(){
                 } else {
                     $(".alert.connection-test-result").removeClass("alert-grey").addClass("alert-danger")
                         .html(data.errorMsg);
+                    $("#newServerWizardSuccess").addClass("hidden");
                 }
             },
             always: function() {
@@ -162,10 +163,9 @@ $(document).ready(function(){
                 .slideDown("fast");
         }
     });
-    $("#newServerWizardBanner a").click(function(e) {
+    $("#advServerAdd").click(function(e) {
         e.preventDefault();
         $("#preAddForm").hide();
-        $("#newServerWizardBanner").hide();
         $("#frmServerConfig").removeClass("hidden").show();
     });
 

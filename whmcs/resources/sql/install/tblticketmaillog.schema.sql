@@ -18,6 +18,7 @@ CREATE TABLE `tblticketmaillog` (
   `message` text COLLATE utf8_unicode_ci NOT NULL,
   `status` text COLLATE utf8_unicode_ci NOT NULL,
   `attachment` text COLLATE utf8_unicode_ci NOT NULL,
+  KEY `date` (`date`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

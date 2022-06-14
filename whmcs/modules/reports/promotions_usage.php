@@ -70,7 +70,8 @@ $dateto = $dateRange['to']->toDateTimeString();
 
 $results = Capsule::table('tblpromotions')
     ->orderBy('code', 'asc')
-    ->get();
+    ->get()
+    ->all();
 foreach ($results as $result) {
     $code = $result->code;
     $type = $result->type;
@@ -92,7 +93,8 @@ foreach ($results as $result) {
         ->where('promocode', '=', $code)
         ->whereBetween('date', [$datefrom, $dateto])
         ->orderBy('id', 'asc')
-        ->get();
+        ->get()
+        ->all();
     foreach ($orders as $order) {
         $orderid = $order->id;
         $ordernum = $order->ordernum;

@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS `tbldomainpricing_premium`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `tbldomainpricing_premium` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `to_amount` decimal(10,2) NOT NULL DEFAULT '0.00',
+  `to_amount` decimal(16,2) NOT NULL DEFAULT '0.00',
   `markup` decimal(8,5) NOT NULL DEFAULT '0.00000',
   `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',

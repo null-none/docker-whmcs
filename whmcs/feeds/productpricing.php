@@ -1,6 +1,7 @@
 <?php
 
 use WHMCS\Application;
+use WHMCS\Billing\Currency;
 use WHMCS\Database\Capsule;
 
 require("../init.php");
@@ -40,11 +41,11 @@ require("../init.php");
     if (!is_numeric($currencyid)) {
         $currency = array();
     } else {
-        $currency = getCurrency('', $currencyid);
+        $currency = getCurrency(null, $currencyid);
     }
 
     if (!$currency || !is_array($currency) || !isset($currency['id'])) {
-        $currency = getCurrency();
+        $currency = Currency::factoryForClientArea();
     }
     $currencyid = $currency['id'];
 

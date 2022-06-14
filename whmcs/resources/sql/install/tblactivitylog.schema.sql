@@ -10,12 +10,16 @@ DROP TABLE IF EXISTS `tblactivitylog`;
 CREATE TABLE `tblactivitylog` (
   `id` int(10) NOT NULL AUTO_INCREMENT,
   `date` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `description` text COLLATE utf8_unicode_ci NOT NULL,
-  `user` text COLLATE utf8_unicode_ci NOT NULL,
-  `userid` int(10) NOT NULL,
-  `ipaddr` text COLLATE utf8_unicode_ci NOT NULL,
+  `description` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `user` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `userid` int(10) unsigned NOT NULL default '0',
+  `user_id` int(10) unsigned NOT NULL default '0',
+  `admin_id` int(10) unsigned NOT NULL default '0',
+  `ipaddr` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `userid` (`userid`)
+  KEY `userid` (`userid`),
+  KEY `user_id` (`user_id`),
+  KEY `admin_id` (`admin_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

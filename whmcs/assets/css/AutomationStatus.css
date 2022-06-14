@@ -79,6 +79,10 @@
     color: #94ca84;
 }
 
+.automation-status .widget .info-container i.fa-exclamation {
+    color: #ffa500;
+}
+
 .automation-status .widget .info-container small {
     float: right;
     margin-top: -18px;

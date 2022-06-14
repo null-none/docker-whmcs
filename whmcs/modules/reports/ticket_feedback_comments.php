@@ -32,7 +32,8 @@ $admins = Capsule::table('tbladmins')
             'CONCAT_WS(\' \', tbladmins.firstname, tbladmins.lastname) as name'
         ),
         'id'
-    );
+    )
+    ->all();
 
 $adminDropdown = '';
 foreach ($admins as $adminId => $adminName) {
@@ -101,7 +102,7 @@ $todate = $dateRange['to']->endOfDay()->toDateTimeString();
 $query = Capsule::table('tblticketfeedback')
     ->where('datetime', '>=', $fromdate)
     ->where('datetime', '<=', $todate)
-    ->join(
+    ->leftJoin(
         'tbladmins',
         'tbladmins.id',
         '=',

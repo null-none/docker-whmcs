@@ -12,11 +12,12 @@ CREATE TABLE `tblbillableitems` (
   `userid` int(10) NOT NULL,
   `description` text COLLATE utf8_unicode_ci NOT NULL,
   `hours` decimal(5,1) NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
+  `amount` decimal(16,2) NOT NULL,
   `recur` int(5) NOT NULL DEFAULT '0',
   `recurcycle` text COLLATE utf8_unicode_ci NOT NULL,
   `recurfor` int(5) NOT NULL DEFAULT '0',
   `invoiceaction` int(1) NOT NULL,
+  `unit` tinyint(1) NOT NULL DEFAULT '0',
   `duedate` date NOT NULL,
   `invoicecount` int(5) NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`)

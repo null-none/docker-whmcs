@@ -10,7 +10,7 @@
     "long": "By default, the prices that customers pay for products, services, addons and domains are locked in at the time they sign up.\n\nUsing the Bulk Pricing Updater utility however, you can apply pricing changes to existing customers.\n\nFor more information and usage instructions, please refer to the documentation link."
   },
   "support": {
-    "docs_url": "https:\/\/docs.whmcs.com\/Bulk_Pricing_Updater"
+    "docs_url": "https:\/\/docs.whmcs.com\/Bulk_Pricing_Updater_Addon"
   },
   "authors": [
     {

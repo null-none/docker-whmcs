@@ -151,6 +151,10 @@
         "name": "Canada",
         "callingCode": 1
     },
+    "IC": {
+        "name": "Canary Islands",
+        "callingCode": 34
+    },
     "CV": {
         "name": "Cape Verde",
         "callingCode": 238
@@ -462,6 +466,10 @@
     "KR": {
         "name": "Korea",
         "callingCode": 82
+    },
+    "XK": {
+        "name": "Kosovo",
+        "callingCode": 383
     },
     "KW": {
         "name": "Kuwait",
@@ -826,6 +834,10 @@
     "SD": {
         "name": "Sudan",
         "callingCode": 249
+    },
+    "SS": {
+        "name": "South Sudan",
+        "callingCode": 211
     },
     "SR": {
         "name": "Suriname",

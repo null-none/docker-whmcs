@@ -5,7 +5,7 @@ namespace net\authorize\api\contract\v1;
 /**
  * Class representing ProfileTransOrderType
  *
- *
+ * 
  * XSD Type: profileTransOrderType
  */
 class ProfileTransOrderType extends ProfileTransAmountType
@@ -50,6 +50,18 @@ class ProfileTransOrderType extends ProfileTransAmountType
      * @property string $splitTenderId
      */
     private $splitTenderId = null;
+
+    /**
+     * @property \net\authorize\api\contract\v1\ProcessingOptionsType
+     * $processingOptions
+     */
+    private $processingOptions = null;
+
+    /**
+     * @property \net\authorize\api\contract\v1\SubsequentAuthInformationType
+     * $subsequentAuthInformation
+     */
+    private $subsequentAuthInformation = null;
 
     /**
      * Gets as customerProfileId
@@ -224,6 +236,51 @@ class ProfileTransOrderType extends ProfileTransAmountType
     public function setSplitTenderId($splitTenderId)
     {
         $this->splitTenderId = $splitTenderId;
+        return $this;
+    }
+
+    /**
+     * Gets as processingOptions
+     *
+     * @return \net\authorize\api\contract\v1\ProcessingOptionsType
+     */
+    public function getProcessingOptions()
+    {
+        return $this->processingOptions;
+    }
+
+    /**
+     * Sets a new processingOptions
+     *
+     * @param \net\authorize\api\contract\v1\ProcessingOptionsType $processingOptions
+     * @return self
+     */
+    public function setProcessingOptions(\net\authorize\api\contract\v1\ProcessingOptionsType $processingOptions)
+    {
+        $this->processingOptions = $processingOptions;
+        return $this;
+    }
+
+    /**
+     * Gets as subsequentAuthInformation
+     *
+     * @return \net\authorize\api\contract\v1\SubsequentAuthInformationType
+     */
+    public function getSubsequentAuthInformation()
+    {
+        return $this->subsequentAuthInformation;
+    }
+
+    /**
+     * Sets a new subsequentAuthInformation
+     *
+     * @param \net\authorize\api\contract\v1\SubsequentAuthInformationType
+     * $subsequentAuthInformation
+     * @return self
+     */
+    public function setSubsequentAuthInformation(\net\authorize\api\contract\v1\SubsequentAuthInformationType $subsequentAuthInformation)
+    {
+        $this->subsequentAuthInformation = $subsequentAuthInformation;
         return $this;
     }
 

@@ -52,7 +52,8 @@ $result = Capsule::table('tblaccounts')
             Capsule::raw('SUM(fees) as fee_amount'),
             Capsule::raw('SUM(amountout) as out_amount'),
         ]
-    );
+    )
+    ->all();
 
 foreach ($result as $data) {
     $reportvalues[$data->day_of_month] = array(
@@ -81,7 +82,8 @@ $result = Capsule::table('tblaccounts')
             Capsule::raw('SUM(fees) as fee_amount'),
             Capsule::raw('SUM(amountout) as out_amount'),
         ]
-    );
+    )
+    ->all();
 
 foreach ($result as $data) {
     $reportvalues[$data->day_of_month] = array(

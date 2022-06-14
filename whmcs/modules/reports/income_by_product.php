@@ -105,7 +105,8 @@ $result = Capsule::table('tblinvoiceitems')
             Capsule::raw('COUNT(*) as unitsSold'),
             Capsule::raw('SUM(tblinvoiceitems.amount) as amount')
         ]
-    )->get();
+    )->get()
+    ->all();
 
 foreach ($result as $data) {
     $addons[$data->addonId] = [
@@ -133,7 +134,8 @@ $result = Capsule::table('tblproducts')
             'tblproducts.name',
             Capsule::raw('`tblproductgroups`.`name` as groupname')
         ]
-    );
+    )
+    ->all();
 foreach ($result as $data) {
     $pid = $data->id;
     $group = $data->groupname;
@@ -179,7 +181,8 @@ $result = Capsule::table('tbladdons')
             'id',
             'name',
         ]
-    );
+    )
+    ->all();
 foreach ($result as $data) {
     $addonid = $data->id;
     $prodname = $data->name;

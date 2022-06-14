@@ -30,12 +30,14 @@ class DependsCommand extends BaseDependencyCommand
         $this
             ->setName('depends')
             ->setAliases(array('why'))
-            ->setDescription('Shows which packages cause the given package to be installed')
-            ->setHelp(<<<EOT
+            ->setDescription('Shows which packages cause the given package to be installed.')
+            ->setHelp(
+                <<<EOT
 Displays detailed information about where a package is referenced.
 
 <info>php composer.phar depends composer/composer</info>
 
+Read more at https://getcomposer.org/doc/03-cli.md#depends-why-
 EOT
             )
         ;
@@ -46,7 +48,7 @@ EOT
      *
      * @param  InputInterface  $input
      * @param  OutputInterface $output
-     * @return int|null
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

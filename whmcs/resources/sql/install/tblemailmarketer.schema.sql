@@ -14,6 +14,8 @@ CREATE TABLE `tblemailmarketer` (
   `settings` text COLLATE utf8_unicode_ci NOT NULL,
   `disable` int(1) NOT NULL,
   `marketing` int(1) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;

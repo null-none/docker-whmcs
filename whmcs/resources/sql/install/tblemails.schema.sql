@@ -16,8 +16,19 @@ CREATE TABLE `tblemails` (
   `to` text COLLATE utf8_unicode_ci,
   `cc` text COLLATE utf8_unicode_ci,
   `bcc` text COLLATE utf8_unicode_ci,
+  `attachments` text COLLATE utf8_unicode_ci,
+  `pending` tinyint(1) NOT NULL DEFAULT '0',
+  `message_data` mediumtext COLLATE utf8_unicode_ci,
+  `failed` tinyint(1) NOT NULL DEFAULT '0',
+  `failure_reason` varchar(250) COLLATE utf8_unicode_ci NOT NULL DEFAULT '',
+  `retry_count` tinyint(1) NOT NULL DEFAULT '0',
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL,
+  `campaign_id` int NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `userid` (`userid`)
+  KEY `userid` (`userid`),
+  KEY `pending` (`pending`),
+  KEY `campaign_id` (`campaign_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

@@ -18,7 +18,7 @@
     });
 </script>
 {if $registrationDisabled}
-    {include file="$template/includes/alert.tpl" type="error" msg=$LANG.registerCreateAccount|cat:' <strong><a href="cart.php" class="alert-link">'|cat:$LANG.registerCreateAccountOrder|cat:'</a></strong>'}
+    {include file="$template/includes/alert.tpl" type="error" msg=$LANG.registerCreateAccount|cat:' <strong><a href="'|cat:"$WEB_ROOT"|cat:'/cart.php" class="alert-link">'|cat:$LANG.registerCreateAccountOrder|cat:'</a></strong>'}
 {/if}
 
 {if $errormessage}
@@ -148,21 +148,21 @@
                             <label for="inputTaxId" class="field-icon">
                                 <i class="fas fa-building"></i>
                             </label>
-                            <input type="text" name="tax_id" id="inputTaxId" class="field" placeholder="{lang key=\WHMCS\Billing\Tax\Vat::getLabel()} ({$LANG.orderForm.optional})" value="{$clientsdetails.tax_id}">
+                            <input type="text" name="tax_id" id="inputTaxId" class="field" placeholder="{$taxLabel} ({$LANG.orderForm.optional})" value="{$clientTaxId}">
                         </div>
                     </div>
                 {/if}
             </div>
             {if $customfields || $currencies}
             <div class="sub-heading">
-                <span>{$LANG.orderadditionalrequiredinfo}</span>
+                <span>{$LANG.orderadditionalrequiredinfo}<br><i><small>{lang key='orderForm.requiredField'}</small></i></span>
             </div>
             <div class="row">
                 {if $customfields}
                 {foreach $customfields as $customfield}
                     <div class="col-sm-6">
                         <div class="form-group">
-                            <label for="customfield{$customfield.id}">{$customfield.name}</label>
+                            <label for="customfield{$customfield.id}">{$customfield.name} {$customfield.required}</label>
                             <div class="control">
                                 {$customfield.input}
                             {if $customfield.description}
@@ -217,9 +217,11 @@
                     </div>
                 </div>
                 <div class="col-sm-6">
-                    <button type="button" class="btn btn-default btn-sm generate-password" data-targetfields="inputNewPassword1,inputNewPassword2">
-                        {$LANG.generatePassword.btnLabel}
-                    </button>
+                    <div class="form-group">
+                        <button type="button" class="btn btn-default btn-sm btn-xs-block generate-password" data-targetfields="inputNewPassword1,inputNewPassword2">
+                            {$LANG.generatePassword.btnLabel}
+                        </button>
+                    </div>
                 </div>
                 <div class="col-sm-6">
                     <div class="password-strength-meter">

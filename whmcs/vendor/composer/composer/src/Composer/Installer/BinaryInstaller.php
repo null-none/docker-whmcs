@@ -47,7 +47,7 @@ class BinaryInstaller
         $this->filesystem = $filesystem ?: new Filesystem();
     }
 
-    public function installBinaries(PackageInterface $package, $installPath)
+    public function installBinaries(PackageInterface $package, $installPath, $warnOnOverwrite = true)
     {
         $binaries = $this->getBinaries($package);
         if (!$binaries) {
@@ -75,7 +75,9 @@ class BinaryInstaller
                     // is a fresh install of the vendor.
                     Silencer::call('chmod', $link, 0777 & ~umask());
                 }
-                $this->io->writeError('    Skipped installation of bin '.$bin.' for package '.$package->getName().': name conflicts with an existing file');
+                if ($warnOnOverwrite) {
+                    $this->io->writeError('    Skipped installation of bin '.$bin.' for package '.$package->getName().': name conflicts with an existing file');
+                }
                 continue;
             }
 
@@ -111,9 +113,25 @@ class BinaryInstaller
         }
 
         // attempt removing the bin dir in case it is left empty
-        if ((is_dir($this->binDir)) && ($this->filesystem->isDirEmpty($this->binDir))) {
+        if (is_dir($this->binDir) && $this->filesystem->isDirEmpty($this->binDir)) {
             Silencer::call('rmdir', $this->binDir);
         }
+    }
+
+    public static function determineBinaryCaller($bin)
+    {
+        if ('.bat' === substr($bin, -4) || '.exe' === substr($bin, -4)) {
+            return 'call';
+        }
+
+        $handle = fopen($bin, 'r');
+        $line = fgets($handle);
+        fclose($handle);
+        if (preg_match('{^#!/(?:usr/bin/env )?(?:[^/]+/)*(.+)$}m', $line, $match)) {
+            return trim($match[1]);
+        }
+
+        return 'php';
     }
 
     protected function getBinaries(PackageInterface $package)
@@ -158,18 +176,7 @@ class BinaryInstaller
     protected function generateWindowsProxyCode($bin, $link)
     {
         $binPath = $this->filesystem->findShortestPath($link, $bin);
-        if ('.bat' === substr($bin, -4) || '.exe' === substr($bin, -4)) {
-            $caller = 'call';
-        } else {
-            $handle = fopen($bin, 'r');
-            $line = fgets($handle);
-            fclose($handle);
-            if (preg_match('{^#!/(?:usr/bin/env )?(?:[^/]+/)*(.+)$}m', $line, $match)) {
-                $caller = trim($match[1]);
-            } else {
-                $caller = 'php';
-            }
-        }
+        $caller = self::determineBinaryCaller($bin);
 
         return "@ECHO OFF\r\n".
             "setlocal DISABLEDELAYEDEXPANSION\r\n".
@@ -187,21 +194,18 @@ class BinaryInstaller
         $proxyCode = <<<PROXY
 #!/usr/bin/env sh
 
-dir=$(d=\${0%[/\\\\]*}; cd "\$d"; cd $binDir && pwd)
+dir=\$(cd "\${0%[/\\\\]*}" > /dev/null; cd $binDir && pwd)
 
-# See if we are running in Cygwin by checking for cygpath program
-if command -v 'cygpath' >/dev/null 2>&1; then
-	# Cygwin paths start with /cygdrive/ which will break windows PHP,
-	# so we need to translate the dir path to windows format. However
-	# we could be using cygwin PHP which does not require this, so we
-	# test if the path to PHP starts with /cygdrive/ rather than /usr/bin
-	if [[ $(which php) == /cygdrive/* ]]; then
-		dir=$(cygpath -m "\$dir");
-	fi
+if [ -d /proc/cygdrive ]; then
+    case \$(which php) in
+        \$(readlink -n /proc/cygdrive)/*)
+            # We are in Cygwin using Windows php, so the path must be translated
+            dir=\$(cygpath -m "\$dir");
+            ;;
+    esac
 fi
 
-dir=$(echo \$dir | sed 's/ /\ /g')
-"\${dir}/$binFile" "$@"
+"\${dir}/$binFile" "\$@"
 
 PROXY;
 

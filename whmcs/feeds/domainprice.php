@@ -1,6 +1,7 @@
 <?php
 
 use WHMCS\Application;
+use WHMCS\Billing\Currency;
 use WHMCS\Database\Capsule;
 
 require("../init.php");
@@ -28,7 +29,7 @@ $did = Capsule::table('tbldomainpricing')
     ->where('extension', '=', $tld)
     ->value('id');
 
-$currency = ($currency) ? getCurrency('',$currency) : getCurrency();
+$currency = ($currency) ? getCurrency(null ,$currency) : Currency::factoryForClientArea();
 
 $validDomainActionRequests = array('register','transfer','renew');
 

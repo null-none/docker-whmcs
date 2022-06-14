@@ -12,8 +12,11 @@ CREATE TABLE `tblaffiliateshistory` (
   `affiliateid` int(10) NOT NULL,
   `date` date NOT NULL,
   `affaccid` int(10) NOT NULL,
+  `invoice_id` int(10) unsigned NOT NULL DEFAULT '0',
   `description` text COLLATE utf8_unicode_ci NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
+  `amount` decimal(16,2) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   PRIMARY KEY (`id`),
   KEY `affiliateid` (`affiliateid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

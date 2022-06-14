@@ -32,3 +32,8 @@
     display: block;
     margin: 0 auto 5px auto;
 }
+#cPanelWordPress .panel-body .row:not(:last-of-type):not(.no-margin) {
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}

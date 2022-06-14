@@ -1,8 +1,8 @@
 /*!
  * WHMCS MarketConnect Admin JS Functions
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2017
- * @license http://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2022
+ * @license https://www.whmcs.com/license/ WHMCS Eula
  */
 jQuery(document).ready(function() {
     jQuery(document).on('click', '#btnMcServiceRefresh', function(e) {
@@ -38,33 +38,50 @@ jQuery(document).ready(function() {
         $('.successbox,.errorbox').slideUp('fast').remove();
         var button = $(this);
         var request = button.attr('href');
+        var buttonIcon = button.find('i');
+        var iconState = buttonIcon.attr('class');
 
         // If button is disabled, don't execute action
-        if (button.attr('disabled') == 'disabled') {
+        if (button.attr('disabled') === 'disabled') {
             return;
         }
 
-        button.find('i').addClass('fa-spin').addClass('fa-spinner');
+        buttonIcon.removeClass().addClass('fas fa-spin fa-spinner');
 
-        WHMCS.http.jqClient.post('clientsservices.php', request + '&token=' + csrfToken,
-            function(data) {
-
-                if (data.redirectUrl) {
-
-                    window.open(data.redirectUrl);
-
-                } else if (data.growl) {
-
-                    if (data.growl.type == 'error') {
-                        $.growl.error({ title: '', message: data.growl.message });
-                    } else {
-                        $.growl.notice({ title: '', message: data.growl.message });
-                        $('#btnMcServiceRefresh').click();
-                    }
-
+        WHMCS.http.jqClient.post('clientsservices.php', request + '&token=' + csrfToken, function (data) {
+            if (data.redirectUrl) {
+                window.open(data.redirectUrl);
+            } else if (data.growl) {
+                if (data.growl.type == 'error') {
+                    $.growl.error({ title: '', message: data.growl.message });
+                } else {
+                    $.growl.notice({ title: '', message: data.growl.message });
+                    $('#btnMcServiceRefresh').click();
                 }
+            } else {
+                $.growl.error({ title: '', message: 'Unknown response' });
+                console.error('[WHMCS] Unknown response: ' + JSON.stringify(data));
+            }
+        }, 'json').fail(function (xhr) {
+            var response = (xhr.responseText != '' ? xhr.responseText : xhr.statusText);
+            $.growl.error({ title: '', message: response })
+        }).always(function (xhr) {
+            buttonIcon.removeClass().addClass(iconState);
+        });
+    })
+    .on('click', '.feature-menu-item', function(e) {
+        e.preventDefault();
+        var self = jQuery(this),
+            name = self.data('name'),
+            shownMenu = jQuery('.feature-menu-item.shown'),
+            shownItem = jQuery('.feature-info-item.shown'),
+            target = jQuery('.feature-info-item[data-name="' + name + '"]');
 
-                button.find('i').removeClass('fa-spin').removeClass('fa-spinner');
-            }, 'json');
+        shownMenu.removeClass('shown');
+        self.addClass('shown');
+        shownItem.slideUp('fast', function() {
+            jQuery(this).removeClass('shown');
+            target.hide().addClass('shown').slideDown('fast');
+        })
     });
 });

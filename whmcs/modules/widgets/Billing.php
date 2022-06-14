@@ -7,14 +7,14 @@ use WHMCS\Module\AbstractWidget;
 /**
  * Billing Widget.
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2018
- * @license https://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2021
+ * @license https://www.whmcs.com/eula/ WHMCS Eula
  */
 class Billing extends AbstractWidget
 {
     protected $title = 'Billing';
     protected $description = 'An overview of billing.';
-    protected $weight = 40;
+    protected $weight = 150;
     protected $cache = true;
     protected $requiredPermission = 'View Income Totals';
 

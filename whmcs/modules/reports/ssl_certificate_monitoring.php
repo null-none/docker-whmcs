@@ -87,7 +87,7 @@ foreach ($data->get() as $record) {
     $reportKey = $reportKeys[4];
     if ($expiryDate) {
         $daysUntilExpiry = $expiryDate->diffInDays($today);
-        $expiryDate = $expiryDate->endOfDay()->toAdminDateTimeFormat();
+        $expiryDate = $expiryDate->endOfDay();
         switch (true) {
             case ($daysUntilExpiry <= 30):
                 $reportKey = $reportKeys[0];
@@ -125,13 +125,11 @@ foreach ($data->get() as $record) {
     }
 
     $reportData[$reportKey][] = [
-        $record->domain,
-        $image,
-        '<span class="issuer">' . ($issuerName ?: '-') . '</span>',
-        '<span class="expiry">' . $expiryDate . '</span>',
-        '<span class="updated">'
-            . ($sslStatus->updated_at ? $sslStatus->updated_at->diffForHumans() : '-')
-            . '</span>',
+        'domain' => $record->domain,
+        'image' => $image,
+        'issuer' => ($issuerName ?: '-'),
+        'expiry' => $expiryDate,
+        'updated' => ($sslStatus->updated_at ? $sslStatus->updated_at->diffForHumans() : '-'),
     ];
 
     $domainsArray[] = $record->domain;
@@ -154,15 +152,27 @@ foreach ($reportKeys as $reportKey) {
     }
     if ($reportKey != $reportKeys[(count($reportKeys) - 1)]) {
         usort($reportData[$reportKey], function ($first, $second) {
-            if ($first[3] == $second[3]) {
+            if ($first['expiry'] == $second['expiry']) {
                 return 0;
             }
-            $expiryOne = Carbon::createFromFormat('Y-m-d H:i:s', toMySQLDate($first[3]));
-            $expiryTwo = Carbon::createFromFormat('Y-m-d H:i:s', toMySQLDate($second[3]));
-            return (($expiryOne->lt($expiryTwo)) ? -1 : 1);
+            return (($first['expiry']->lt($second['expiry'])) ? -1 : 1);
         });
     }
     foreach ($reportData[$reportKey] as $reportDatum) {
+        $spanElements = [
+            'issuer',
+            'updated',
+            'expiry',
+        ];
+        $expiryDate = $reportDatum['expiry'];
+        if ($expiryDate != '-') {
+            $reportDatum['expiry'] = $expiryDate->toAdminDateTimeFormat();
+        }
+        foreach ($reportDatum as $key => $value) {
+            if (in_array($key, $spanElements)) {
+                $reportDatum[$key] = '<span class="' . $key . '">' . $value . '</span>';
+            }
+        }
         $reportdata['tablevalues'][$rowCount] = $reportDatum;
         $rowCount++;
     }

@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>WHMCS - Login</title>
+        <title>WHMCS - {$displayTitle}</title>
 
         <link href="//fonts.googleapis.com/css?family=Open+Sans:300,400,600" rel="stylesheet">
         <link href="templates/login.min.css" rel="stylesheet">
@@ -42,13 +42,12 @@
                 {/if}
                 {if $step eq "login"}
                     <form method="post" action="dologin.php">
-                        <input type="hidden" name="language" id="inputLanguage" />
                         <input type="hidden" name="redirect" value="{$redirectUri}" />
                         <div class="form-group">
-                            <input type="text" name="username" class="form-control" placeholder="Username" autofocus />
+                            <input type="text" name="username" class="form-control" placeholder="{lang key='fields.username'}" value="{$username}"{if !$username} autofocus{/if} />
                         </div>
                         <div class="form-group">
-                            <input type="password" name="password" class="form-control" placeholder="Password" />
+                            <input type="password" name="password" class="form-control" placeholder="{lang key='fields.password'}"{if $username} autofocus{/if} />
                         </div>
                         {if $captcha->isEnabled() && $captcha->isEnabledForForm($captchaForm)}
                             {if $captcha->recaptcha->isEnabled() && !$captcha->recaptcha->isInvisible()}
@@ -57,8 +56,7 @@
                             {if !$captcha->recaptcha->isEnabled()}
                                 <div class="form-group captcha-container text-center">
                                     <p>
-                                        Please enter the characters you see in the image below into the text box provided.
-                                        This is required to prevent automated submissions.
+                                        {lang key='login.captchaverify'}
                                     </p>
                                     <div class="row">
                                         <div class="col-xs-6">
@@ -66,7 +64,7 @@
                                         </div>
 
                                         <div class="col-xs-6">
-                                            <input id="inputCaptcha" type="text" name="code" maxlength="5" class="form-control" autocomplete="off"/>
+                                            <input id="inputCaptcha" type="text" name="code" maxlength="6" class="form-control" autocomplete="off" />
                                         </div>
                                     </div>
                                 </div>
@@ -77,12 +75,12 @@
                                 <div class="checkbox">
                                     <label>
                                         <input type="checkbox" name="rememberme" value="1">
-                                        Remember me
+                                        {lang key='login.rememberme'}
                                     </label>
                                 </div>
                             </div>
                             <div class="col-sm-5">
-                                <input type="submit" value="Login" class="btn btn-primary btn-block{$captcha->getButtonClass($captchaForm)}">
+                                <input type="submit" value="{lang key='login.login'}" class="btn btn-primary btn-block{$captcha->getButtonClass($captchaForm)}" />
                             </div>
                         </div>
                     </form>
@@ -93,20 +91,20 @@
                             <input type="hidden" name="sub" value="newPassword" />
                             <input type="hidden" name="verify" value="{$verify}" />
                             <div class="form-group">
-                                <input type="password" id="password" name="password" class="form-control" placeholder="New Password" autofocus autocomplete="off" data-placement="left" data-trigger="manual" />
+                                <input type="password" id="password" name="password" class="form-control" placeholder="{lang key='login.newpassword'}" autofocus autocomplete="off" data-placement="left" data-trigger="manual" />
                                 <span class="form-control-feedback glyphicon glyphicon-password"></span>
                             </div>
                             <div class="form-group">
-                                <input type="password" id="passwordConfirm" name="password2" class="form-control" placeholder="New Password (verify)" autocomplete="off" data-placement="left" data-trigger="manual" />
+                                <input type="password" id="passwordConfirm" name="password2" class="form-control" placeholder="{lang key='login.newpasswordverify'}" autocomplete="off" data-placement="left" data-trigger="manual" />
                                 <span class="form-control-feedback glyphicon glyphicon-password"></span>
                             </div>
                             <div class="form-group">
-                                <input type="submit" id="setPasswordButton" value="Reset Password" class="btn btn-primary btn-block{$captcha->getButtonClass($captchaForm)}" />
+                                <input type="submit" id="setPasswordButton" value="{lang key='login.resetpassword'}" class="btn btn-primary btn-block{$captcha->getButtonClass($captchaForm)}" />
                             </div>
                         {else}
                             <input type="hidden" name="sub" value="send" />
                             <div class="form-group">
-                                <input type="text" name="email" class="form-control" placeholder="Username or Email address" autofocus />
+                                <input type="text" name="email" class="form-control" placeholder="{lang key='login.usernameoremail'}" autofocus />
                             </div>
                             {if $captcha->isEnabled() && $captcha->isEnabledForForm($captchaForm)}
                                 {if $captcha->recaptcha->isEnabled() && !$captcha->recaptcha->isInvisible()}
@@ -115,8 +113,7 @@
                                 {if !$captcha->recaptcha->isEnabled()}
                                     <div class="form-group captcha-container text-center">
                                         <p>
-                                            Please enter the characters you see in the image below into the text box provided.
-                                            This is required to prevent automated submissions.
+                                            {lang key='login.captchaverify'}
                                         </p>
                                         <div class="row">
                                             <div class="col-xs-6">
@@ -124,28 +121,30 @@
                                             </div>
 
                                             <div class="col-xs-6">
-                                                <input id="inputCaptcha" type="text" name="code" maxlength="5" class="form-control" autocomplete="off"/>
+                                                <input id="inputCaptcha" type="text" name="code" maxlength="6" class="form-control" autocomplete="off" />
                                             </div>
                                         </div>
                                     </div>
                                 {/if}
                             {/if}
                             <div class="form-group">
-                                <input type="submit" value="Reset Password" class="btn btn-primary btn-block{$captcha->getButtonClass($captchaForm)}" />
+                                <input type="submit" value="{lang key='login.resetpassword'}" class="btn btn-primary btn-block{$captcha->getButtonClass($captchaForm)}" />
                             </div>
                         {/if}
                     </form>
                 {elseif $step eq "twofa"}
                     <div class="text-center" align="center">
-                        {$challengeHtml}
+                        <form method="post" action="{$issuerurl}dologin.php" role="form">
+                            {$challengeHtml}
+                        </form>
                     </div>
                 {elseif $step eq "twofabackupcode"}
                     {if $successMsg}
-                        <p>Write this down on paper and keep it safe.<br />It will be needed if you ever lose your 2nd factor device or it is unavailable to you again in future.</p>
+                        <p>{lang key='twofa.backupcodeexpl'}</p>
                         <form method="post" action="dologin.php">
                             <input type="hidden" name="redirect" value="{$redirectUri}" />
                             <div class="form-group">
-                                <input type="submit" value="Continue &raquo;" class="btn btn-primary btn-block" />
+                                <input type="submit" value="{lang key='global.continue'} &raquo;" class="btn btn-primary btn-block" />
                             </div>
                         </form>
                     {else}
@@ -153,10 +152,10 @@
                             <input type="hidden" name="backupcode" value="1" />
                             <input type="hidden" name="redirect" value="{$redirectUri}" />
                             <div class="form-group">
-                                <input type="text" name="code" class="form-control" placeholder="Backup code" autofocus />
+                                <input type="text" name="code" class="form-control" placeholder="{lang key='login.backupcode'}" autofocus />
                             </div>
                             <div class="form-group">
-                                <input type="submit" value="Login" class="btn btn-primary btn-block" />
+                                <input type="submit" value="{lang key='login.login'}" class="btn btn-primary btn-block" />
                             </div>
                         </form>
                     {/if}
@@ -166,18 +165,18 @@
                 {if $step eq "login"}
                     {if $showPasswordResetLink}
                         <a href="login.php?action=reset">
-                            Forgot password?
+                            {lang key='login.forgotpassword'}
                         </a>
                     {else}
                         <span>&nbsp;</span>
                     {/if}
                 {elseif $step eq "reset"}
                     <a href="login.php">
-                        &laquo; Back to Login
+                        &laquo; {lang key='login.backtologin'}
                     </a>
                 {elseif $step eq "twofa"}
                     <a href="login.php?{if $redirectUri}redirect={$redirectUri|urlencode}&amp;{/if}backupcode=1">
-                        Can't Access Your 2nd Factor Device?<br />Login using Backup Code
+                        {lang key='login.twofacantaccess2ndfactor'}<br />{lang key='login.twofaloginusingbackupcode'}
                     </a>
                 {/if}
             </div>
@@ -185,11 +184,11 @@
         <div class="language-chooser">
             <div class="btn-group pull-right">
                 <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-                    <span id="languageName">Choose Language</span> <span class="caret"></span>
+                    <span id="languageName">{lang key='login.chooselanguage'}</span> <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu" role="menu">
-                    {foreach $languages as $language}
-                        <li><a href="#">{$language|ucfirst}</a></li>
+                    {foreach $locales as $locale}
+                        <li><a href="?language={$locale.language}">{$locale.localisedName}</a></li>
                     {/foreach}
                 </ul>
             </div>

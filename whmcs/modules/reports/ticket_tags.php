@@ -69,7 +69,8 @@ $results = Capsule::table('tbltickettags')
     )
     ->groupBy('tbltickettags.tag')
     ->orderBy('count', 'desc')
-    ->get();
+    ->get()
+    ->all();
 
 foreach ($results as $result) {
     $tag = $result->tag;

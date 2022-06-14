@@ -22,15 +22,16 @@
                             <li>{lang key='store.ssl.shared.siteSeal'}</li>
                             <li>{lang key='store.ssl.shared.freeReissues'}</li>
                             <li>{lang key='store.ssl.shared.browserSupport'}</li>
-                            <li>{lang key='store.ssl.shared.oneYear'}</li>
-                            <li>{lang key='store.ssl.shared.twoYears'}</li>
+                            <li>{lang key='store.ssl.shared.oneYearPrice'}</li>
+                            <li>{lang key='store.ssl.shared.twoYearPrice'}</li>
+                            <li>{lang key='store.ssl.shared.threeYearPrice'}</li>
                         </ul>
                     </div>
                     {if count($certificates.$type) > 0}
                         {foreach $certificates.$type as $product}
                             <div class="col-sm-{if count($certificates.$type) == 1}6{elseif count($certificates.$type) == 2}4{else}3{/if}">
                                 <div class="header">
-                                    <h4>{$product->name}</h4>
+                                    <h4>{$certificateFeatures.{$product->configoption1}.displayName}</h4>
                                 </div>
                                 <ul>
                                     <li><i class="fas fa-check"></i></li>
@@ -45,15 +46,22 @@
                                     {else}
                                         <li class="price 1yr na">-</li>
                                     {/if}
+
                                     {if $product->pricing()->biennial()}
                                         <li class="price 2yr">{$product->pricing()->biennial()->yearlyPrice()}</li>
                                     {else}
                                         <li class="price 2yr na">-</li>
                                     {/if}
+
+                                    {if $product->pricing()->triennial()}
+                                        <li class="price 3yr">{$product->pricing()->triennial()->yearlyPrice()}</li>
+                                    {else}
+                                        <li class="price 3yr na">-</li>
+                                    {/if}
                                 </ul>
-                                <form method="post" action="{routePath('store-order')}">
+                                <form method="post" action="{routePath('cart-order')}">
                                     <input type="hidden" name="pid" value="{$product->id}">
-                                    <button type="submit" class="btn btn-block">Buy Now</button>
+                                    <button type="submit" class="btn btn-block">{lang key='store.ssl.landingPage.buyNow'}</button>
                                 </form>
                             </div>
                         {/foreach}
@@ -68,7 +76,7 @@
                 <br>
                 <div class="row">
                     <div class="{if count($certificates.$type) == 1}col-sm-6 col-sm-offset-6{elseif count($certificates.$type) == 2}col-sm-8 col-sm-offset-4{else}col-sm-9 col-sm-offset-3{/if} text-center">
-                        <a href="{routePath('store-ssl-certificates-index')}#helpmechoose" class="help-me-choose">
+                        <a href="{routePath('store-product-group', $routePathSlug)}#helpmechoose" class="help-me-choose">
                             <i class="fas fa-question-circle"></i>
                             {lang key='store.ssl.shared.helpMeChoose'}
                         </a>

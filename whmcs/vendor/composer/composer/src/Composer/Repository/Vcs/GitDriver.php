@@ -12,7 +12,6 @@
 
 namespace Composer\Repository\Vcs;
 
-use Composer\Json\JsonFile;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\Filesystem;
 use Composer\Util\Git as GitUtil;
@@ -42,6 +41,10 @@ class GitDriver extends VcsDriver
             $this->repoDir = $this->url;
             $cacheUrl = realpath($this->url);
         } else {
+            if (!Cache::isUsable($this->config->get('cache-vcs-dir'))) {
+                throw new \RuntimeException('GitDriver requires a usable cache directory, and it looks like you set it to be disabled');
+            }
+
             $this->repoDir = $this->config->get('cache-vcs-dir') . '/' . preg_replace('{[^a-z0-9.]}i', '-', $this->url) . '/';
 
             GitUtil::cleanEnv();
@@ -58,27 +61,8 @@ class GitDriver extends VcsDriver
             }
 
             $gitUtil = new GitUtil($this->io, $this->config, $this->process, $fs);
-
-            // update the repo if it is a valid git repository
-            if (is_dir($this->repoDir) && 0 === $this->process->execute('git rev-parse --git-dir', $output, $this->repoDir) && trim($output) === '.') {
-                try {
-                    $commandCallable = function ($url) {
-                        return sprintf('git remote set-url origin %s && git remote update --prune origin', ProcessExecutor::escape($url));
-                    };
-                    $gitUtil->runCommand($commandCallable, $this->url, $this->repoDir);
-                } catch (\Exception $e) {
-                    $this->io->writeError('<error>Failed to update '.$this->url.', package information from this repository may be outdated ('.$e->getMessage().')</error>');
-                }
-            } else {
-                // clean up directory and do a fresh clone into it
-                $fs->removeDirectory($this->repoDir);
-
-                $repoDir = $this->repoDir;
-                $commandCallable = function ($url) use ($repoDir) {
-                    return sprintf('git clone --mirror %s %s', ProcessExecutor::escape($url), ProcessExecutor::escape($repoDir));
-                };
-
-                $gitUtil->runCommand($commandCallable, $this->url, $this->repoDir, true);
+            if (!$gitUtil->syncMirror($this->url, $this->repoDir)) {
+                $this->io->writeError('<error>Failed to update '.$this->url.', package information from this repository may be outdated</error>');
             }
 
             $cacheUrl = $this->url;
@@ -139,38 +123,31 @@ class GitDriver extends VcsDriver
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
-    public function getComposerInformation($identifier)
+    public function getFileContent($file, $identifier)
     {
-        if (preg_match('{[a-f0-9]{40}}i', $identifier) && $res = $this->cache->read($identifier)) {
-            $this->infoCache[$identifier] = JsonFile::parseJson($res);
+        $resource = sprintf('%s:%s', ProcessExecutor::escape($identifier), ProcessExecutor::escape($file));
+        $this->process->execute(sprintf('git show %s', $resource), $content, $this->repoDir);
+
+        if (!trim($content)) {
+            return null;
         }
 
-        if (!isset($this->infoCache[$identifier])) {
-            $resource = sprintf('%s:composer.json', ProcessExecutor::escape($identifier));
-            $this->process->execute(sprintf('git show %s', $resource), $composer, $this->repoDir);
+        return $content;
+    }
 
-            if (!trim($composer)) {
-                return;
-            }
+    /**
+     * {@inheritdoc}
+     */
+    public function getChangeDate($identifier)
+    {
+        $this->process->execute(sprintf(
+            'git -c log.showSignature=false log -1 --format=%%at %s',
+            ProcessExecutor::escape($identifier)
+        ), $output, $this->repoDir);
 
-            $composer = JsonFile::parseJson($composer, $resource);
-
-            if (empty($composer['time'])) {
-                $this->process->execute(sprintf('git log -1 --format=%%at %s', ProcessExecutor::escape($identifier)), $output, $this->repoDir);
-                $date = new \DateTime('@'.trim($output), new \DateTimeZone('UTC'));
-                $composer['time'] = $date->format('Y-m-d H:i:s');
-            }
-
-            if (preg_match('{[a-f0-9]{40}}i', $identifier)) {
-                $this->cache->write($identifier, json_encode($composer));
-            }
-
-            $this->infoCache[$identifier] = $composer;
-        }
-
-        return $this->infoCache[$identifier];
+        return new \DateTime('@'.trim($output), new \DateTimeZone('UTC'));
     }
 
     /**
@@ -181,9 +158,9 @@ class GitDriver extends VcsDriver
         if (null === $this->tags) {
             $this->tags = array();
 
-            $this->process->execute('git show-ref --tags', $output, $this->repoDir);
+            $this->process->execute('git show-ref --tags --dereference', $output, $this->repoDir);
             foreach ($output = $this->process->splitLines($output) as $tag) {
-                if ($tag && preg_match('{^([a-f0-9]{40}) refs/tags/(\S+)$}', $tag, $match)) {
+                if ($tag && preg_match('{^([a-f0-9]{40}) refs/tags/(\S+?)(\^\{\})?$}', $tag, $match)) {
                     $this->tags[$match[2]] = $match[1];
                 }
             }
@@ -243,10 +220,7 @@ class GitDriver extends VcsDriver
         }
 
         $process = new ProcessExecutor($io);
-        if ($process->execute('git ls-remote --heads ' . ProcessExecutor::escape($url), $output) === 0) {
-            return true;
-        }
 
-        return false;
+        return $process->execute('git ls-remote --heads ' . ProcessExecutor::escape($url), $output) === 0;
     }
 }

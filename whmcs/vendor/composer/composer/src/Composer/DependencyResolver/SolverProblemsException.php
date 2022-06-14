@@ -12,6 +12,8 @@
 
 namespace Composer\DependencyResolver;
 
+use Composer\Util\IniHelper;
+
 /**
  * @author Nils Adermann <naderman@naderman.de>
  */
@@ -41,7 +43,7 @@ class SolverProblemsException extends \RuntimeException
         }
 
         if (strpos($text, 'could not be found') || strpos($text, 'no matching package found')) {
-            $text .= "\nPotential causes:\n - A typo in the package name\n - The package is not available in a stable-enough version according to your minimum-stability setting\n   see <https://getcomposer.org/doc/04-schema.md#minimum-stability> for more details.\n\nRead <https://getcomposer.org/doc/articles/troubleshooting.md> for further common problems.";
+            $text .= "\nPotential causes:\n - A typo in the package name\n - The package is not available in a stable-enough version according to your minimum-stability setting\n   see <https://getcomposer.org/doc/04-schema.md#minimum-stability> for more details.\n - It's a private package and you forgot to add a custom repository to find it\n\nRead <https://getcomposer.org/doc/articles/troubleshooting.md> for further common problems.";
         }
 
         if ($hasExtensionProblems) {
@@ -58,21 +60,13 @@ class SolverProblemsException extends \RuntimeException
 
     private function createExtensionHint()
     {
-        $paths = array();
+        $paths = IniHelper::getAll();
 
-        if (($iniPath = php_ini_loaded_file()) !== false) {
-            $paths[] = $iniPath;
-        }
-
-        if (!defined('HHVM_VERSION') && $additionalIniPaths = php_ini_scanned_files()) {
-            $paths = array_merge($paths, array_map("trim", explode(",", $additionalIniPaths)));
-        }
-
-        if (count($paths) === 0) {
+        if (count($paths) === 1 && empty($paths[0])) {
             return '';
         }
 
-        $text = "\n  To enable extensions, verify that they are enabled in those .ini files:\n    - ";
+        $text = "\n  To enable extensions, verify that they are enabled in your .ini files:\n    - ";
         $text .= implode("\n    - ", $paths);
         $text .= "\n  You can also run `php --ini` inside terminal to see which files are used by PHP in CLI mode.";
 

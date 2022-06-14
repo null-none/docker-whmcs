@@ -19,7 +19,7 @@ CREATE TABLE `tblbundles` (
   `showgroup` int(1) NOT NULL,
   `gid` int(10) NOT NULL,
   `description` text COLLATE utf8_unicode_ci NOT NULL,
-  `displayprice` decimal(10,2) NOT NULL,
+  `displayprice` decimal(16,2) NOT NULL,
   `sortorder` int(3) NOT NULL,
   `is_featured` tinyint(1) NOT NULL,
   PRIMARY KEY (`id`)

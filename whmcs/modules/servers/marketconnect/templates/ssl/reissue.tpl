@@ -2,10 +2,10 @@
 
 <div class="alert alert-info">
     <i class="fas fa-info-circle fa-fw"></i>
-    When reissueing a certificate the domain name cannot be changed and must be exactly the same.
+    When reissuing a certificate, you cannot change the domain name and it must remain exactly the same.
 </div>
 
-{include file="$template/includes/subheader.tpl" title=$LANG.sslserverinfo}
+<h2>{$LANG.sslserverinfo}</h2>
 
 <p>{$LANG.sslserverinfodetails}</p>
 
@@ -18,6 +18,7 @@
 
 <form method="post" action="clientarea.php?action=productdetails">
     <input type="hidden" name="id" value="{$serviceid}">
+    <input type="hidden" name="addonId" value="{$addonid}">
     <input type="hidden" name="modop" value="custom">
     <input type="hidden" name="a" value="{$actionName}">
 

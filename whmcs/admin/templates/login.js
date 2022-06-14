@@ -18,11 +18,6 @@ jQuery(document).ready(function() {
         verticalCenter();
     });
 
-    jQuery(".language-chooser li a").click(function() {
-        jQuery("#languageName").html(jQuery(this).html());
-        jQuery("#inputLanguage").val(jQuery(this).html());
-    });
-
     var submit = false;
 
     jQuery('#frmPasswordChange').on('submit', function(e) {

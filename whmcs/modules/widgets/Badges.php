@@ -11,8 +11,8 @@ use WHMCS\Orders;
 /**
  * Badges Widget.
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2018
- * @license https://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2021
+ * @license https://www.whmcs.com/eula/ WHMCS Eula
  */
 class Badges extends AbstractWidget
 {

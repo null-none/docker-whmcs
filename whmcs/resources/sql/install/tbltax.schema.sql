@@ -13,7 +13,7 @@ CREATE TABLE `tbltax` (
   `name` text COLLATE utf8_unicode_ci NOT NULL,
   `state` text COLLATE utf8_unicode_ci NOT NULL,
   `country` text COLLATE utf8_unicode_ci NOT NULL,
-  `taxrate` decimal(10,2) NOT NULL,
+  `taxrate` decimal(10,3) NOT NULL DEFAULT '0.000',
   PRIMARY KEY (`id`),
   KEY `state_country` (`state`(32),`country`(2))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

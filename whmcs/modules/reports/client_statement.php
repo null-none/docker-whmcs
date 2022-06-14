@@ -73,7 +73,8 @@ if ($userid) {
             ]
         )
         ->orderBy('date', 'asc')
-        ->get();
+        ->get()
+        ->all();
     foreach ($results as $result) {
         $invoiceid = $result->id;
         $date = $result->date;
@@ -105,7 +106,8 @@ if ($userid) {
     $results = Capsule::table('tblaccounts')
         ->where('userid', '=', $userid)
         ->orderBy('date', 'asc')
-        ->get();
+        ->get()
+        ->all();
     foreach ($results as $result) {
         $transid = $result->id;
         $date = $result->date;
@@ -126,7 +128,8 @@ if ($userid) {
             $relids = Capsule::table('tblinvoiceitems')
                 ->where('invoiceid', '=', $invoiceid)
                 ->orderBy('relid', 'asc')
-                ->pluck('relid');
+                ->pluck('relid')
+                ->all();
             foreach ($relids as $relid) {
                 $description .= "<a href=\"invoices.php?action=edit&id=$relid\" target=\"_blank\">"
                     . "#$relid</a>, ";

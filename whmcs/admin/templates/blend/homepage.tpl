@@ -1,12 +1,5 @@
 <div class="clearfix"></div>
 
-{if !empty($maintenancemode)}
-    <div class="errorbox" style="font-size:14px;">
-        {$_ADMINLANG.home.maintenancemode}
-    </div>
-    <br />
-{/if}
-
 {$infobox}
 
 {foreach from=$addons_html item=addon_html}

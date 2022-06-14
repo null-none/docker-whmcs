@@ -1,6 +1,7 @@
 <?php
 
 use WHMCS\Application;
+use WHMCS\Billing\Currency;
 use WHMCS\Config\Setting;
 use WHMCS\Exception\ProgramExit;
 use WHMCS\Product\Product;
@@ -77,11 +78,11 @@ if ($get=="name") {
     if (!is_numeric($currencyID)) {
         $currency = array();
     } else {
-        $currency = getCurrency('', $currencyID);
+        $currency = getCurrency(null, $currencyID);
     }
 
     if (!$currency || !is_array($currency) || !isset($currency['id'])) {
-        $currency = getCurrency();
+        $currency = Currency::factoryForClientArea();
     }
     $currencyID = $currency['id'];
 

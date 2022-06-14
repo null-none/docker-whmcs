@@ -1,10 +1,11 @@
 /*!
  * WHMCS Ajax Driven Modal Framework
  *
- * @copyright Copyright (c) WHMCS Limited 2005-2019
- * @license http://www.whmcs.com/license/ WHMCS Eula
+ * @copyright Copyright (c) WHMCS Limited 2005-2021
+ * @license https://www.whmcs.com/license/ WHMCS Eula
  */
-var ajaxModalSubmitEvents = [];
+var ajaxModalSubmitEvents = [],
+    ajaxModalPostSubmitEvents = [];
 jQuery(document).ready(function(){
     jQuery(document).on('click', '.open-modal', function(e) {
         e.preventDefault();
@@ -14,12 +15,17 @@ jQuery(document).ready(function(){
             modalTitle = jQuery(this).data('modal-title'),
             submitId = jQuery(this).data('btn-submit-id'),
             submitLabel = jQuery(this).data('btn-submit-label'),
+            submitColor = jQuery(this).data('btn-submit-color'),
             hideClose = jQuery(this).data('btn-close-hide'),
             disabled = jQuery(this).attr('disabled'),
             successDataTable = jQuery(this).data('datatable-reload-success');
 
+        var postData = '';
+        if (csrfToken) {
+            postData = {token: csrfToken};
+        }
         if (!disabled) {
-            openModal(url, '', modalTitle, modalSize, modalClass, submitLabel, submitId, hideClose, successDataTable);
+            openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel, submitId, submitColor, hideClose, successDataTable);
         }
     });
 
@@ -50,7 +56,7 @@ jQuery(document).ready(function(){
     });
 });
 
-function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel, submitId, hideClose, successDataTable) {
+function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel, submitId, submitColor, hideClose, successDataTable) {
     //set the text of the modal title
     jQuery('#modalAjax .modal-title').html(modalTitle);
 
@@ -58,11 +64,6 @@ function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel
     if (modalSize) {
         jQuery('#modalAjax').children('div[class="modal-dialog"]').addClass(modalSize);
     }
-    // set the modal class
-    if (modalClass) {
-        jQuery('#modalAjax').addClass(modalClass);
-    }
-
     // set the modal class
     if (modalClass) {
         jQuery('#modalAjax').addClass(modalClass);
@@ -83,13 +84,22 @@ function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel
         jQuery('#modalAjaxClose').hide();
     }
 
+    if (submitColor) {
+        jQuery('#modalAjax .modal-submit').removeClass('btn-primary')
+            .addClass('btn-' + submitColor);
+    }
+
     jQuery('#modalAjax .modal-body').html('');
 
     jQuery('#modalSkip').hide();
-    jQuery('#modalAjax .modal-submit').prop('disabled', true);
+    disableSubmit();
 
     // show modal
-    jQuery('#modalAjax').modal('show');
+    jQuery('#modalAjax').modal({
+        show: true,
+        keyboard: true,
+        backdrop: jQuery('#modalAjax').hasClass('static') ? 'static' : true
+    });
 
     // fetch modal content
     WHMCS.http.jqClient.post(url, postData, function(data) {
@@ -98,9 +108,23 @@ function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel
         jQuery('#modalAjax .modal-body').html('An error occurred while communicating with the server. Please try again.');
         jQuery('#modalAjax .loader').fadeOut();
     }).always(function () {
+        var modalForm = jQuery('#modalAjax').find('form');
+        // If a submitId is present, then we're working with a form and need to override the default event
+        if (submitId) {
+            modalForm.submit(function (event) {
+                submitIdAjaxModalClickEvent();
+                return false;
+            });
+        }
         if (successDataTable) {
-            var modalForm = jQuery('#modalAjax').find('form');
             modalForm.data('successDataTable', successDataTable);
+        }
+
+        // Since the content is dynamically fetched, we have to check for the elements we want here too
+        var inputs = jQuery(modalForm).find('input:not(input[type=checkbox],input[type=radio],input[type=hidden])');
+
+        if (inputs.length > 0) {
+            jQuery(inputs).first().focus();
         }
     });
 
@@ -123,13 +147,10 @@ function openModal(url, postData, modalTitle, modalSize, modalClass, submitLabel
 
 function submitIdAjaxModalClickEvent ()
 {
-    if (jQuery(this).hasClass('disabled')) {
-        return;
-    }
     var canContinue = true,
-        btn = jQuery(this);
-    btn.addClass('disabled');
-    jQuery('#modalAjax .loader').show();
+        loader = jQuery('#modalAjax .loader');
+    disableSubmit();
+    loader.show();
     if (ajaxModalSubmitEvents.length) {
         jQuery.each(ajaxModalSubmitEvents, function (index, value) {
             var fn = window[value];
@@ -139,8 +160,8 @@ function submitIdAjaxModalClickEvent ()
         });
     }
     if (!canContinue) {
-        btn.removeClass('disabled');
-        jQuery('#modalAjax .loader').hide();
+        enableSubmit();
+        loader.hide();
         return;
     }
     var modalForm = jQuery('#modalAjax').find('form');
@@ -155,6 +176,22 @@ function submitIdAjaxModalClickEvent ()
         function(data) {
             if (modalForm.data('successDataTable')) {
                 data.successDataTable = modalForm.data('successDataTable');
+            }
+            /**
+             * When actions should occur before the ajax modal is updated
+             * that do not fall into the standard actions.
+             * Calling code (ie the function defined in fn) should validate
+             * that the ajax modal being updated is the one that the code should
+             * run for, as there is potential for multiple ajax modals on the
+             * same page.
+             */
+            if (ajaxModalPostSubmitEvents.length) {
+                jQuery.each(ajaxModalPostSubmitEvents, function (index, value) {
+                    var fn = window[value];
+                    if (typeof fn === 'function') {
+                        fn(data, modalForm);
+                    }
+                });
             }
             updateAjaxModal(data);
         },
@@ -181,8 +218,7 @@ function submitIdAjaxModalClickEvent ()
             jQuery(modalBody).html(genericErrorMsg);
         }
         jQuery('#modalAjax .loader').fadeOut();
-    }).always(function () {
-        btn.removeClass('disabled');
+        enableSubmit();
     });
 }
 
@@ -200,7 +236,6 @@ function updateAjaxModal(data) {
     }
     if (data.redirect) {
         window.location = data.redirect;
-        dialogClose();
     }
     if (data.successWindow && typeof window[data.successWindow] === "function") {
         window[data.successWindow]();
@@ -259,14 +294,28 @@ function updateAjaxModal(data) {
         submitButton.on('click', submitIdAjaxModalClickEvent);
     }
 
-    jQuery('#modalAjax .loader').fadeOut();
-    jQuery('#modalAjax .modal-submit').removeProp('disabled');
+    if (data.disableSubmit) {
+        disableSubmit();
+    } else {
+        enableSubmit();
+    }
+
+    var dismissLoader = true;
+    if (typeof data.dismissLoader !== 'undefined') {
+        dismissLoader = data.dismissLoader;
+    }
+
+    dismissLoaderAfterRender(dismissLoader);
+
+    if (data.hideSubmit) {
+        ajaxModalHideSubmit();
+    }
 }
 
 // backwards compat for older dialog implementations
 
 function dialogSubmit() {
-    jQuery('#modalAjax .modal-submit').prop("disabled", true);
+    disableSubmit();
     jQuery('#modalAjax .loader').show();
     var postUrl = jQuery('#modalAjax').find('form').attr('action');
     WHMCS.http.jqClient.post(postUrl, jQuery('#modalAjax').find('form').serialize(),
@@ -294,5 +343,44 @@ function removeAjaxModalSubmitEvents(functionName) {
         if (index >= 0) {
             ajaxModalSubmitEvents.splice(index, 1);
         }
+    }
+}
+
+function addAjaxModalPostSubmitEvents(functionName) {
+    if (functionName) {
+        ajaxModalPostSubmitEvents.push(functionName);
+    }
+}
+
+function removeAjaxModalPostSubmitEvents(functionName) {
+    if (functionName) {
+        var index = ajaxModalPostSubmitEvents.indexOf(functionName);
+        if (index >= 0) {
+            ajaxModalPostSubmitEvents.splice(index, 1);
+        }
+    }
+}
+
+function disableSubmit()
+{
+    jQuery('#modalAjax .modal-submit').prop('disabled', true).addClass('disabled');
+}
+
+function enableSubmit()
+{
+    jQuery('#modalAjax .modal-submit').prop('disabled', false).removeClass('disabled');
+}
+
+function ajaxModalHideSubmit()
+{
+    jQuery('#modalAjax .modal-submit').hide();
+}
+
+function dismissLoaderAfterRender(showLoader)
+{
+    if (showLoader === false) {
+        jQuery('#modalAjax .loader').show();
+    } else {
+        jQuery('#modalAjax .loader').fadeOut();
     }
 }

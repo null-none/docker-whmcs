@@ -32,7 +32,7 @@ class PerforceDownloader extends VcsDownloader
         $ref = $package->getSourceReference();
         $label = $this->getLabelFromSourceReference($ref);
 
-        $this->io->writeError('    Cloning ' . $ref);
+        $this->io->writeError('Cloning ' . $ref);
         $this->initPerforce($package, $path, $url);
         $this->perforce->setStream($ref);
         $this->perforce->p4Login();
@@ -87,8 +87,6 @@ class PerforceDownloader extends VcsDownloader
     public function getLocalChanges(PackageInterface $package, $path)
     {
         $this->io->writeError('Perforce driver does not check for local changes before overriding', true);
-
-        return;
     }
 
     /**
@@ -96,9 +94,7 @@ class PerforceDownloader extends VcsDownloader
      */
     protected function getCommitLogs($fromReference, $toReference, $path)
     {
-        $commitLogs = $this->perforce->getCommitLogs($fromReference, $toReference);
-
-        return $commitLogs;
+        return $this->perforce->getCommitLogs($fromReference, $toReference);
     }
 
     public function setPerforce($perforce)

@@ -23,12 +23,13 @@ $reportdata["tableheadings"] = [
     "Annual Gross Profit"
 ];
 
-$currency = getCurrency('','1');
+$currency = getCurrency(null, 1);
 
 $results = Capsule::table('tblservers')
     ->where('disabled', '=', '0')
     ->orderBy('name', 'asc')
-    ->get();
+    ->get()
+    ->all();
 foreach ($results as $result) {
     $id = $result->id;
     $name = $result->name;
@@ -45,7 +46,8 @@ foreach ($results as $result) {
         ->where('server', '=', (int) $id)
         ->whereIn('domainstatus', ['Active', 'Suspended'])
         ->whereNotIn('billingcycle', ['Free Account', 'One Time'])
-        ->get();
+        ->get()
+        ->all();
     foreach ($services as $service) {
         $amount = $service->reportamt;
         $billingcycle = $service->billingcycle;
